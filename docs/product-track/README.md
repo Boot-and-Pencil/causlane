@@ -1,6 +1,6 @@
 # Causlane Product Development Track
 
-Дата сборки: 2026-06-21
+Дата сборки: 2026-06-26
 
 Этот пакет описывает полный трек развития продукта **Causlane**: от текущего contract/formal scaffold до public alpha, beta, 1.0 и post-1.0 направлений.
 
@@ -54,6 +54,10 @@ atomic files in this directory (`00-*`, `stages/*`, `milestones/*`,
 
 This product track is a planning corpus. It does not replace machine-derived
 formal status, receipts, stale-check, coverage reports, or release gate outputs.
+
+Current publication status: the public GitHub baseline and package file-list
+review are recorded; the active S11 release action is the staged PUB5 crates.io
+dry-run/publish sequence.
 
 ## Implementation Handoff
 

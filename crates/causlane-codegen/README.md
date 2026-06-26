@@ -8,6 +8,10 @@ bundles.
 This crate is experimental and pre-alpha. Generated output contracts may change
 before `0.1`.
 
+Publication status is tracked in the public repository: package file-list review
+is recorded, and upload must follow the staged runbook in
+<https://github.com/Boot-and-Pencil/causlane/blob/main/PUBLISHING.md>.
+
 ## Role In The Workspace
 
 The crate consumes `CompiledDispatchBundle` artifacts and emits Alloy, P, Kani,

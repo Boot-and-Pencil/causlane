@@ -1,5 +1,9 @@
 # Examples
 
+The current repository keeps example documentation intentionally small for the
+`0.0.1` pre-alpha publication track. These entries describe intended example
+coverage; they are not production integration claims.
+
 Planned examples:
 
 ```text

@@ -41,6 +41,16 @@ replace machine-derived formal status or gate outputs.
 - [`product-track/roadmap.json`](product-track/roadmap.json)
 - [`product-track/roadmap.yaml`](product-track/roadmap.yaml)
 
+## Release And Publication
+
+The current public-release handoff lives under [`release/`](release/). Start
+with [`release/publication-prep.md`](release/publication-prep.md), then use
+[`../PUBLISHING.md`](../PUBLISHING.md) and
+[`release/publish-all-crates-runbook.md`](release/publish-all-crates-runbook.md)
+for the staged crates.io sequence. Generated readiness status remains
+[`release/publish-readiness.md`](release/publish-readiness.md); do not hand-edit
+it.
+
 ## Formal Lifecycle
 
 The current formal gate authority remains generated artifacts, receipts,

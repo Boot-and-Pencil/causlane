@@ -7,6 +7,10 @@
 This crate is experimental and pre-alpha. It is not a production workflow
 engine, job queue or scheduler. APIs may change before `0.1`.
 
+Publication status is tracked in the public repository: package file-list review
+is recorded, and upload must follow the staged runbook in
+<https://github.com/Boot-and-Pencil/causlane/blob/main/PUBLISHING.md>.
+
 ## Role In The Workspace
 
 `causlane-core` owns the domain model, lifecycle rules, kernel contracts and
@@ -24,4 +28,3 @@ HTTP, workflow-engine or telemetry dependency.
 ## Features
 
 This crate currently has no optional Cargo features.
-

@@ -24,6 +24,7 @@ Repository-specific gates:
 
 ```bash
 python3 tools/architecture-lint --json | jq -e '.status == "pass"'
+python3 tools/pre-publication-review-gate --json | jq -e '.status == "pass"'
 tools/schema-validate-all
 tools/publish-readiness --check
 ```
@@ -39,6 +40,10 @@ sequence in `PUBLISHING.md` and `docs/release/publish-all-crates-runbook.md`.
 The first planned public upload is `0.0.1`, not `0.1.0`. Treat it as a pre-alpha
 bootstrap release whose purpose is package availability, dependency deployment
 and public provenance — not stable API commitment.
+
+The public repository baseline and package file-list review are recorded. The
+remaining upload work is the staged one-crate dry-run/publish sequence in
+dependency order, beginning with `causlane-core`.
 
 ## Tagging
 

@@ -8,9 +8,10 @@ bootstrap release. A later `0.1.x` release is the first public alpha.
 
 ## Current sub-track: publication bootstrap
 
-The immediate next action is not upload and not GitHub opening. It is the full
-publication refactor and readiness hardening sequence. PUB5 is unreachable until
-PUB0-PUB4 are complete:
+The public GitHub baseline is open, PUB0-PUB4 are recorded complete, and package
+file-list review is recorded for every workspace crate. The immediate next
+action is the dependency-ordered PUB5 dry-run/publish sequence, beginning with
+`causlane-core`:
 
 ```text
 PUB0 refactor first
@@ -71,8 +72,8 @@ PUB6 post-publication stabilization
 - **Outcome:** licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - **Definition of done:**
   - root security and AI/provenance docs are present;
-  - package file lists are inspected;
-  - secret/context scan is recorded before public baseline.
+  - package file-list review is recorded for the selected baseline;
+  - secret/context scan is recorded before publication.
 
 ### M11.6 — Contributor guide
 

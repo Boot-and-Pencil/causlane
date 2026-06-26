@@ -36,7 +36,7 @@ Runtime adapters decide how to physically execute already-authorized work.
 - formal doctor/install/smoke tooling;
 - hexagonal crate layout.
 
-Формальные модели v1 уже образуют рабочий verification contour (generated artifacts + receipts + stale-check + negative controls, `formal-verify-all` зелёный под default-профилем). Reference kernel (S03), сценарии/replay/contract testing (S04), constraint plane / frontier scheduler (S05), AuthZ/approval/capability plane (S06) и Observability/explainability/DX (S07) закреплены — `KernelContracts` единая runtime/replay authority; tiers/lanes, constraints/frontier, drain/fence, why-not-parallel, authz policy, approvals, scoped execution capabilities, projection redaction, tracing, support bundles and cookbook recipes кодифицированы чистыми модулями/docs с tests/replay coverage. Текущий активный этап — runtime/adapters (S08); затем alpha/beta/1.0.
+Формальные модели v1 уже образуют рабочий verification contour (generated artifacts + receipts + stale-check + negative controls, `formal-verify-all` зелёный под default-профилем). Reference kernel (S03), сценарии/replay/contract testing (S04), constraint plane / frontier scheduler (S05), AuthZ/approval/capability plane (S06) и Observability/explainability/DX (S07) закреплены — `KernelContracts` единая runtime/replay authority; tiers/lanes, constraints/frontier, drain/fence, why-not-parallel, authz policy, approvals, scoped execution capabilities, projection redaction, tracing, support bundles and cookbook recipes кодифицированы чистыми модулями/docs с tests/replay coverage. Product engineering continues through S08/S09/S10; the current release-preparation track is S11/PUB5 staged crates.io publication after the public baseline and package file-list review.
 
 ## Product stages
 
@@ -66,7 +66,7 @@ Runtime adapters decide how to physically execute already-authorized work.
 Pre-alpha bootstrap можно выпускать, когда:
 
 - refactor-before-publication gate records PUB0-PUB4 complete;
-- package file lists are manually reviewed;
+- package file-list review is recorded;
 - public docs say experimental/pre-alpha;
 - GitHub public baseline is curated and scanned;
 - staged publish runbook is followed;

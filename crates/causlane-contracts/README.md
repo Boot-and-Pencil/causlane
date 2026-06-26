@@ -8,6 +8,10 @@ scenario contract types for Causlane.
 This crate is experimental and pre-alpha. It is not a production registry
 service. APIs and serialized shapes may change before `0.1`.
 
+Publication status is tracked in the public repository: package file-list review
+is recorded, and upload must follow the staged runbook in
+<https://github.com/Boot-and-Pencil/causlane/blob/main/PUBLISHING.md>.
+
 ## Role In The Workspace
 
 The crate turns registry and bundle documents into typed contract values and
@@ -24,4 +28,3 @@ runtime checks.
 ## Features
 
 This crate currently has no optional Cargo features.
-

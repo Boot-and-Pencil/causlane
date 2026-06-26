@@ -51,26 +51,27 @@ owner and expiry, and not used to support a release/publication claim.
 
 ## Current Focus
 
-The current roadmap focus is the publication-preparation sub-track, not upload:
+The current roadmap focus is the S11/PUB5 staged publication sub-track. Upload
+is still not a batch action; each crate must pass its own dry-run and publish
+step after internal registry dependencies are available.
 
 ```text
-completed in this branch:
+recorded complete:
   S11/PUB0 Repository and architecture refactor
   S11/PUB1 Readability and maintainability
   S11/PUB2 Public API review
   S11/PUB3 Human and agent documentation
-
-active_next:
   S11/PUB4 GitHub baseline and history curation
 
 only after that:
+active_next:
   S11/PUB5 staged crates.io publication
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but they are not the immediate
-publication-preparation action. Do not run crates.io upload or open the public
-GitHub baseline until the refactor-first gate in
-`docs/release/refactor-before-publication-gate.md` is complete.
+publication-preparation action. Do not upload crates outside `PUBLISHING.md` and
+`docs/release/publish-all-crates-runbook.md`; the next command is the
+`causlane-core` dry-run.
 
 ## Entry Checklist
 

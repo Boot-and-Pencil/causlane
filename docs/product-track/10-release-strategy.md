@@ -9,9 +9,10 @@
 - `1.0.0`: stable API and compatibility policy.
 
 The first crates.io publication target is `0.0.1`: a public pre-alpha bootstrap
-release for package availability and provenance, not a stable alpha. It is still
-blocked until the refactor-before-publication gate completes; local readiness
-probes do not authorize upload by themselves.
+release for package availability and provenance, not a stable alpha. The
+refactor-before-publication gate, public-baseline handoff and package file-list
+review are recorded; local readiness probes still do not authorize upload by
+themselves. Upload proceeds only through the staged one-crate runbook.
 
 ## Crate publication strategy
 
@@ -30,8 +31,9 @@ publish-readiness report pass
   means deterministic repo-local no-upload checks passed.
 
 actual upload readiness
-  additionally requires clean history, secret scan, package-list inspection,
-  staged registry dry-run and publication of internal dependencies in order.
+  additionally requires the recorded public-baseline evidence to remain valid,
+  package-list inspection for the selected baseline, staged registry dry-run
+  and publication of internal dependencies in order.
 ```
 
 ## Stability policy
@@ -56,10 +58,10 @@ Keep unstable first:
 ## Pre-alpha bootstrap criteria (`0.0.1`)
 
 - refactor-before-publication gate records PUB0-PUB4 complete;
-- package lists are manually reviewed;
+- package file-list review is recorded;
 - public docs say experimental/pre-alpha;
 - AI/provenance policy exists;
-- public GitHub baseline is curated;
+- public GitHub baseline is curated and scanned;
 - staged publish runbook is followed;
 - crates do not overclaim workflow-engine, production-runtime or formal-proof
   readiness.

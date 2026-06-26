@@ -90,8 +90,14 @@ def main(argv: list[str]) -> int:
         prep = read("docs/release/publication-prep.md")
         if "refactor-before-publication-gate.md" not in prep:
             add(findings, "PUBDOC-011", "error", "docs/release/publication-prep.md", "publication prep does not point to the hard refactor-first gate", "link docs/release/refactor-before-publication-gate.md before upload instructions")
-        if "public GitHub opening" not in prep or "PUB0-PUB4" not in prep:
-            add(findings, "PUBDOC-012", "warning", "docs/release/publication-prep.md", "publication prep does not clearly block GitHub opening until refactor/docs/API gates complete", "state that PUB0-PUB4 precede GitHub opening and crates.io upload")
+        has_pub4_gate = "PUB0-PUB4" in prep and (
+            "recorded complete" in prep or "precede GitHub opening" in prep
+        )
+        has_upload_block = "crates.io upload is blocked" in prep or (
+            "public GitHub opening" in prep and "remain blocked" in prep
+        )
+        if not has_pub4_gate or not has_upload_block:
+            add(findings, "PUBDOC-012", "warning", "docs/release/publication-prep.md", "publication prep does not clearly bind upload to PUB0-PUB4 gate evidence", "state that PUB0-PUB4 gate evidence must remain valid before crates.io upload")
 
     if exists("docs/release/refactor-before-publication-gate.md"):
         gate = read("docs/release/refactor-before-publication-gate.md")

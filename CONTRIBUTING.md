@@ -69,10 +69,11 @@ Publication preparation changes must not add runtime features. They may improve:
 - package metadata;
 - generated-readiness tooling.
 
-Before opening a publication PR, verify:
+Before merging publication-preparation changes, verify:
 
 ```bash
 python3 tools/architecture-lint --json | jq -e '.status == "pass"'
+python3 tools/pre-publication-review-gate --json | jq -e '.status == "pass"'
 tools/schema-validate-all
 tools/publish-readiness --check
 ```

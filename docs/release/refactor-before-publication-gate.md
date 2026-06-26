@@ -1,20 +1,20 @@
 # Refactor-before-publication gate
 
-**Status:** mandatory pre-publication gate.
+**Status:** mandatory pre-publication gate; PUB0-PUB4 are recorded complete for
+the current public baseline, and package file-list review is recorded for PUB5.
 
-Causlane must not open the public GitHub baseline or upload any crate to
-crates.io until the publication refactor track has completed. The current next
-repository action is therefore:
+Causlane must not upload any crate to crates.io unless this gate remains valid
+for the selected baseline. The current next repository action is:
 
 ```text
-finish the publication refactor track first;
-then prepare the public repository;
-then publish crates in dependency order.
+run the staged PUB5 one-crate dry-run/publish sequence;
+start with causlane-core;
+wait for indexed internal dependencies before dependent crates.
 ```
 
 This document exists to remove ambiguity between the normal product roadmap and
 the publication track. S11 is active only as **publication preparation**; it does
-not authorize upload while refactor gates are open.
+not authorize upload outside the staged runbook.
 
 ## Required order
 
@@ -157,8 +157,9 @@ Update 2026-06-26: PUB3 documentation readiness is recorded. Root publication,
 contribution, security, release and AI/agent policy docs exist; every workspace
 crate README states experimental/pre-alpha status; CLI/codegen README notes now
 make the non-authority boundary explicit; and generated publish-readiness
-artifacts were regenerated with `tools/publish-readiness --write`. This does
-not authorize upload or public baseline opening; PUB4 remains next.
+artifacts were regenerated with `tools/publish-readiness --write`. At that
+point, this did not authorize upload or public baseline opening; PUB4 remained
+the next gate.
 
 ## PUB4 — GitHub baseline and history curation
 

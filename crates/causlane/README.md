@@ -13,11 +13,13 @@ tooling and the CLI live in separate workspace crates.
 This package is experimental and pre-alpha. It is not a production workflow
 engine, job queue or scheduler. APIs may change before `0.1`.
 
-Before any real crates.io upload, review package contents and run the dry-run
-commands in the repository release documentation.
+Package file-list review is recorded for the `0.0.1` pre-alpha publication
+track. Upload still follows the dependency-ordered staged runbook; this README
+does not authorize crates.io publication by itself.
 
 - Project overview: <https://github.com/Boot-and-Pencil/causlane>
 - Publishing notes: <https://github.com/Boot-and-Pencil/causlane/blob/main/PUBLISHING.md>
+- Package review: <https://github.com/Boot-and-Pencil/causlane/blob/main/docs/release/pub5-package-file-list-review.md>
 
 ## Minimal Import
 

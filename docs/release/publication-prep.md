@@ -9,9 +9,9 @@ This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
 
 The authoritative ordering gate is `docs/release/refactor-before-publication-gate.md`.
-If that gate and the PUB0-PUB4 checklist are not complete, crates.io upload and
-public GitHub opening remain blocked even when local metadata/readiness probes
-are green.
+PUB0-PUB4 are recorded complete there for the current public baseline. If future
+changes invalidate the gate evidence, crates.io upload is blocked even when
+local metadata/readiness probes are green.
 
 ## Scope
 

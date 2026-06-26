@@ -7,6 +7,10 @@
 This crate is experimental and pre-alpha. It diagnoses formal-tool availability
 and readiness facts; it does not download tools or mutate the host environment.
 
+Publication status is tracked in the public repository: package file-list review
+is recorded, and upload must follow the staged runbook in
+<https://github.com/Boot-and-Pencil/causlane/blob/main/PUBLISHING.md>.
+
 ## Role In The Workspace
 
 The crate takes already-gathered environment facts and requirement tokens, then
@@ -30,4 +34,3 @@ This crate currently has no optional Cargo features.
 This crate does not prove dispatcher invariants. It reports formal-toolchain
 readiness facts consumed by CLI/release gates. Proof and model generation and
 checking live in `causlane-codegen`, `causlane-cli` and external formal tools.
-

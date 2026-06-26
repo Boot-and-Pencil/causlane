@@ -28,6 +28,7 @@ Include:
 Publishing to crates.io is permanent for a version. Yanking does not delete
 uploaded source. If a secret is published, rotate it immediately.
 
-Before publication, run secret scanning and inspect package file lists as
-described in `PUBLISHING.md`.
-
+Before publication, confirm the recorded PUB4 secret scan and PUB5 package
+file-list review still match the selected upload baseline. If the baseline or
+package contents changed, repeat the affected checks as described in
+`PUBLISHING.md`.

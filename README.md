@@ -67,11 +67,16 @@ Audit records the truth.
 Projections explain the truth.
 ```
 
-## Installation status
+## Publication status
 
-The first public release is planned as an experimental pre-alpha. The library
-facade crate is `causlane`; the command-line binary is shipped by the
-`causlane-cli` package. After publication, install the CLI with:
+The first public crates.io release is staged as an experimental `0.0.1`
+pre-alpha bootstrap. The repository is public, PUB4 public-baseline evidence is
+recorded, and PUB5 package file-list review is complete. The next release
+action is the dependency-ordered one-crate dry-run/publish sequence, beginning
+with `causlane-core`.
+
+The library facade crate is `causlane`; the command-line binary is shipped by
+the `causlane-cli` package. After crates.io publication, install the CLI with:
 
 ```bash
 cargo install causlane-cli
@@ -96,7 +101,8 @@ Maintainers working in this repository may use checked-in wrapper scripts and
 
 ## Project Name
 
-The working crate name is `causlane` — a contraction of causal ordering and execution lanes. Before publishing, run:
+The working crate name is `causlane` — a contraction of causal ordering and
+execution lanes. Before uploading a crate version, run:
 
 ```bash
 cargo search causlane

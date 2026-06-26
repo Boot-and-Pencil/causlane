@@ -3,7 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 Causlane uses SemVer-compatible versioning while it remains pre-1.0. The first
-public release is planned as an experimental `0.0.1` package-family baseline.
+public upload target is an experimental `0.0.1` package-family baseline.
+Publication is staged and not yet uploaded.
 
 ## [0.0.1] - Unreleased
 
@@ -21,4 +22,3 @@ public release is planned as an experimental `0.0.1` package-family baseline.
 
 This release is experimental and not production-ready. APIs may change before
 `0.1`.
-

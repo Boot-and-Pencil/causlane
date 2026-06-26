@@ -27,11 +27,16 @@ before publication.
 
 ## Required Before Any Upload
 
-The publication refactor track must be complete before any upload. Treat
-`docs/release/refactor-before-publication-gate.md` as a hard prerequisite, not
-as advisory prose. In particular, publication is blocked until PUB0-PUB4 are
-complete: refactor, readability/maintainability, public API review, human/agent
-docs and GitHub baseline/history preparation.
+The publication refactor track is the hard prerequisite for upload; treat
+`docs/release/refactor-before-publication-gate.md` as release evidence, not
+advisory prose. PUB0-PUB4 are recorded complete, PUB4 public-baseline evidence
+is recorded in `docs/release/pub4-public-baseline-handoff.md`, and PUB5 package
+file-list review is recorded in
+`docs/release/pub5-package-file-list-review.md`.
+
+Run the gates below immediately before upload. If any publication-facing source,
+metadata, package include list or generated readiness output changes, repeat the
+affected evidence step before publishing.
 
 ```bash
 git status --short
@@ -49,10 +54,10 @@ A generated readiness report that says `publication_execution.status =
 "deferred"` is not an upload approval. It only records deterministic
 repository-local readiness.
 
-Before opening the public GitHub baseline or uploading PUB5 crates, complete the
-PUB4 baseline handoff in `docs/release/pub4-public-baseline-handoff.md`. That
-handoff selects Gitleaks as the required secret scanner and records the exact
-baseline, scan evidence, branch-protection confirmation and release owner.
+The public GitHub baseline is already open. Before uploading PUB5 crates,
+confirm the PUB4 handoff is still valid for the selected baseline; it selects
+Gitleaks as the required secret scanner and records the exact baseline, scan
+evidence, branch-protection confirmation and release owner.
 
 ## Publication Order
 
@@ -76,12 +81,14 @@ File-list inspection can be done for all crates before upload:
 
 ```bash
 for p in causlane-core causlane-formal causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
-  cargo package -p "$p" --list
+  cargo package -p "$p" --list --locked
   echo "reviewed package file list for $p"
 done
 ```
 
-Review every list manually.
+Review every list manually. The current review is recorded in
+`docs/release/pub5-package-file-list-review.md`; repeat it if package contents
+change before upload.
 
 ## Staged Dry-run And Publish
 
