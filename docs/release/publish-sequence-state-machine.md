@@ -3,6 +3,12 @@
 This document defines the safe state transitions for first full-workspace
 publication.
 
+## Current Recorded State
+
+As of 2026-06-26, `causlane-core 0.0.1` is `Published` and `Indexed` on
+crates.io. Continue only through the staged order below; do not skip ahead to
+dependent crates.
+
 ## States
 
 ```text

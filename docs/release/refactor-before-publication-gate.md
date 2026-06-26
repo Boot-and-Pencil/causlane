@@ -221,6 +221,14 @@ Update 2026-06-26: the `causlane-core` dry-run passed and is recorded in
 The next irreversible PUB5 action is publishing `causlane-core`, then waiting
 for it to be indexed before any dependent crate dry-run.
 
+Update 2026-06-26: `causlane-core 0.0.1` was published and indexed on
+crates.io. Evidence is recorded in
+`docs/release/pub5-causlane-core-publication.md`. The publication state is now
+`Indexed(causlane-core)`; the next runbook step, if maintainers continue, is a
+one-crate dry-run for `causlane-formal`. YAML-facing crates remain blocked by
+the M11.5 dependency-hygiene decision until that debt is resolved or explicitly
+accepted.
+
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.
 Immediate hygiene fixes were folded into M11.5 and the release plan:

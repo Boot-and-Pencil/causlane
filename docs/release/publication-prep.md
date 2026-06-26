@@ -1,10 +1,11 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** decide whether to continue after the passed
-`causlane-core` dry-run. The next irreversible command would be
-`cargo publish -p causlane-core --locked`; dependent crates must wait until
-their internal dependencies are published and indexed.
+**Current next action:** decide whether to continue after `causlane-core 0.0.1`
+was published and indexed. The next reversible PUB5 command would be
+`cargo publish -p causlane-formal --dry-run --locked`; do not publish
+YAML-facing crates until the M11.5 dependency-hygiene debt is resolved or
+explicitly accepted for the pre-alpha release.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
