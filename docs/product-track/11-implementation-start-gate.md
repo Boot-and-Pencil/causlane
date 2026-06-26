@@ -70,8 +70,8 @@ active_next:
 
 S08/S09/S10 remain product-roadmap workstreams, but they are not the immediate
 publication-preparation action. Do not upload crates outside `PUBLISHING.md` and
-`docs/release/publish-all-crates-runbook.md`; the next command is the
-`causlane-core` dry-run.
+`docs/release/publish-all-crates-runbook.md`; the next irreversible command,
+if maintainers continue, is publishing `causlane-core`.
 
 ## Entry Checklist
 

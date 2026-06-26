@@ -7,9 +7,9 @@ Causlane must not upload any crate to crates.io unless this gate remains valid
 for the selected baseline. The current next repository action is:
 
 ```text
-run the staged PUB5 one-crate dry-run/publish sequence;
-start with causlane-core;
-wait for indexed internal dependencies before dependent crates.
+decide whether to publish causlane-core after its passed dry-run;
+wait for causlane-core to be indexed before dependent crate dry-runs;
+continue the staged PUB5 sequence one crate at a time.
 ```
 
 This document exists to remove ambiguity between the normal product roadmap and
@@ -212,8 +212,14 @@ Required outcomes:
 
 Update 2026-06-26: package file lists were inspected for every workspace crate
 and recorded in `docs/release/pub5-package-file-list-review.md`. No dry-run or
-upload was performed as part of that review. The next PUB5 action is the staged
-one-crate dry-run/publish sequence, starting with `causlane-core`.
+upload was performed as part of that review. The next PUB5 action at that point
+was the staged one-crate dry-run/publish sequence, starting with
+`causlane-core`.
+
+Update 2026-06-26: the `causlane-core` dry-run passed and is recorded in
+`docs/release/pub5-causlane-core-dry-run.md`. No crates.io upload was performed.
+The next irreversible PUB5 action is publishing `causlane-core`, then waiting
+for it to be indexed before any dependent crate dry-run.
 
 ## Non-negotiable rule
 

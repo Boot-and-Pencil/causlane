@@ -1,7 +1,6 @@
 # PUB5 Package File-List Review
 
-**Status:** package file-list inspection complete; no crates.io dry-run or
-upload performed.
+**Status:** package file-list inspection complete.
 
 This hand-maintained evidence records the local package inventory review for
 the first public `0.0.1` workspace release. It is release evidence only; the
@@ -73,11 +72,12 @@ Accepted intentional inclusions:
 The workspace may move from `LocalReady` to `PackageReviewed(all crates)` in
 `docs/release/publish-sequence-state-machine.md`.
 
-The next command in the staged publication runbook is the first one-crate dry
-run:
+The first one-crate dry-run has since passed for `causlane-core` and is recorded
+in `docs/release/pub5-causlane-core-dry-run.md`. The next irreversible command,
+if maintainers choose to continue, is:
 
 ```bash
-cargo publish -p causlane-core --dry-run --locked
+cargo publish -p causlane-core --locked
 ```
 
 Do not dry-run dependent crates until their internal registry dependencies have

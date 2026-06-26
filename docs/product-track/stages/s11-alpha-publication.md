@@ -8,10 +8,11 @@ bootstrap release. A later `0.1.x` release is the first public alpha.
 
 ## Current sub-track: publication bootstrap
 
-The public GitHub baseline is open, PUB0-PUB4 are recorded complete, and package
-file-list review is recorded for every workspace crate. The immediate next
-action is the dependency-ordered PUB5 dry-run/publish sequence, beginning with
-`causlane-core`:
+The public GitHub baseline is open, PUB0-PUB4 are recorded complete, package
+file-list review is recorded for every workspace crate, and the `causlane-core`
+dry-run has passed. The immediate next action is an explicit maintainer decision
+on whether to publish `causlane-core`, then wait for indexing before any
+dependent crate dry-run:
 
 ```text
 PUB0 refactor first

@@ -56,8 +56,8 @@ This product track is a planning corpus. It does not replace machine-derived
 formal status, receipts, stale-check, coverage reports, or release gate outputs.
 
 Current publication status: the public GitHub baseline and package file-list
-review are recorded; the active S11 release action is the staged PUB5 crates.io
-dry-run/publish sequence.
+review are recorded, and the `causlane-core` dry-run has passed; the active S11
+release action is the maintainer decision on whether to publish `causlane-core`.
 
 ## Implementation Handoff
 

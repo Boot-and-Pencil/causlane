@@ -41,9 +41,9 @@ The first planned public upload is `0.0.1`, not `0.1.0`. Treat it as a pre-alpha
 bootstrap release whose purpose is package availability, dependency deployment
 and public provenance — not stable API commitment.
 
-The public repository baseline and package file-list review are recorded. The
-remaining upload work is the staged one-crate dry-run/publish sequence in
-dependency order, beginning with `causlane-core`.
+The public repository baseline and package file-list review are recorded, and
+the `causlane-core` dry-run has passed. The next irreversible step is publishing
+`causlane-core`, then waiting for indexing before any dependent crate dry-run.
 
 ## Tagging
 
