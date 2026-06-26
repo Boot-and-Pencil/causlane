@@ -1,6 +1,7 @@
 # PUB4 Public Baseline Handoff
 
-**Status:** required before public GitHub opening or PUB5 upload.
+**Status:** complete for public GitHub opening; required evidence remains part
+of the PUB5 preflight.
 
 This is the hand-maintained handoff for the curated public GitHub baseline. It
 records the release evidence that cannot be derived from repository-local
@@ -16,11 +17,11 @@ repo maintainers after PUB0-PUB3 have passed.
 Record the baseline before scanning:
 
 ```text
-baseline_ref:
-baseline_commit:
-operator:
-date:
-host:
+baseline_ref: refs/heads/main
+baseline_commit: e2c376803a578dbe1db688b2db194f657f37e812
+operator: Vitalii Lobanov / vitalii-lobanov
+date: 2026-06-26
+host: dispatcher
 ```
 
 The baseline is not ready for public opening if `git status --short` is non-empty
@@ -41,11 +42,11 @@ Required evidence:
 
 ```text
 scanner: gitleaks
-scanner_version:
-command: gitleaks git --redact --report-format json --report-path target/causlane/gitleaks-public-baseline.json .
-exit_code:
-report_path: target/causlane/gitleaks-public-baseline.json
-scanned_commit:
+scanner_version: version is set by build process
+command: gitleaks git --log-opts=e2c376803a578dbe1db688b2db194f657f37e812 --redact --report-format json --report-path target/causlane/gitleaks-clean-main-exact.json .
+exit_code: 0
+report_path: target/causlane/gitleaks-clean-main-exact.json
+scanned_commit: e2c376803a578dbe1db688b2db194f657f37e812
 ```
 
 Pass condition: exit code `0` and no unreviewed findings. Any real secret blocks
@@ -83,14 +84,14 @@ Before inviting external contributors:
 PUB4 is complete only when the release branch or release issue records:
 
 ```text
-baseline_commit:
-gitleaks_version:
-gitleaks_exit_code:
-gitleaks_report_path:
-context_pack_scan_exit_code:
-publish_readiness_online_repository_visibility:
-branch_protection_confirmed_by:
-release_owner:
+baseline_commit: e2c376803a578dbe1db688b2db194f657f37e812
+gitleaks_version: version is set by build process
+gitleaks_exit_code: 0
+gitleaks_report_path: target/causlane/gitleaks-clean-main-exact.json
+context_pack_scan_exit_code: 0
+publish_readiness_online_repository_visibility: public
+branch_protection_confirmed_by: vitalii-lobanov
+release_owner: Vitalii Lobanov
 ```
 
 Do not proceed to PUB5 while any field is missing or while

@@ -1,8 +1,9 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** run the publication refactor track before any GitHub
-opening or crates.io upload.
+**Current next action:** inspect package file lists and follow the staged PUB5
+publication runbook; crates.io upload remains blocked until those checks are
+complete.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.

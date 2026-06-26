@@ -190,6 +190,15 @@ baseline and records the branch-protection/release-owner handoff fields. The
 scan report stays outside the repository; this document is release evidence, not
 a generated truth artifact.
 
+Update 2026-06-26: PUB4 GitHub opening is complete. `main` was rewritten to the
+single curated public baseline commit
+`e2c376803a578dbe1db688b2db194f657f37e812`, the repository now resolves
+publicly, Gitleaks and context-pack scans passed on that baseline, and `main`
+branch protection requires the CI jobs `repository gates`, `rust workspace` and
+`declared MSRV`. Force pushes and branch deletion are disabled. This completes
+the GitHub-opening part of PUB4; PUB5 upload still requires package file-list
+inspection and the staged publication runbook.
+
 ## PUB5 — crates.io staged publication
 
 Required outcomes:
