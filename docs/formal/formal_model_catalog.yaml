@@ -1,0 +1,77 @@
+schema_version: 1
+status: proposed
+source: docs/formal/01-formal-model-catalog.md
+lanes: [replay, alloy, p, kani, verus, lean4]
+models:
+  - id: FM-000
+    title: Authority-chain model
+    primary_lanes: [tooling, kani, lean4]
+    protocols: [PR-000]
+  - id: FM-001
+    title: Bundle canonicalization and compatibility model
+    primary_lanes: [tooling, kani, lean4]
+    protocols: [PR-000, PR-013]
+  - id: FM-002
+    title: Formal IR lowering model
+    primary_lanes: [kani, lean4]
+    protocols: [PR-000]
+  - id: FM-003
+    title: Scenario and negative-control model
+    primary_lanes: [replay, alloy, p]
+    protocols: [PR-010]
+  - id: FM-004
+    title: Dispatch lifecycle grammar model
+    primary_lanes: [replay, alloy, p, kani, verus, lean4]
+    protocols: [PR-001]
+  - id: FM-005
+    title: Barrier and execution capability model
+    primary_lanes: [replay, alloy, p, kani, verus, lean4]
+    protocols: [PR-008]
+  - id: FM-006
+    title: Witness and anchor attestation model
+    primary_lanes: [replay, alloy, p, kani, verus, lean4]
+    protocols: [PR-002, PR-003]
+  - id: FM-007
+    title: Authorization evidence model
+    primary_lanes: [replay, alloy, p, kani, verus, lean4]
+    protocols: [PR-004]
+  - id: FM-008
+    title: Lease conflict merge and drain model
+    primary_lanes: [replay, p, kani, verus, lean4]
+    protocols: [PR-005, PR-006, PR-007]
+  - id: FM-009
+    title: Observed truth and projection model
+    primary_lanes: [replay, alloy, p, kani, verus, lean4]
+    protocols: [PR-003]
+  - id: FM-010
+    title: Overlay consequence profile and route model
+    primary_lanes: [kani, verus, lean4]
+    protocols: [PR-012]
+  - id: FM-011
+    title: Constraint update model
+    primary_lanes: [p, kani, verus, lean4]
+    protocols: [PR-013]
+  - id: FM-012
+    title: Replay oracle soundness model
+    primary_lanes: [replay, kani, verus, lean4]
+    protocols: [PR-009]
+  - id: FM-013
+    title: Runtime adapter port compliance model
+    primary_lanes: [kani, verus, p]
+    protocols: [PR-008]
+  - id: FM-014
+    title: Idempotence retry and duplicate execution model
+    primary_lanes: [p, replay, kani, lean4]
+    protocols: [PR-001, PR-008]
+  - id: FM-015
+    title: Receipt coverage and exception model
+    primary_lanes: [tooling, kani, lean4]
+    protocols: [PR-000, PR-011]
+  - id: FM-016
+    title: Migration compatibility and deprecation model
+    primary_lanes: [tooling, kani, lean4]
+    protocols: [PR-013]
+  - id: FM-017
+    title: Security attestation model
+    primary_lanes: [kani, verus, lean4]
+    protocols: [PR-008]

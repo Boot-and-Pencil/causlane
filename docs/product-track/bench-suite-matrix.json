@@ -1,0 +1,54 @@
+{
+  "schema": "causlane.bench-suite-matrix.v1",
+  "milestone": "M09.1",
+  "status": "done_or_near_done",
+  "threshold_enforced": false,
+  "runner": "cargo bench -p causlane --bench dispatch_baseline_bench_suite --locked",
+  "build_gate": "cargo bench -p causlane --bench dispatch_baseline_bench_suite --locked --no-run",
+  "benchmarks": [
+    {
+      "id": "registry_normalize_from_yaml",
+      "measures": "RegistryManifest::from_yaml_str",
+      "fixture": "contracts/examples/release_promote.registry.yaml"
+    },
+    {
+      "id": "plan_hash_release_promote",
+      "measures": "PlanHashMaterial::compute_plan_hash",
+      "fixture": "release_promote_plan_material"
+    },
+    {
+      "id": "bundle_load_from_json",
+      "measures": "CompiledDispatchBundle::from_json_str",
+      "fixture": "release_promote compiled bundle JSON"
+    },
+    {
+      "id": "replay_verify_with_bundle",
+      "measures": "ReplayTrace::verify_with_bundle",
+      "fixture": "contracts/scenarios/release_promote_success.scenario.yaml"
+    },
+    {
+      "id": "frontier_conflict_selection",
+      "measures": "select_frontier",
+      "fixture": "ready op graph with lane capacity and write-scope conflict"
+    },
+    {
+      "id": "lease_grant_exclusive",
+      "measures": "LeaseTable::grant",
+      "fixture": "exclusive release-promote lease on empty lease table"
+    },
+    {
+      "id": "barrier_audit_append",
+      "measures": "InMemoryAuditLog::append",
+      "fixture": "execution barrier event with lease and impact-set hash"
+    },
+    {
+      "id": "replay_explain_human",
+      "measures": "ReplayTrace::verify_explain(...).to_human",
+      "fixture": "bundle-bound release-promote replay trace"
+    }
+  ],
+  "notes": [
+    "Criterion 0.7 is used to preserve the workspace MSRV floor.",
+    "No latency threshold is enforced in M09.1; M09.6 defines the stable measurement catalog while numeric SLO gates remain host/release-profile policy."
+  ]
+}

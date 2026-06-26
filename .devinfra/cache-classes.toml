@@ -1,0 +1,68 @@
+[dev]
+description = "Canonical local development: check, clippy, and test binary prebuild."
+cargo_wrapper = "./tools/cargo-dev"
+target_dir = "target"
+incremental = true
+features = ["--workspace", "--all-targets", "--all-features", "--locked"]
+command_family = "dev"
+rustflags_policy = "empty_or_project_config_only"
+rustdocflags_policy = "empty_or_project_config_only"
+allow_sccache = false
+
+[ra]
+description = "rust-analyzer build scripts and proc macros."
+target_dir = "target/rust-analyzer"
+incremental = true
+owner = "rust-analyzer"
+
+[coverage]
+description = "cargo-llvm-cov instrumented build universe."
+cargo_wrapper = "./tools/cargo-cov"
+target_dir = "target"
+llvm_cov_target_dir = "target/llvm-cov-target"
+llvm_cov_build_dir = "target/llvm-cov-target"
+incremental = true
+features = ["--workspace", "--all-features"]
+command_family = "coverage"
+owner = "coverage"
+
+[metadata]
+description = "Manifest and dependency metadata checks."
+target_dir = "target/metadata"
+incremental = false
+features = ["--workspace", "--all-features", "--locked"]
+command_family = "metadata"
+
+[doc]
+description = "Documentation builds isolated from dev diagnostics."
+cargo_wrapper = "./tools/cargo-bg"
+target_dir = "target/doc"
+incremental = true
+features = ["--workspace", "--all-features", "--locked"]
+command_family = "doc"
+
+[none]
+description = "Commands that do not participate in Rust build caches."
+target_dir = "target"
+incremental = false
+command_family = "none"
+
+[custom_checker_dev]
+description = "cli-checker wrapper participating in the canonical dev cache class."
+cargo_wrapper = "./tools/cargo-dev"
+target_dir = "target"
+inherits = "dev"
+
+[custom_checker_heavy]
+description = "Custom checker mode for flags/toolchains that must not touch the dev cache."
+cargo_wrapper = "./tools/cargo-custom-heavy"
+target_dir = "target/custom-checker"
+incremental = true
+features = ["--workspace", "--all-targets", "--all-features", "--locked"]
+command_family = "custom-checker-heavy"
+
+[ci_sccache]
+description = "CI or clean builds using sccache without incremental local cache coupling."
+target_dir = "target"
+incremental = false
+rustc_wrapper = "sccache"

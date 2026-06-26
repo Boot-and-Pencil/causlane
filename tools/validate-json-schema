@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Minimal JSON Schema (draft 2020-12 subset) validator — Python stdlib only.
+
+Validates a JSON *instance* file against a JSON *schema* file. Supports exactly
+the keyword subset the causlane contract schemas use: ``type``, ``enum``,
+``const``, ``required``, ``properties``, ``additionalProperties`` (bool or
+schema), ``items``, ``minItems``, ``minLength``, ``minimum``, ``$ref`` (local
+or relative-file JSON pointer), ``anyOf`` and ``pattern``.
+
+This validates JSON artifacts (e.g. the emitted Formal IR). YAML scenarios are
+validated through the typed Rust DTO (``causlane scenario validate``) because the
+toolchain has no PyYAML; the typed DTO is the source of truth for those.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+
+_TYPE_CHECKS = {
+    "object": lambda v: isinstance(v, dict),
+    "array": lambda v: isinstance(v, list),
+    "string": lambda v: isinstance(v, str),
+    "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
+    "number": lambda v: isinstance(v, (int, float)) and not isinstance(v, bool),
+    "boolean": lambda v: isinstance(v, bool),
+    "null": lambda v: v is None,
+}
+
+
+def _load_schema(path: str, cache: dict[str, dict]) -> dict:
+    absolute = os.path.abspath(path)
+    if absolute not in cache:
+        with open(absolute, encoding="utf-8") as handle:
+            cache[absolute] = json.load(handle)
+    return cache[absolute]
+
+
+def _resolve_pointer(root: dict, pointer_ref: str):
+    if not pointer_ref.startswith("#"):
+        raise ValueError(f"unsupported JSON pointer {pointer_ref}")
+    pointer = pointer_ref[1:].lstrip("/")
+    node = root
+    if pointer:
+        for segment in pointer.split("/"):
+            key = segment.replace("~1", "/").replace("~0", "~")
+            node = node[key]
+    return node
+
+
+def _resolve_ref(root: dict, base_dir: str, cache: dict[str, dict], ref: str):
+    if ref.startswith("#"):
+        return _resolve_pointer(root, ref), root, base_dir
+
+    schema_ref, separator, pointer = ref.partition("#")
+    if not separator:
+        pointer = ""
+    schema_path = os.path.normpath(os.path.join(base_dir, schema_ref))
+    external_root = _load_schema(schema_path, cache)
+    pointer_ref = f"#{pointer}" if pointer else "#"
+    return (
+        _resolve_pointer(external_root, pointer_ref),
+        external_root,
+        os.path.dirname(os.path.abspath(schema_path)),
+    )
+
+
+def _check(
+    inst,
+    schema: dict,
+    root: dict,
+    base_dir: str,
+    path: str,
+    errors: list[str],
+    cache: dict[str, dict],
+) -> None:
+    if "$ref" in schema:
+        target, target_root, target_base_dir = _resolve_ref(root, base_dir, cache, schema["$ref"])
+        _check(inst, target, target_root, target_base_dir, path, errors, cache)
+        return
+    if "anyOf" in schema:
+        for alt in schema["anyOf"]:
+            scratch: list[str] = []
+            _check(inst, alt, root, base_dir, path, scratch, cache)
+            if not scratch:
+                return
+        errors.append(f"{path}: matches none of anyOf")
+        return
+    expected = schema.get("type")
+    if isinstance(expected, str) and not _TYPE_CHECKS[expected](inst):
+        errors.append(f"{path}: expected type {expected}")
+        return
+    if "const" in schema and inst != schema["const"]:
+        errors.append(f"{path}: must equal const {schema['const']!r}")
+    if "enum" in schema and inst not in schema["enum"]:
+        errors.append(f"{path}: {inst!r} is not one of the enum values")
+    if isinstance(inst, str):
+        if "minLength" in schema and len(inst) < schema["minLength"]:
+            errors.append(f"{path}: shorter than minLength {schema['minLength']}")
+        pattern = schema.get("pattern")
+        if isinstance(pattern, str) and re.match(pattern, inst) is None:
+            errors.append(f"{path}: {inst!r} does not match pattern {pattern}")
+    if isinstance(inst, (int, float)) and not isinstance(inst, bool):
+        if "minimum" in schema and inst < schema["minimum"]:
+            errors.append(f"{path}: less than minimum {schema['minimum']}")
+    if isinstance(inst, list):
+        if "minItems" in schema and len(inst) < schema["minItems"]:
+            errors.append(f"{path}: fewer than minItems {schema['minItems']}")
+        item_schema = schema.get("items")
+        if isinstance(item_schema, dict):
+            for index, item in enumerate(inst):
+                _check(item, item_schema, root, base_dir, f"{path}[{index}]", errors, cache)
+    if isinstance(inst, dict):
+        for name in schema.get("required", []):
+            if name not in inst:
+                errors.append(f"{path}: missing required property '{name}'")
+        properties = schema.get("properties", {})
+        additional = schema.get("additionalProperties", True)
+        for key, value in inst.items():
+            if key in properties:
+                _check(value, properties[key], root, base_dir, f"{path}.{key}", errors, cache)
+            elif additional is False:
+                errors.append(f"{path}: unexpected property '{key}'")
+            elif isinstance(additional, dict):
+                _check(value, additional, root, base_dir, f"{path}.{key}", errors, cache)
+
+
+def validate(instance, schema: dict, base_dir: str, cache: dict[str, dict]) -> list[str]:
+    errors: list[str] = []
+    _check(instance, schema, schema, base_dir, "$", errors, cache)
+    return errors
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description="Validate JSON instances against a JSON schema.")
+    parser.add_argument("--schema", required=True, help="JSON Schema file")
+    parser.add_argument("instances", nargs="+", help="JSON instance files")
+    args = parser.parse_args(argv[1:])
+    cache: dict[str, dict] = {}
+    schema_path = os.path.abspath(args.schema)
+    schema = _load_schema(schema_path, cache)
+    base_dir = os.path.dirname(schema_path)
+    failed = False
+    for path in args.instances:
+        with open(path, encoding="utf-8") as handle:
+            instance = json.load(handle)
+        errors = validate(instance, schema, base_dir, cache)
+        if errors:
+            failed = True
+            print(f"FAIL {path}:", file=sys.stderr)
+            for error in errors:
+                print(f"   {error}", file=sys.stderr)
+        else:
+            print(f"  ok: {path} validates against {args.schema}")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

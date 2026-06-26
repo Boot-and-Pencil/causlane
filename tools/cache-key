@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.devinfra_common import cache_key, ensure_state_dirs, print_json, repo_root, snapshot
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Render devinfra cache keys and snapshots.")
+    parser.add_argument("cache_class", nargs="?", default="dev")
+    parser.add_argument("--snapshot", action="store_true", help="render current source snapshot instead of cache key")
+    args = parser.parse_args()
+
+    root = repo_root()
+    ensure_state_dirs(root)
+    if args.snapshot:
+        print_json(snapshot(root))
+    else:
+        print_json(cache_key(root, args.cache_class))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

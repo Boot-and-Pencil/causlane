@@ -1,0 +1,547 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import shlex
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.devinfra_common import (
+    atomic_write_json,
+    cache_key,
+    ensure_state_dirs,
+    load_toml,
+    print_json,
+    read_json,
+    repo_root,
+    snapshot,
+    snapshot_stale_reasons,
+    utc_now,
+)
+
+
+def state_path(root: Path, name: str) -> Path:
+    return root / ".agent-state" / name
+
+
+def resolve_repo_path(root: Path, value: str) -> Path:
+    path = Path(value)
+    if not path.is_absolute():
+        path = root / path
+    return path.resolve()
+
+
+def expected_cargo_wrapper(root: Path, cache_class: str) -> str:
+    classes = load_toml(root / ".devinfra/cache-classes.toml")
+    class_data = classes.get(cache_class, {})
+    inherited = class_data.get("inherits") if isinstance(class_data, dict) else None
+    if inherited and isinstance(classes.get(str(inherited)), dict):
+        merged = dict(classes[str(inherited)])
+        merged.update(class_data)
+        class_data = merged
+    wrapper = class_data.get("cargo_wrapper") if isinstance(class_data, dict) else None
+    if not wrapper:
+        raise SystemExit(f"cache class `{cache_class}` has no cargo_wrapper")
+    return str(wrapper)
+
+
+def validate_cargo_arg(root: Path, cache_class: str, cargo: str) -> None:
+    expected = expected_cargo_wrapper(root, cache_class)
+    actual_path = resolve_repo_path(root, cargo)
+    expected_path = resolve_repo_path(root, expected)
+    if actual_path != expected_path:
+        raise SystemExit(
+            f"invalid --cargo for cache class `{cache_class}`: got {cargo}, expected {expected}"
+        )
+
+
+def resolve_cli_command(root: Path, cargo: str) -> tuple[list[str] | None, int, str | None]:
+    env_bin = os.environ.get("CLI_CHECKER_BIN")
+    if env_bin:
+        env_path = resolve_repo_path(root, env_bin)
+        if not env_path.exists():
+            return None, 0, f"CLI_CHECKER_BIN does not exist: {env_bin}"
+        if not os.access(env_path, os.X_OK):
+            return None, 0, f"CLI_CHECKER_BIN is not executable: {env_bin}"
+        return [str(env_path)], 0, None
+    installed = shutil.which("cli-checker")
+    if installed:
+        return [installed], 0, None
+    opt_binary = Path("/opt/cli-checker/bin/cli-checker")
+    if opt_binary.exists() and os.access(opt_binary, os.X_OK):
+        return [str(opt_binary)], 0, None
+    if os.environ.get("DEVINFRA_ALLOW_CHECKER_CARGO_FALLBACK") == "1":
+        package = os.environ.get("DEVINFRA_CHECKER_CARGO_PACKAGE", "cli-checker-cli")
+        return [cargo, "run", "-p", package, "--bin", "cli-checker", "--"], 1, None
+    return None, 0, "checker_not_installed"
+
+
+def cli_checker_config_args(root: Path) -> list[str]:
+    env_config = os.environ.get("DEVINFRA_CLI_CHECKER_CONFIG")
+    if env_config:
+        config_path = resolve_repo_path(root, env_config)
+        if not config_path.exists():
+            raise SystemExit(f"DEVINFRA_CLI_CHECKER_CONFIG does not exist: {env_config}")
+        return ["--config", env_config]
+    default_config = root / ".cli-checker.toml"
+    if default_config.exists():
+        return ["--config", ".cli-checker.toml"]
+    return []
+
+
+def flatten_findings(report: dict[str, object]) -> list[dict[str, object]]:
+    findings = report.get("findings", [])
+    if isinstance(findings, list):
+        return [finding for finding in findings if isinstance(finding, dict)]
+    return []
+
+
+def checker_status_from(exit_code: int, findings: list[dict[str, object]]) -> str:
+    if exit_code != 0:
+        return "errors"
+    severities = {str(finding.get("severity", "")).lower() for finding in findings}
+    if "error" in severities or "deny" in severities:
+        return "errors"
+    if "warning" in severities or "warn" in severities:
+        return "warnings"
+    return "ok"
+
+
+def checker_policy(root: Path) -> dict[str, object]:
+    config = load_toml(root / ".devinfra/checker.toml")
+    checker = config.get("checker", {}) if isinstance(config, dict) else {}
+    policy = checker.get("policy", {}) if isinstance(checker, dict) else {}
+    if not isinstance(policy, dict):
+        policy = {}
+    return {"warnings_are_pass": bool(policy.get("warnings_are_pass", False))}
+
+
+def checker_status_is_readable(state: dict[str, object]) -> bool:
+    return state.get("status") in {"ok", "warnings", "errors"}
+
+
+def checker_status_is_passing(state: dict[str, object], policy: dict[str, object]) -> bool:
+    status = state.get("status")
+    if status == "ok":
+        return True
+    if status == "warnings" and policy.get("warnings_are_pass") is True:
+        return True
+    return False
+
+
+def internal_error_result(
+    root: Path,
+    args: argparse.Namespace,
+    snap: dict[str, str],
+    started: str,
+    start_time: float,
+    reason: str,
+    detail: str | None = None,
+) -> dict[str, object]:
+    result: dict[str, object] = {
+        "schema_version": 1,
+        "tool": {"name": "custom-checker", "version": "cli-checker-wrapper", "git_commit": snap["git_head"]},
+        "status": "internal_error",
+        "reason": reason,
+        "detail": detail,
+        "mode": args.mode,
+        "cache_class": args.cache_class,
+        "cargo": args.cargo,
+        "cache_key": cache_key(root, args.cache_class),
+        "snapshot": snap,
+        "started_at": started,
+        "finished_at": utc_now(),
+        "diagnostics": [],
+        "metrics": {
+            "duration_ms": int((time.monotonic() - start_time) * 1000),
+            "cargo_invocations": 0,
+            "cargo_cache_class": args.cache_class,
+        },
+    }
+    return result
+
+
+def validate_report(report: object) -> tuple[dict[str, object] | None, str | None]:
+    if not isinstance(report, dict):
+        return None, "checker_stdout_not_object"
+    findings = report.get("findings", [])
+    if findings is not None and not isinstance(findings, list):
+        return None, "checker_findings_not_array"
+    for finding in findings or []:
+        if not isinstance(finding, dict):
+            return None, "checker_finding_not_object"
+        if "message" not in finding:
+            return None, "checker_finding_missing_message"
+    return report, None
+
+
+def validate_cargo_contract(report: dict[str, object], cargo: str, cache_class: str) -> str | None:
+    contract = report.get("cargo_contract")
+    if not isinstance(contract, dict):
+        return "checker_missing_cargo_contract"
+    if contract.get("cargo") != cargo:
+        return "checker_used_non_contract_cargo"
+    if contract.get("cache_class") != cache_class:
+        return "checker_used_non_contract_cache_class"
+    invocations = contract.get("cargo_invocations", [])
+    if not isinstance(invocations, list):
+        return "checker_cargo_invocations_not_array"
+    for invocation in invocations:
+        if not isinstance(invocation, dict):
+            return "checker_cargo_invocation_not_object"
+        argv = invocation.get("argv", [])
+        if not isinstance(argv, list) or not argv:
+            return "checker_cargo_invocation_missing_argv"
+        if str(argv[0]) != cargo:
+            return "checker_used_non_contract_cargo"
+        if invocation.get("cache_class") != cache_class:
+            return "checker_used_non_contract_cache_class"
+    return None
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    validate_cargo_arg(root, args.cache_class, args.cargo)
+    started = utc_now()
+    start_time = time.monotonic()
+    snap = read_json(root / args.snapshot_file, None) if args.snapshot_file else None
+    if snap is None:
+        snap = snapshot(root)
+        atomic_write_json(state_path(root, "current-snapshot.json"), snap)
+
+    if args.mode == "background" and (root / ".agent-state/locks/foreground-active").exists():
+        result = {
+            "schema_version": 1,
+            "tool": {"name": "custom-checker", "version": "cli-checker-wrapper", "git_commit": snap["git_head"]},
+            "status": "skipped",
+            "mode": args.mode,
+            "cache_class": args.cache_class,
+            "cargo": args.cargo,
+            "cache_key": cache_key(root, args.cache_class),
+            "snapshot": snap,
+            "started_at": started,
+            "finished_at": utc_now(),
+            "diagnostics": [],
+            "metrics": {"duration_ms": 0, "cargo_invocations": 0, "cargo_cache_class": args.cache_class},
+            "reason": "foreground_active",
+        }
+        atomic_write_json(root / args.output, result)
+        if args.message_format == "json":
+            print_json(result)
+        return 0
+
+    cli_command, cargo_invocations, cli_error = resolve_cli_command(root, args.cargo)
+    if cli_command is None:
+        result = internal_error_result(root, args, snap, started, start_time, cli_error or "checker_not_installed")
+        atomic_write_json(root / args.output, result)
+        if args.message_format == "json":
+            print_json(result)
+        return 1 if args.mode == "foreground" else 0
+    command = cli_command + [
+        "check-repo",
+        *cli_checker_config_args(root),
+        "--format",
+        "json",
+        "--cargo",
+        args.cargo,
+        "--cache-class",
+        args.cache_class,
+        "--snapshot-file",
+        args.snapshot_file,
+        "--state-root",
+        ".agent-state",
+    ]
+    env = os.environ.copy()
+    if args.mode == "background":
+        env["DEVINFRA_BACKGROUND"] = "1"
+    proc = subprocess.run(command, cwd=root, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    report: dict[str, object] = {}
+    if proc.stdout.strip():
+        try:
+            loaded = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            result = internal_error_result(
+                root,
+                args,
+                snap,
+                started,
+                start_time,
+                "checker_stdout_not_json",
+                proc.stdout[-4000:],
+            )
+            result["stderr"] = proc.stderr[-4000:]
+            atomic_write_json(root / args.output, result)
+            if args.message_format == "json":
+                print_json(result)
+            return 1 if args.mode == "foreground" else 0
+        validated, validation_error = validate_report(loaded)
+        if validated is None:
+            result = internal_error_result(root, args, snap, started, start_time, validation_error or "checker_invalid_json")
+            result["raw_report_path"] = str((root / ".agent-state/checker-raw.json").relative_to(root))
+            atomic_write_json(root / ".agent-state/checker-raw.json", loaded)
+            atomic_write_json(root / args.output, result)
+            if args.message_format == "json":
+                print_json(result)
+            return 1 if args.mode == "foreground" else 0
+        report = validated
+    else:
+        result = internal_error_result(root, args, snap, started, start_time, "checker_stdout_empty")
+        result["stderr"] = proc.stderr[-4000:]
+        atomic_write_json(root / args.output, result)
+        if args.message_format == "json":
+            print_json(result)
+        return 1 if args.mode == "foreground" else 0
+
+    contract_error = validate_cargo_contract(report, args.cargo, args.cache_class)
+    if contract_error:
+        result = internal_error_result(root, args, snap, started, start_time, contract_error)
+        result["raw_report_path"] = str((root / ".agent-state/checker-raw.json").relative_to(root))
+        atomic_write_json(root / ".agent-state/checker-raw.json", report)
+        atomic_write_json(root / args.output, result)
+        if args.message_format == "json":
+            print_json(result)
+        return 1 if args.mode == "foreground" else 0
+
+    cargo_contract = report.get("cargo_contract")
+    findings = flatten_findings(report)
+    diagnostics = [
+        {
+            "severity": finding.get("severity", "unknown"),
+            "code": finding.get("rule_id") or finding.get("code"),
+            "message": finding.get("message", ""),
+            "file": finding.get("path", ""),
+            "range": {
+                "start_line": finding.get("line", 0),
+                "start_col": finding.get("column", 0),
+                "end_line": finding.get("line", 0),
+                "end_col": finding.get("column", 0),
+            },
+            "suggestions": [],
+        }
+        for finding in findings
+    ]
+    result = {
+        "schema_version": 1,
+        "tool": {"name": "custom-checker", "version": "cli-checker-wrapper", "git_commit": snap["git_head"]},
+        "status": checker_status_from(proc.returncode, findings),
+        "mode": args.mode,
+        "cache_class": args.cache_class,
+        "cargo": args.cargo,
+        "cache_key": cache_key(root, args.cache_class),
+        "snapshot": snap,
+        "started_at": started,
+        "finished_at": utc_now(),
+        "diagnostics": diagnostics,
+        "cargo_contract": cargo_contract,
+        "metrics": {
+            "duration_ms": int((time.monotonic() - start_time) * 1000),
+            "cargo_invocations": len(cargo_contract.get("cargo_invocations", []))
+            if isinstance(cargo_contract, dict) and isinstance(cargo_contract.get("cargo_invocations"), list)
+            else cargo_invocations,
+            "cargo_cache_class": args.cache_class,
+        },
+        "cli_exit_code": proc.returncode,
+        "stderr": proc.stderr[-4000:],
+    }
+    atomic_write_json(root / args.output, result)
+    if args.message_format == "json":
+        print_json(result)
+    if args.mode == "foreground" and result["status"] in {"errors", "internal_error", "stale"}:
+        return 1
+    return 0
+
+
+def freshness(root: Path, state: dict[str, object], snap: dict[str, str], key: dict[str, object]) -> tuple[bool, list[str]]:
+    reasons: list[str] = []
+    if not state:
+        return False, ["missing checker state"]
+    reasons.extend(snapshot_stale_reasons(state.get("snapshot"), snap))
+    state_key = state.get("cache_key")
+    if not isinstance(state_key, dict) or state_key.get("hash") != key.get("hash"):
+        reasons.append("cache_key mismatch")
+    cache_class = state.get("cache_class", "dev")
+    if isinstance(cache_class, str):
+        try:
+            expected = expected_cargo_wrapper(root, cache_class)
+            actual = state.get("cargo")
+            if actual is None:
+                reasons.append("cargo wrapper missing")
+            elif resolve_repo_path(root, str(actual)) != resolve_repo_path(root, expected):
+                reasons.append("cargo wrapper mismatch")
+        except SystemExit as error:
+            reasons.append(str(error))
+    if state.get("status") == "stale":
+        reasons.append("checker state is explicitly stale")
+    return not reasons, reasons
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    state = read_json(state_path(root, "checker.json"), {})
+    snap = snapshot(root)
+    key = cache_key(root, state.get("cache_class", "dev") if isinstance(state, dict) else "dev")
+    fresh, reasons = freshness(root, state, snap, key)
+    diagnostics = state.get("diagnostics", []) if isinstance(state, dict) else []
+    state_key = state.get("cache_key", {}) if isinstance(state, dict) else {}
+    policy = checker_policy(root)
+    readable = checker_status_is_readable(state) if isinstance(state, dict) else False
+    passing = checker_status_is_passing(state, policy) if isinstance(state, dict) else False
+    payload = {
+        "schema_version": 1,
+        "fresh": fresh,
+        "readable": readable,
+        "acceptable": readable,
+        "passing": passing,
+        "stale_reasons": reasons,
+        "current_snapshot": snap,
+        "checker": {
+            "status": state.get("status") if isinstance(state, dict) else "missing",
+            "mode": state.get("mode") if isinstance(state, dict) else None,
+            "cache_class": state.get("cache_class") if isinstance(state, dict) else None,
+            "cargo": state.get("cargo") if isinstance(state, dict) else None,
+            "cache_key_hash": state_key.get("hash") if isinstance(state_key, dict) else None,
+            "snapshot": state.get("snapshot") if isinstance(state, dict) else None,
+            "diagnostic_count": len(diagnostics) if isinstance(diagnostics, list) else 0,
+            "metrics": state.get("metrics") if isinstance(state, dict) else None,
+            "state_path": ".agent-state/checker.json",
+        },
+    }
+    if args.json:
+        print_json(payload)
+    else:
+        print(f"{state.get('status', 'missing')} fresh={fresh} passing={passing}")
+        for reason in reasons:
+            print(f"- {reason}")
+    if args.require_fresh and not fresh:
+        return 1
+    if args.require_pass and not passing:
+        return 1
+    return 0
+
+
+def cmd_explain_freshness(args: argparse.Namespace) -> int:
+    root = repo_root()
+    state = read_json(root / args.state, {})
+    snap = read_json(root / args.snapshot_file, snapshot(root)) if args.snapshot_file else snapshot(root)
+    cache_class = state.get("cache_class", "dev") if isinstance(state, dict) else "dev"
+    key = cache_key(root, cache_class)
+    fresh, reasons = freshness(root, state, snap, key)
+    print_json({"schema_version": 1, "fresh": fresh, "stale_reasons": reasons, "current_snapshot": snap})
+    return 0 if fresh else 1
+
+
+def cmd_validate_state(args: argparse.Namespace) -> int:
+    root = repo_root()
+    state = read_json(root / args.state, {})
+    schema = read_json(root / args.schema, {})
+    errors: list[str] = []
+    required = schema.get("required", []) if isinstance(schema, dict) else []
+    if isinstance(required, list):
+        for key_name in required:
+            if isinstance(key_name, str) and key_name not in state:
+                errors.append(f"missing required key: {key_name}")
+    properties = schema.get("properties", {}) if isinstance(schema, dict) else {}
+    if isinstance(properties, dict) and isinstance(state, dict):
+        for key_name, rules in properties.items():
+            if key_name not in state or not isinstance(rules, dict):
+                continue
+            if "const" in rules and state.get(key_name) != rules["const"]:
+                errors.append(f"{key_name} must equal {rules['const']!r}")
+            enum = rules.get("enum")
+            if isinstance(enum, list) and state.get(key_name) not in enum:
+                errors.append(f"{key_name} must be one of {enum!r}")
+            expected_type = rules.get("type")
+            if expected_type == "object" and not isinstance(state.get(key_name), dict):
+                errors.append(f"{key_name} must be object")
+            if expected_type == "array" and not isinstance(state.get(key_name), list):
+                errors.append(f"{key_name} must be array")
+            if expected_type == "string" and not isinstance(state.get(key_name), str):
+                errors.append(f"{key_name} must be string")
+    payload = {"schema_version": 1, "status": "ok" if not errors else "failed", "errors": errors}
+    print_json(payload)
+    return 0 if not errors else 1
+
+
+def cmd_audit_cargo_rebuild(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    command = [args.cargo] + shlex.split(args.command)
+    env = os.environ.copy()
+    env["CARGO_LOG"] = "cargo::core::compiler::fingerprint=info"
+    started = time.monotonic()
+    proc = subprocess.run(command, cwd=root, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    log_path = state_path(root, "cache-audit.log")
+    log_path.write_text(proc.stderr, encoding="utf-8")
+    result = {
+        "schema_version": 1,
+        "status": "ok" if proc.returncode == 0 else "failed",
+        "exit_code": proc.returncode,
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "log_path": str(log_path.relative_to(root)),
+        "command": command,
+    }
+    print_json(result)
+    return proc.returncode
+
+
+def cmd_daemon(args: argparse.Namespace) -> int:
+    raise SystemExit("checker-wrapper daemon is not implemented in V2; run checker through prewarmd custom_checker stage")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Cache-aware wrapper around cli-checker.")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    run = sub.add_parser("run")
+    run.add_argument("--mode", choices=["background", "foreground"], required=True)
+    run.add_argument("--cache-class", default="dev")
+    run.add_argument("--cargo", default="./tools/cargo-dev")
+    run.add_argument("--snapshot-file", default=".agent-state/current-snapshot.json")
+    run.add_argument("--output", default=".agent-state/checker.json")
+    run.add_argument("--message-format", choices=["json", "human"], default="json")
+    run.set_defaults(func=cmd_run)
+
+    status = sub.add_parser("status")
+    status.add_argument("--json", action="store_true")
+    status.add_argument("--require-fresh", action="store_true")
+    status.add_argument("--require-pass", action="store_true")
+    status.set_defaults(func=cmd_status)
+
+    explain = sub.add_parser("explain-freshness")
+    explain.add_argument("--state", default=".agent-state/checker.json")
+    explain.add_argument("--snapshot-file", "--snapshot", default=None)
+    explain.set_defaults(func=cmd_explain_freshness)
+
+    validate = sub.add_parser("validate-state")
+    validate.add_argument("--state", default=".agent-state/checker.json")
+    validate.add_argument("--schema", default=".devinfra/state-schema/checker.schema.json")
+    validate.set_defaults(func=cmd_validate_state)
+
+    audit = sub.add_parser("audit-cargo-rebuild")
+    audit.add_argument("--cargo", default="./tools/cargo-dev")
+    audit.add_argument("--command", required=True)
+    audit.set_defaults(func=cmd_audit_cargo_rebuild)
+
+    daemon = sub.add_parser("daemon")
+    daemon.add_argument("--config", default=".devinfra/checker.toml")
+    daemon.set_defaults(func=cmd_daemon)
+
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

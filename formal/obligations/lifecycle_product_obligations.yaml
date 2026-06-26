@@ -1,0 +1,388 @@
+schema_version: 1
+authority: compiled_bundle_plus_scenario_plus_formal_ir
+status: proposed
+models:
+  - id: FM-000
+    title: Authority-chain model
+    protocols: [PR-000]
+    invariants: []
+  - id: FM-004
+    title: Dispatch lifecycle grammar model
+    protocols: [PR-001]
+    invariants: [I-001, I-002, I-003, I-008]
+  - id: FM-005
+    title: Barrier and execution capability model
+    protocols: [PR-001, PR-008]
+    invariants: [I-001, I-009]
+  - id: FM-006
+    title: Witness and anchor attestation model
+    protocols: [PR-002, PR-003]
+    invariants: [I-003, I-009]
+  - id: FM-007
+    title: Authorization evidence model
+    protocols: [PR-004]
+    invariants: [I-009]
+  - id: FM-008
+    title: Lease conflict merge and drain model
+    protocols: [PR-005, PR-006, PR-007]
+    invariants: [I-006, I-007]
+  - id: FM-009
+    title: Observed truth and projection model
+    protocols: [PR-003]
+    invariants: [I-003]
+  - id: FM-010
+    title: Overlay consequence profile and route model
+    protocols: [PR-012]
+    invariants: [I-004, I-005]
+  - id: FM-011
+    title: Constraint update model
+    protocols: [PR-013]
+    invariants: [I-010]
+  - id: FM-015
+    title: Receipt coverage exception model
+    protocols: [PR-000, PR-011]
+    invariants: []
+  - id: FM-014
+    title: Idempotence retry duplicate execution model
+    protocols: [PR-014]
+    invariants: [I-012, I-013]
+  - id: FM-018
+    title: Cancellation and supersession model
+    protocols: [PR-015]
+    invariants: [I-011]
+  - id: FM-019
+    title: Authz freshness and revocation model
+    protocols: [PR-004, PR-016]
+    invariants: [I-014]
+  - id: FM-020
+    title: Worker partition recovery model
+    protocols: [PR-017]
+    invariants: [I-015]
+  - id: FM-021
+    title: Drain and constraint epoch model
+    protocols: [PR-007, PR-018]
+    invariants: [I-016, I-017, I-018]
+  - id: FM-022
+    title: Overlay and coverage honesty expansion model
+    protocols: [PR-011, PR-012]
+    invariants: [I-019, I-020]
+protocols:
+  - id: PR-000
+    title: Authority pipeline protocol
+  - id: PR-001
+    title: Dispatch lifecycle protocol
+  - id: PR-002
+    title: Witness attestation protocol
+  - id: PR-003
+    title: Projection anchor protocol
+  - id: PR-004
+    title: Authz evidence protocol
+  - id: PR-005
+    title: Lease claim protocol
+  - id: PR-006
+    title: Merge protocol
+  - id: PR-007
+    title: Drain protocol
+  - id: PR-008
+    title: Execution capability protocol
+  - id: PR-009
+    title: Replay protocol
+  - id: PR-010
+    title: Scenario negative-control protocol
+  - id: PR-011
+    title: Exception waiver protocol
+  - id: PR-012
+    title: Feature fix protocol
+  - id: PR-013
+    title: Migration deprecation protocol
+  - id: PR-014
+    title: Retry idempotency protocol
+  - id: PR-015
+    title: Cancellation supersession protocol
+  - id: PR-016
+    title: Authz revocation protocol
+  - id: PR-017
+    title: Worker partition recovery protocol
+  - id: PR-018
+    title: Epoch frontier protocol
+obligations:
+  - id: OBL-I001-BARRIER-BEFORE-EXECUTION
+    model_id: FM-004
+    protocol_id: PR-001
+    invariant_id: I-001
+    statement: execution.started requires prior execution.barrier_logged for same action plan and op
+    lanes:
+      replay: {status: required, check_ids: [execution_without_barrier_invalid]}
+      alloy: {status: required, check_ids: [GeneratedTraceSatisfiesCore]}
+      p: {status: required, check_ids: [NoExecutionBeforeBarrier]}
+      kani: {status: required, check_ids: [execution_requires_prior_barrier_nondet]}
+      verus: {status: required, check_ids: [execution_started_requires_prior_barrier]}
+      lean4: {status: required, check_ids: [valid_trace_execution_started_has_prior_barrier]}
+    negative_controls:
+      - contracts/scenarios/execution_without_barrier_invalid.scenario.yaml
+      - contracts/scenarios/execution_without_capability_invalid.scenario.yaml
+      - contracts/scenarios/forged_capability_invalid.scenario.yaml
+  - id: OBL-I002-TRUTH-AFTER-EXECUTION
+    model_id: FM-004
+    protocol_id: PR-001
+    invariant_id: I-002
+    statement: observed_truth.committed requires prior execution for same action plan and op
+    lanes:
+      replay: {status: required, check_ids: [observed_without_execution_invalid]}
+      alloy: {status: required, check_ids: [GeneratedTraceSatisfiesCore]}
+      p: {status: required, check_ids: [NoObservedWithoutExecution]}
+      kani: {status: required, check_ids: [observed_truth_requires_prior_execution_nondet]}
+      verus: {status: required, check_ids: [observed_truth_requires_prior_execution]}
+      lean4: {status: required, check_ids: [valid_trace_observed_truth_has_prior_execution]}
+    negative_controls:
+      - contracts/scenarios/observed_without_execution_invalid.scenario.yaml
+  - id: OBL-I003-PROJECTION-ANCHOR
+    model_id: FM-009
+    protocol_id: PR-003
+    invariant_id: I-003
+    statement: projection.emitted requires a prior observed-truth anchor with matching attested fact and scope
+    lanes:
+      replay: {status: required, check_ids: [projection_without_anchor_invalid, projection_anchor_wrong_fact_invalid, projection_anchor_wrong_scope_invalid]}
+      alloy: {status: required, check_ids: [GeneratedTraceSatisfiesCore, GeneratedAnchorFactGrounded]}
+      p: {status: required, check_ids: [NoProjectionWithoutAnchor, AnchorFactGrounded]}
+      kani: {status: required, check_ids: [projection_anchor_source_kind_is_observed_truth_only]}
+      verus: {status: required, check_ids: [projection_requires_prior_observed_truth]}
+      lean4: {status: required, check_ids: [projection_anchor_soundness]}
+    negative_controls:
+      - contracts/scenarios/projection_without_anchor_invalid.scenario.yaml
+      - contracts/scenarios/projection_anchor_wrong_fact_invalid.scenario.yaml
+      - contracts/scenarios/projection_anchor_wrong_scope_invalid.scenario.yaml
+  - id: OBL-I004-OVERLAY-MONOTONE
+    model_id: FM-010
+    protocol_id: PR-012
+    invariant_id: I-004
+    statement: overlay obligations may strengthen but never weaken kernel obligations
+    lanes:
+      replay: {status: not_applicable, reason: no overlay event in trace schema}
+      alloy: {status: not_applicable, reason: current Alloy model does not model overlay reducer}
+      p: {status: not_applicable, reason: current P protocol does not model overlay reducer}
+      kani: {status: required, check_ids: [overlay_never_weakens_obligations_nondet]}
+      verus: {status: required, check_ids: [overlay_accepted_never_weakens_obligations]}
+      lean4: {status: required, check_ids: [overlay_monotonicity]}
+    negative_controls: []
+  - id: OBL-I005-ROUTE-PROFILE
+    model_id: FM-010
+    protocol_id: PR-012
+    invariant_id: I-005
+    statement: routes and profiles cannot drift from compiled bundle
+    lanes:
+      replay: {status: not_applicable, reason: route/profile checked at bundle/reducer level}
+      alloy: {status: not_applicable, reason: current Alloy lane not route/profile lane}
+      p: {status: not_applicable, reason: current P lane not route/profile lane}
+      kani: {status: required, check_ids: [route_is_allowed_only_for_matching_profile_nondet]}
+      verus: {status: required, check_ids: [route_profile_compatibility]}
+      lean4: {status: required, check_ids: [route_profile_compatibility]}
+    negative_controls: []
+  - id: OBL-I006-LEASE-CONFLICT-FAIL-CLOSED
+    model_id: FM-008
+    protocol_id: PR-005
+    invariant_id: I-006
+    statement: mutable lease conflicts require verified merge protocol
+    lanes:
+      replay: {status: required, check_ids: [conflicting_leases_invalid]}
+      alloy: {status: required, check_ids: [GeneratedTraceSatisfiesCore]}
+      p: {status: required, check_ids: [NoConflictingActiveLeases]}
+      kani: {status: required, check_ids: [lease_conflict_rule_is_fail_closed_without_verified_merge]}
+      verus: {status: required, check_ids: [lease_conflict_is_fail_closed_without_merge]}
+      lean4: {status: required, check_ids: [lease_conflict_fail_closed, verified_merge_algebra]}
+    negative_controls:
+      - contracts/scenarios/conflicting_leases_invalid.scenario.yaml
+      - contracts/scenarios/unrelated_merge_protocol_does_not_allow_conflict_invalid.scenario.yaml
+      - contracts/scenarios/barrier_missing_lease_invalid.scenario.yaml
+  - id: OBL-I007-DRAIN-AFTER-CLEAR
+    model_id: FM-008
+    protocol_id: PR-007
+    invariant_id: I-007
+    statement: drain fences require prior overlapping leases to clear
+    lanes:
+      replay: {status: required, check_ids: [drain_with_active_lease_invalid]}
+      alloy: {status: required, check_ids: [GeneratedDrainFenceClear]}
+      p: {status: required, check_ids: [DrainBlocksNewMutableAdmission]}
+      kani: {status: required, check_ids: [drain_fence_acquirable_only_without_active_overlap_nondet]}
+      verus: {status: required, check_ids: [drain_after_overlap_clear]}
+      lean4: {status: required, check_ids: [drain_after_overlap_clear]}
+    negative_controls:
+      - contracts/scenarios/drain_with_active_lease_invalid.scenario.yaml
+  - id: OBL-I008-CLOSED-TERMINAL
+    model_id: FM-004
+    protocol_id: PR-001
+    invariant_id: I-008
+    statement: no lifecycle mutation after terminal close
+    lanes:
+      replay: {status: required, check_ids: [event_after_closed_invalid]}
+      alloy: {status: required, check_ids: [GeneratedTraceSatisfiesCore]}
+      p: {status: required, check_ids: [NoEventsAfterClosed]}
+      kani: {status: required, check_ids: [closed_stage_is_terminal_nondet]}
+      verus: {status: required, check_ids: [closed_persists_across_step]}
+      lean4: {status: required, check_ids: [closed_is_terminal]}
+    negative_controls:
+      - contracts/scenarios/event_after_closed_invalid.scenario.yaml
+  - id: OBL-I009-EVIDENCE-EXACT-BINDING
+    model_id: FM-006
+    protocol_id: PR-002
+    invariant_id: I-009
+    statement: witness and authz evidence must bind exact action plan impact and scope
+    lanes:
+      replay: {status: required, check_ids: [approval_wrong_plan_invalid, approval_wrong_impact_invalid, witness_wrong_scope_invalid]}
+      alloy: {status: required, check_ids: [GeneratedApprovalBindingHolds, GeneratedWitnessFactGrounded, GeneratedAnchorFactGrounded]}
+      p: {status: required, check_ids: [WitnessFactGrounded, AnchorFactGrounded, AuthzDecisionGroundsBarrier]}
+      kani: {status: required, check_ids: [witness_binding_is_exact_for_action_plan_and_impact]}
+      verus: {status: required, check_ids: [approval_binding_is_exact]}
+      lean4: {status: required, check_ids: [witness_exact_binding]}
+    negative_controls:
+      - contracts/scenarios/approval_wrong_plan_invalid.scenario.yaml
+      - contracts/scenarios/approval_wrong_impact_invalid.scenario.yaml
+      - contracts/scenarios/witness_wrong_scope_invalid.scenario.yaml
+      - contracts/scenarios/barrier_legacy_witness_extra_invalid.scenario.yaml
+      - contracts/scenarios/authz/authz_denied_invalid.scenario.yaml
+  - id: OBL-I010-CONSTRAINT-UPDATE-FUTURE-ONLY
+    model_id: FM-011
+    protocol_id: PR-013
+    invariant_id: I-010
+    statement: constraint updates affect future frontier only and cannot rewrite committed truth
+    lanes:
+      replay: {status: not_applicable, reason: no constraint update event in current trace schema}
+      alloy: {status: not_applicable, reason: current Alloy lane does not model constraint update}
+      p: {status: required, check_ids: [ConstraintUpdateDoesNotRewriteTruth]}
+      kani: {status: required, check_ids: [constraint_update_cannot_rewrite_committed_truth_nondet]}
+      verus: {status: required, check_ids: [constraint_update_preserves_committed_truth]}
+      lean4: {status: required, check_ids: [constraint_update_future_only]}
+    negative_controls: []
+  - id: OBL-I011-CANCELLATION-SUPERSESSION
+    model_id: FM-018
+    protocol_id: PR-015
+    invariant_id: I-011
+    statement: cancellation or supersession prevents later execution for the superseded attempt
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []
+  - id: OBL-I012-IDEMPOTENT-HARD-EFFECT-RETRY
+    model_id: FM-014
+    protocol_id: PR-014
+    invariant_id: I-012
+    statement: idempotency-domain binding prevents duplicate hard-effect execution for the same logical attempt
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned, check_ids: [NoDuplicateHardExecutionForSameIdempotencyKey]}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls:
+      - contracts/scenarios/p_controls/retry_duplicate_execution_control.scenario.yaml
+  - id: OBL-I013-RETRY-CAPABILITY-REBINDING
+    model_id: FM-014
+    protocol_id: PR-014
+    invariant_id: I-013
+    statement: a retry that executes must be bound to fresh or explicitly reusable barrier and capability evidence
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []
+  - id: OBL-I014-AUTHZ-REVOCATION-FUTURE-BARRIERS
+    model_id: FM-019
+    protocol_id: PR-016
+    invariant_id: I-014
+    statement: revoked or stale authorization cannot authorize future execution barriers
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned, check_ids: [AuthzRevocationBeforeBarrierBlocksExecution]}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls:
+      - contracts/scenarios/p_controls/authz_revoked_old_allow_control.scenario.yaml
+  - id: OBL-I015-PARTITION-RECOVERY-AUTHORITY
+    model_id: FM-020
+    protocol_id: PR-017
+    invariant_id: I-015
+    statement: worker partition recovery cannot execute work without replayed or freshly validated authority
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []
+  - id: OBL-I016-DRAIN-PENDING-BLOCKS-CONFLICTING-ADMISSION
+    model_id: FM-021
+    protocol_id: PR-007
+    invariant_id: I-016
+    statement: a pending drain blocks new conflicting mutable admissions in its domain
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []
+  - id: OBL-I017-DRAIN-SAFE-POINT-MONOTONE
+    model_id: FM-021
+    protocol_id: PR-007
+    invariant_id: I-017
+    statement: a drain safe point is monotone within its epoch and cannot be invalidated by older admissions
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []
+  - id: OBL-I018-CONSTRAINT-EPOCH-STALE-FRONTIER
+    model_id: FM-021
+    protocol_id: PR-018
+    invariant_id: I-018
+    statement: a frontier decision computed under a stale constraint epoch cannot authorize future admission
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned, check_ids: [NoStaleConstraintEpochAdmission]}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls:
+      - contracts/scenarios/p_controls/constraint_epoch_regression_control.scenario.yaml
+  - id: OBL-I019-OVERLAY-PROOF-OBLIGATION-MONOTONE
+    model_id: FM-022
+    protocol_id: PR-012
+    invariant_id: I-019
+    statement: overlays cannot remove active or planned proof obligations from a predicate contract
+    lanes:
+      replay: {status: not_applicable, reason: no overlay event in trace schema}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []
+  - id: OBL-I020-PLANNED-INVARIANT-NO-COVERAGE-CREDIT
+    model_id: FM-022
+    protocol_id: PR-011
+    invariant_id: I-020
+    statement: a planned invariant cannot be reported covered until at least one concrete check id backs a passing lane
+    lanes:
+      replay: {status: planned}
+      alloy: {status: planned}
+      p: {status: planned}
+      kani: {status: planned}
+      verus: {status: planned}
+      lean4: {status: planned}
+    negative_controls: []

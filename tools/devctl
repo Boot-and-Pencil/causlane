@@ -1,0 +1,660 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import signal
+import subprocess
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.devinfra_common import (
+    atomic_write_json,
+    cache_key,
+    ensure_state_dirs,
+    load_toml,
+    print_json,
+    read_json,
+    repo_root,
+    snapshot,
+    snapshot_stale_reasons,
+    tool_path,
+    utc_now,
+)
+
+
+def state_path(root: Path, name: str) -> Path:
+    return root / ".agent-state" / name
+
+
+def parse_env_file(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+    for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip("'").strip('"')
+        if key:
+            values[key] = value
+    return values
+
+
+def effective_env(root: Path) -> dict[str, str]:
+    env = dict(os.environ)
+    for path in [Path("/etc/devinfra/devinfra.env"), root / ".devinfra/env.dev"]:
+        env.update(parse_env_file(path))
+    tools = str(root / "tools")
+    current_path = env.get("PATH", os.environ.get("PATH", ""))
+    parts = [part for part in current_path.split(":") if part]
+    if tools not in parts:
+        env["PATH"] = tools + (":" + current_path if current_path else "")
+    return env
+
+
+def effective_env_summary(root: Path) -> dict[str, str]:
+    env = effective_env(root)
+    keys = [
+        "CARGO_BUILD_JOBS",
+        "NEXTEST_TEST_THREADS",
+        "DEVINFRA_NICE",
+        "DEVINFRA_IONICE_CLASS",
+        "DEVINFRA_COVERAGE_ENABLED",
+        "DEVINFRA_COVERAGE_IDLE_DELAY_SECONDS",
+        "DEVINFRA_DEBOUNCE_SECONDS",
+        "CARGO_HOME",
+        "RUSTUP_HOME",
+        "PATH",
+    ]
+    return {key: env[key] for key in keys if key in env}
+
+
+def kill_active_background(root: Path) -> str | None:
+    pid_file = state_path(root, "prewarm-active.pid")
+    if not pid_file.exists():
+        return None
+    try:
+        pid = int(pid_file.read_text(encoding="utf-8").strip())
+    except ValueError:
+        return None
+    try:
+        os.killpg(pid, signal.SIGTERM)
+        return f"sent SIGTERM to process group {pid}"
+    except ProcessLookupError:
+        pid_file.unlink(missing_ok=True)
+        return f"process group {pid} was already gone"
+    except PermissionError:
+        return f"permission denied while stopping process group {pid}"
+
+
+def cmd_background(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    if args.action == "stop":
+        event = {
+            "schema_version": 1,
+            "action": "stop",
+            "reason": args.reason,
+            "created_at": utc_now(),
+        }
+        atomic_write_json(state_path(root, "background-stop-request.json"), event)
+        stopped = kill_active_background(root)
+        if stopped and not args.quiet:
+            print(stopped)
+        return 0
+    if args.action == "resume":
+        state_path(root, "background-stop-request.json").unlink(missing_ok=True)
+        return 0
+    raise SystemExit(f"unknown background action: {args.action}")
+
+
+def load_state_bundle(root: Path) -> dict[str, object]:
+    current = snapshot(root)
+    checker_state = read_json(state_path(root, "checker.json"), {})
+    diagnostics = read_diagnostics_bundle(root, current)
+    coverage = read_json(state_path(root, "coverage-summary.json"), {})
+    coverage_reasons = snapshot_stale_reasons(coverage.get("snapshot") if isinstance(coverage, dict) else None, current)
+    if isinstance(coverage, dict) and coverage:
+        coverage_key = cache_key(root, "coverage")
+        state_key = coverage.get("cache_key")
+        if not isinstance(state_key, dict) or state_key.get("hash") != coverage_key.get("hash"):
+            coverage_reasons.append("cache_key mismatch")
+        if coverage.get("cache_class") != "coverage":
+            coverage_reasons.append("cache_class mismatch")
+        lcov_path = coverage.get("lcov_path")
+        if isinstance(lcov_path, str) and not (root / lcov_path).exists():
+            coverage_reasons.append("missing lcov")
+        coverage = dict(coverage)
+        coverage["fresh"] = not coverage_reasons
+        coverage["stale_reasons"] = coverage_reasons
+        coverage["current_snapshot"] = current
+    return {
+        "snapshot": current,
+        "saved_snapshot": read_json(state_path(root, "current-snapshot.json"), {}),
+        "prewarm": read_json(state_path(root, "prewarm-state.json"), {}),
+        "checker": summarize_checker(root, checker_state, current),
+        "coverage": coverage,
+        "diagnostics": {
+            "status": diagnostics["status"],
+            "fresh": diagnostics["fresh"],
+            "stale_reasons": diagnostics["stale_reasons"],
+            "count": len(diagnostics["diagnostics"]),
+        },
+        "effective_env": effective_env_summary(root),
+        "cache_key_dev": cache_key(root, "dev"),
+        "cache_key_coverage": cache_key(root, "coverage"),
+    }
+
+
+def read_checker_policy(root: Path) -> dict[str, object]:
+    config = load_toml(root / ".devinfra/checker.toml")
+    checker = config.get("checker", {}) if isinstance(config, dict) else {}
+    policy = checker.get("policy", {}) if isinstance(checker, dict) else {}
+    if not isinstance(policy, dict):
+        policy = {}
+    return {"warnings_are_pass": bool(policy.get("warnings_are_pass", False))}
+
+
+def checker_status_passing(status: object, policy: dict[str, object]) -> bool:
+    if status == "ok":
+        return True
+    if status == "warnings" and policy.get("warnings_are_pass") is True:
+        return True
+    return False
+
+
+def summarize_checker(root: Path, state: object, current_snapshot: dict[str, str]) -> dict[str, object]:
+    if not isinstance(state, dict):
+        return {}
+    diagnostics = state.get("diagnostics", [])
+    reasons = snapshot_stale_reasons(state.get("snapshot"), current_snapshot)
+    state_key = state.get("cache_key")
+    cache_class = state.get("cache_class", "dev")
+    if isinstance(cache_class, str):
+        current_key = cache_key(root, cache_class)
+        if not isinstance(state_key, dict) or state_key.get("hash") != current_key.get("hash"):
+            reasons.append("cache_key mismatch")
+    readable = state.get("status") in {"ok", "warnings", "errors"}
+    policy = read_checker_policy(root)
+    passing = checker_status_passing(state.get("status"), policy)
+    return {
+        "schema_version": state.get("schema_version"),
+        "status": state.get("status"),
+        "fresh": not reasons,
+        "readable": readable,
+        "acceptable": readable,
+        "passing": passing,
+        "stale_reasons": reasons,
+        "mode": state.get("mode"),
+        "cache_class": state.get("cache_class"),
+        "cargo": state.get("cargo"),
+        "cache_key_hash": (state.get("cache_key") or {}).get("hash") if isinstance(state.get("cache_key"), dict) else None,
+        "snapshot": state.get("snapshot"),
+        "current_snapshot": current_snapshot,
+        "diagnostic_count": len(diagnostics) if isinstance(diagnostics, list) else 0,
+        "metrics": state.get("metrics"),
+        "state_path": ".agent-state/checker.json",
+    }
+
+
+def read_diagnostics_bundle(root: Path, current_snapshot: dict[str, str]) -> dict[str, object]:
+    bundle = read_json(state_path(root, "diagnostics.json"), {})
+    path = state_path(root, "diagnostics.jsonl")
+    rows = []
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                rows.append(json.loads(line))
+    saved_snapshot = bundle.get("snapshot") if isinstance(bundle, dict) else None
+    reasons = snapshot_stale_reasons(saved_snapshot, current_snapshot)
+    status = str(bundle.get("status", "ok")) if isinstance(bundle, dict) else "missing"
+    if reasons:
+        status = "stale"
+    return {
+        "schema_version": 1,
+        "status": status,
+        "fresh": not reasons,
+        "stale_reasons": reasons,
+        "snapshot": saved_snapshot,
+        "current_snapshot": current_snapshot,
+        "cache_class": bundle.get("cache_class", "dev") if isinstance(bundle, dict) else "dev",
+        "diagnostics": rows,
+    }
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    bundle = load_state_bundle(root)
+    if args.json:
+        print_json(bundle)
+        return 0
+    prewarm = bundle.get("prewarm") or {}
+    checker = bundle.get("checker") or {}
+    coverage = bundle.get("coverage") or {}
+    print(f"snapshot: {(bundle['snapshot'] or {}).get('dirty_tree_hash', 'unknown')}")
+    print(f"prewarm: {prewarm.get('status', 'missing')} active={prewarm.get('active_stage')}")
+    print(f"checker: {checker.get('status', 'missing')} cache={checker.get('cache_class', 'unknown')}")
+    print(f"coverage: {coverage.get('status', 'missing')}")
+    return 0
+
+
+def cmd_prewarm_status(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    data = read_json(state_path(root, "prewarm-state.json"), {"status": "missing"})
+    if args.json:
+        print_json(data)
+    else:
+        print(data.get("status", "missing"))
+    return 0
+
+
+def cmd_diagnostics(args: argparse.Namespace) -> int:
+    root = repo_root()
+    data = read_diagnostics_bundle(root, snapshot(root))
+    rows = data["diagnostics"]
+    if args.format == "json":
+        print_json(data)
+        return 0
+    if not data["fresh"]:
+        print("Diagnostics are stale:")
+        for reason in data["stale_reasons"]:
+            print(f"- {reason}")
+        return 1 if args.require_fresh else 0
+    if not rows:
+        print("No diagnostics available.")
+        return 0
+    for row in rows[: args.limit]:
+        rng = row.get("range", {})
+        code = row.get("code") or "-"
+        print(
+            f"{row.get('severity', 'unknown')} {code} "
+            f"{row.get('file', '')}:{rng.get('start_line', 0)} "
+            f"{row.get('message', '')}"
+        )
+    if len(rows) > args.limit:
+        print(f"... {len(rows) - args.limit} more")
+    return 0
+
+
+def cmd_doctor(_: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    errors: list[str] = []
+    warnings: list[str] = []
+    policy = load_toml(root / ".devinfra/project-policy.toml")
+    file_policy = policy.get("project", {}).get("files", {}) if isinstance(policy.get("project"), dict) else {}
+    if not isinstance(file_policy, dict):
+        file_policy = {}
+    cargo_config_mode = str(file_policy.get("cargo_config_mode", "scaffold_if_absent"))
+    editor_settings_mode = str(file_policy.get("editor_settings_mode", "skip"))
+
+    for relative in [
+        "tools/cargo-dev",
+        "tools/cargo-bg",
+        "tools/cargo-cov",
+        "tools/cargo-cov-prebuild",
+        "tools/cargo-cov-prebuild-bg",
+        "tools/cargo-custom-heavy",
+        "tools/cache-key",
+        "tools/checker-wrapper",
+        "tools/prewarmd",
+        ".devinfra/cache-classes.toml",
+        ".devinfra/commands.toml",
+    ]:
+        path = root / relative
+        if not path.exists():
+            errors.append(f"missing {relative}")
+    if cargo_config_mode != "skip" and not (root / ".cargo/config.toml").exists():
+        message = "missing .cargo/config.toml"
+        if cargo_config_mode == "validate_only":
+            warnings.append(f"{message}; project policy is validate_only")
+        else:
+            errors.append(message)
+
+    for relative in [
+        "tools/cargo-dev",
+        "tools/cargo-bg",
+        "tools/cargo-cov",
+        "tools/cargo-cov-prebuild",
+        "tools/cargo-cov-prebuild-bg",
+    ]:
+        path = root / relative
+        if path.exists() and not os.access(path, os.X_OK):
+            errors.append(f"{relative} is not executable")
+
+    dev_key_1 = cache_key(root, "dev")
+    dev_key_2 = cache_key(root, "dev")
+    coverage_key = cache_key(root, "coverage")
+    if dev_key_1["hash"] != dev_key_2["hash"]:
+        errors.append("dev cache key is not stable between two reads")
+    if dev_key_1["hash"] == coverage_key["hash"]:
+        errors.append("coverage cache key unexpectedly equals dev cache key")
+
+    for tool in ["cargo", "rustc", "rustup", "just", "cargo-nextest", "cargo-llvm-cov"]:
+        if not tool_path(root, tool):
+            errors.append(f"missing required tool: {tool}")
+    for tool in ["bacon", "bacon-ls", "process-compose", "watchexec"]:
+        if not tool_path(root, tool):
+            warnings.append(f"optional tool not installed: {tool}")
+    active_cargo = shutil.which("cargo")
+    cargo_shim = str((root / "tools/cargo").resolve())
+    if active_cargo and str(Path(active_cargo).resolve()) != cargo_shim:
+        warnings.append(f"cargo shim is not first in PATH: active={active_cargo}")
+
+    if editor_settings_mode != "skip":
+        ra_settings = root / ".vscode/settings.json"
+        if ra_settings.exists():
+            settings = read_json(ra_settings, {})
+            if settings.get("rust-analyzer.checkOnSave") is not False:
+                errors.append("rust-analyzer.checkOnSave must be false")
+            if settings.get("rust-analyzer.diagnostics.enable") is not False:
+                errors.append("rust-analyzer.diagnostics.enable must be false")
+            if settings.get("rust-analyzer.cargo.targetDir") != "target/rust-analyzer":
+                errors.append("rust-analyzer.cargo.targetDir must be target/rust-analyzer")
+        else:
+            warnings.append("missing .vscode/settings.json rust-analyzer guardrails")
+
+    result = {
+        "schema_version": 1,
+        "status": "ok" if not errors else "failed",
+        "errors": errors,
+        "warnings": warnings,
+        "cache_key_dev": dev_key_1["hash"],
+        "cache_key_coverage": coverage_key["hash"],
+        "snapshot": snapshot(root),
+    }
+    print_json(result)
+    return 0 if not errors else 1
+
+
+def parse_lcov(root: Path, path: Path) -> dict[str, object]:
+    marker = read_json(state_path(root, "coverage-lcov-snapshot.json"), {})
+    snap = marker.get("snapshot") if isinstance(marker, dict) else None
+    key = marker.get("cache_key") if isinstance(marker, dict) else None
+    if not isinstance(snap, dict):
+        snap = {}
+    if not isinstance(key, dict):
+        key = {}
+    if not path.exists():
+        return {
+            "schema_version": 1,
+            "status": "missing",
+            "cache_class": "coverage",
+            "snapshot": snap,
+            "cache_key": key,
+            "fresh": False,
+            "stale_reasons": ["missing lcov"],
+            "lcov_path": str(path.relative_to(root)) if path.is_relative_to(root) else str(path),
+        }
+    files = []
+    current_file: dict[str, object] | None = None
+    total_lines = 0
+    covered_lines = 0
+    total_functions = 0
+    covered_functions = 0
+    for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if raw_line.startswith("SF:"):
+            source = raw_line[3:]
+            try:
+                source = str(Path(source).resolve().relative_to(root))
+            except ValueError:
+                pass
+            current_file = {"path": source, "line_hits": {}, "function_hits": 0, "function_total": 0}
+        elif raw_line.startswith("DA:") and current_file is not None:
+            line_text, hits_text = raw_line[3:].split(",", 1)
+            line = int(line_text)
+            hits = int(hits_text)
+            current_file["line_hits"][line] = hits  # type: ignore[index]
+        elif raw_line.startswith("FNF:") and current_file is not None:
+            current_file["function_total"] = int(raw_line[4:])
+        elif raw_line.startswith("FNH:") and current_file is not None:
+            current_file["function_hits"] = int(raw_line[4:])
+        elif raw_line == "end_of_record" and current_file is not None:
+            line_hits = current_file["line_hits"]  # type: ignore[index]
+            file_total = len(line_hits)
+            file_covered = sum(1 for hits in line_hits.values() if hits > 0)  # type: ignore[union-attr]
+            total_lines += file_total
+            covered_lines += file_covered
+            total_functions += int(current_file.get("function_total", 0))
+            covered_functions += int(current_file.get("function_hits", 0))
+            percent = round((file_covered / file_total) * 100, 2) if file_total else 100.0
+            files.append(
+                {
+                    "path": current_file["path"],
+                    "line_percent": percent,
+                    "uncovered_lines": [line for line, hits in line_hits.items() if hits == 0],  # type: ignore[union-attr]
+                }
+            )
+            current_file = None
+    line_percent = round((covered_lines / total_lines) * 100, 2) if total_lines else 100.0
+    fn_percent = round((covered_functions / total_functions) * 100, 2) if total_functions else 100.0
+    reasons = []
+    current_snap = snapshot(root)
+    reasons.extend(snapshot_stale_reasons(snap, current_snap))
+    coverage_key = cache_key(root, "coverage")
+    if not key or key.get("hash") != coverage_key.get("hash"):
+        reasons.append("cache_key mismatch")
+    return {
+        "schema_version": 1,
+        "status": "ok",
+        "cache_class": "coverage",
+        "snapshot": snap,
+        "cache_key": key,
+        "fresh": not reasons,
+        "stale_reasons": reasons,
+        "current_snapshot": current_snap,
+        "lcov_path": str(path.relative_to(root)) if path.is_relative_to(root) else str(path),
+        "summary": {
+            "lines": {"covered": covered_lines, "total": total_lines, "percent": line_percent},
+            "functions": {"covered": covered_functions, "total": total_functions, "percent": fn_percent},
+        },
+        "files": files,
+        "updated_at": utc_now(),
+    }
+
+
+def cmd_coverage_summary(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    lcov = root / args.lcov
+    summary = parse_lcov(root, lcov)
+    atomic_write_json(state_path(root, "coverage-summary.json"), summary)
+    print_json(summary)
+    return 0 if summary["status"] == "ok" else 1
+
+
+def cmd_write_coverage_snapshot(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    marker = {
+        "schema_version": 1,
+        "snapshot": snapshot(root),
+        "cache_key": cache_key(root, "coverage"),
+        "lcov_path": args.lcov,
+        "updated_at": utc_now(),
+    }
+    atomic_write_json(state_path(root, "coverage-lcov-snapshot.json"), marker)
+    if not args.quiet:
+        print_json(marker)
+    return 0
+
+
+def cmd_ensure_coverage_clean(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    key = cache_key(root, "coverage")
+    snap = snapshot(root)
+    marker_path = state_path(root, "coverage-clean-marker.json")
+    marker = read_json(marker_path, {})
+    current = {
+        "cache_key_hash": key.get("hash"),
+        "cargo_lock_hash": snap.get("cargo_lock_hash"),
+        "cargo_config_hash": snap.get("cargo_config_hash"),
+        "rust_toolchain_hash": snap.get("rust_toolchain_hash"),
+    }
+    if isinstance(marker, dict) and all(marker.get(name) == value for name, value in current.items()):
+        if not args.quiet:
+            print_json({"status": "ok", "cleaned": False, **current})
+        return 0
+
+    env = effective_env(root)
+    coverage_target = root / "target/llvm-cov-target"
+    env.update(
+        {
+            "CARGO_TARGET_DIR": str(coverage_target),
+            "CARGO_LLVM_COV_TARGET_DIR": str(coverage_target),
+            "CARGO_LLVM_COV_BUILD_DIR": str(coverage_target),
+            "DEVINFRA_ALLOW_DIRECT_CARGO": "1",
+        }
+    )
+    proc = subprocess.run(["cargo", "llvm-cov", "clean", "--workspace"], cwd=root, env=env)
+    if proc.returncode != 0:
+        return proc.returncode
+    payload = {**current, "schema_version": 1, "cleaned_at": utc_now()}
+    atomic_write_json(marker_path, payload)
+    if not args.quiet:
+        print_json({"status": "ok", "cleaned": True, **payload})
+    return 0
+
+
+def cmd_write_snapshot(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    snap = snapshot(root)
+    atomic_write_json(state_path(root, "current-snapshot.json"), snap)
+    if not args.quiet:
+        print_json(snap)
+    return 0
+
+
+def cmd_env_exec(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    argv = list(args.argv)
+    if argv and argv[0] == "--":
+        argv = argv[1:]
+    if not argv:
+        raise SystemExit("env exec requires a command after --")
+    env = effective_env(root)
+    os.execvpe(argv[0], argv, env)
+    return 127
+
+
+class StateHandler(BaseHTTPRequestHandler):
+    root: Path
+
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+    def write_json(self, status: int, data: object) -> None:
+        payload = json.dumps(data, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def do_GET(self) -> None:  # noqa: N802
+        root = self.root
+        routes = {
+            "/status": lambda: load_state_bundle(root),
+            "/snapshot": lambda: snapshot(root),
+            "/diagnostics": lambda: read_diagnostics_bundle(root, snapshot(root)),
+            "/checker": lambda: summarize_checker(root, read_json(state_path(root, "checker.json"), {}), snapshot(root)),
+            "/coverage": lambda: (load_state_bundle(root).get("coverage") or {}),
+            "/prewarm": lambda: read_json(state_path(root, "prewarm-state.json"), {}),
+            "/cache-key/dev": lambda: cache_key(root, "dev"),
+            "/cache-key/coverage": lambda: cache_key(root, "coverage"),
+        }
+        producer = routes.get(self.path)
+        if producer is None:
+            self.write_json(404, {"error": "unknown endpoint"})
+            return
+        self.write_json(200, producer())
+
+
+def cmd_state_api(args: argparse.Namespace) -> int:
+    root = repo_root()
+    ensure_state_dirs(root)
+    host, port_text = args.listen.rsplit(":", 1)
+    StateHandler.root = root
+    server = ThreadingHTTPServer((host, int(port_text)), StateHandler)
+    print(f"state-api listening on http://{args.listen}", flush=True)
+    server.serve_forever()
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="cli-checker development infrastructure control plane.")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    status = sub.add_parser("status")
+    status.add_argument("--json", action="store_true")
+    status.set_defaults(func=cmd_status)
+
+    diagnostics = sub.add_parser("diagnostics")
+    diagnostics.add_argument("--format", choices=["human", "json"], default="human")
+    diagnostics.add_argument("--limit", type=int, default=50)
+    diagnostics.add_argument("--require-fresh", action="store_true")
+    diagnostics.set_defaults(func=cmd_diagnostics)
+
+    prewarm_status = sub.add_parser("prewarm-status")
+    prewarm_status.add_argument("--json", action="store_true")
+    prewarm_status.set_defaults(func=cmd_prewarm_status)
+
+    background = sub.add_parser("background")
+    background.add_argument("action", choices=["stop", "resume"])
+    background.add_argument("--reason", default="manual")
+    background.add_argument("--quiet", action="store_true")
+    background.set_defaults(func=cmd_background)
+
+    doctor = sub.add_parser("doctor")
+    doctor.set_defaults(func=cmd_doctor)
+
+    coverage = sub.add_parser("coverage-summary")
+    coverage.add_argument("--lcov", default="target/llvm-cov-target/lcov.info")
+    coverage.set_defaults(func=cmd_coverage_summary)
+
+    coverage_snapshot = sub.add_parser("write-coverage-snapshot")
+    coverage_snapshot.add_argument("--lcov", default="target/llvm-cov-target/lcov.info")
+    coverage_snapshot.add_argument("--quiet", action="store_true")
+    coverage_snapshot.set_defaults(func=cmd_write_coverage_snapshot)
+
+    coverage_clean = sub.add_parser("ensure-coverage-clean")
+    coverage_clean.add_argument("--quiet", action="store_true")
+    coverage_clean.set_defaults(func=cmd_ensure_coverage_clean)
+
+    write_snapshot = sub.add_parser("write-snapshot")
+    write_snapshot.add_argument("--quiet", action="store_true")
+    write_snapshot.set_defaults(func=cmd_write_snapshot)
+
+    env_parser = sub.add_parser("env")
+    env_sub = env_parser.add_subparsers(dest="env_command", required=True)
+    env_exec = env_sub.add_parser("exec")
+    env_exec.add_argument("argv", nargs=argparse.REMAINDER)
+    env_exec.set_defaults(func=cmd_env_exec)
+
+    state_api = sub.add_parser("state-api")
+    state_api.add_argument("--listen", default="127.0.0.1:7810")
+    state_api.set_defaults(func=cmd_state_api)
+
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

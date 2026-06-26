@@ -1,0 +1,30 @@
+[package]
+name = "causlane"
+description = "Typed, auditable, replayable, consequence-aware action dispatch."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+documentation.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+causlane-core = { path = "../causlane-core", version = "0.0.1" }
+
+[dev-dependencies]
+causlane-contracts = { path = "../causlane-contracts", version = "0.0.1" }
+causlane-replay = { path = "../causlane-replay", version = "0.0.1" }
+causlane-runtime = { path = "../causlane-runtime", version = "0.0.1" }
+criterion = { version = "0.7.0", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "dispatch_baseline_bench_suite"
+path = "benches/dispatch_baseline_bench_suite.rs"
+harness = false
+
+[lints]
+workspace = true

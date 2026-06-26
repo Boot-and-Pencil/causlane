@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Lightweight lint for Causlane publication-plan documentation.
+
+The check intentionally covers only publication-doc regressions that are easy to
+miss during docs edits. It does not replace cargo/package/readiness gates.
+"""
+
+from __future__ import annotations
+
+import json
+import pathlib
+import re
+import sys
+from dataclasses import dataclass
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+
+
+@dataclass
+class Finding:
+    check_id: str
+    severity: str
+    path: str
+    message: str
+    remediation: str
+
+
+def read(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+def exists(path: str) -> bool:
+    return (ROOT / path).exists()
+
+
+def add(findings: list[Finding], check_id: str, severity: str, path: str, message: str, remediation: str) -> None:
+    findings.append(Finding(check_id, severity, path, message, remediation))
+
+
+def main(argv: list[str]) -> int:
+    as_json = "--json" in argv
+    findings: list[Finding] = []
+
+    required_docs = [
+        "PUBLISHING.md",
+        "RELEASE.md",
+        "AI_USAGE.md",
+        "AGENTS.md",
+        "CONTRIBUTING.md",
+        "docs/release/publication-prep.md",
+        "docs/release/publish-all-crates-runbook.md",
+        "docs/release/refactor-before-publication-gate.md",
+        "docs/api/public-api-review.md",
+    ]
+    for path in required_docs:
+        if not exists(path):
+            add(findings, "PUBDOC-001", "error", path, "required publication document is missing", "add the required document before publication")
+
+    if exists("PUBLISHING.md"):
+        publishing = read("PUBLISHING.md")
+        if "0.0.1" not in publishing:
+            add(findings, "PUBDOC-002", "error", "PUBLISHING.md", "first public version is not documented as 0.0.1", "document 0.0.1 as the pre-alpha bootstrap release")
+        if "Do not publish `0.0.0`" not in publishing and "Do not publish 0.0.0" not in publishing:
+            add(findings, "PUBDOC-003", "warning", "PUBLISHING.md", "0.0.0 publication is not explicitly forbidden", "state that 0.0.0 must not be published")
+        if re.search(r"for p in .*cargo publish -p \"\$p\" --dry-run", publishing, re.S):
+            add(findings, "PUBDOC-004", "error", "PUBLISHING.md", "publishing doc appears to dry-run all crates as one pre-upload batch", "use staged per-crate dry-run after registry dependencies are published")
+        if "staged" not in publishing.lower() or "Publication Order" not in publishing:
+            add(findings, "PUBDOC-005", "warning", "PUBLISHING.md", "staged publication order is not prominent", "document dependency-ordered staged publication")
+
+    if exists("docs/release/publish-all-crates-runbook.md"):
+        runbook = read("docs/release/publish-all-crates-runbook.md")
+        if "Do not dry-run all crates" not in runbook:
+            add(findings, "PUBDOC-006", "error", "docs/release/publish-all-crates-runbook.md", "runbook does not forbid all-crates dry-run batch", "add a warning and staged one-crate procedure")
+        if "One-crate Publish Procedure" not in runbook:
+            add(findings, "PUBDOC-007", "error", "docs/release/publish-all-crates-runbook.md", "runbook lacks one-crate publish procedure", "add dry-run/publish/index sequence per crate")
+
+    if exists("docs/product-track/10-release-strategy.md"):
+        release_strategy = read("docs/product-track/10-release-strategy.md")
+        if "internal only" in release_strategy.lower():
+            add(findings, "PUBDOC-008", "error", "docs/product-track/10-release-strategy.md", "release strategy still says 0.0.x is internal-only", "distinguish public pre-alpha 0.0.x from internal builds")
+        if "pre-alpha" not in release_strategy.lower():
+            add(findings, "PUBDOC-009", "warning", "docs/product-track/10-release-strategy.md", "release strategy does not emphasize pre-alpha bootstrap", "document 0.0.1 as public pre-alpha bootstrap")
+
+    if exists("docs/release/publish-readiness.md"):
+        readiness = read("docs/release/publish-readiness.md")
+        if "Do not hand-edit" not in readiness:
+            add(findings, "PUBDOC-010", "warning", "docs/release/publish-readiness.md", "generated readiness report lacks do-not-edit warning", "regenerate readiness report with a do-not-edit header")
+
+    if exists("docs/release/publication-prep.md"):
+        prep = read("docs/release/publication-prep.md")
+        if "refactor-before-publication-gate.md" not in prep:
+            add(findings, "PUBDOC-011", "error", "docs/release/publication-prep.md", "publication prep does not point to the hard refactor-first gate", "link docs/release/refactor-before-publication-gate.md before upload instructions")
+        if "public GitHub opening" not in prep or "PUB0-PUB4" not in prep:
+            add(findings, "PUBDOC-012", "warning", "docs/release/publication-prep.md", "publication prep does not clearly block GitHub opening until refactor/docs/API gates complete", "state that PUB0-PUB4 precede GitHub opening and crates.io upload")
+
+    if exists("docs/release/refactor-before-publication-gate.md"):
+        gate = read("docs/release/refactor-before-publication-gate.md")
+        required_sequence = ["PUB0", "PUB1", "PUB2", "PUB3", "PUB4", "PUB5"]
+        missing = [token for token in required_sequence if token not in gate]
+        if missing:
+            add(findings, "PUBDOC-013", "error", "docs/release/refactor-before-publication-gate.md", f"refactor-first gate misses phases: {', '.join(missing)}", "document PUB0-PUB5 in order")
+        if "PUB5 is unreachable until PUB0-PUB4" not in gate:
+            add(findings, "PUBDOC-014", "error", "docs/release/refactor-before-publication-gate.md", "refactor-first gate does not hard-block publication until PUB0-PUB4", "make publication unreachable until refactor/readability/API/docs/history gates are done")
+
+    if exists("docs/product-track/11-implementation-start-gate.md"):
+        start_gate = read("docs/product-track/11-implementation-start-gate.md")
+        if "S11/PUB0 Repository and architecture refactor" not in start_gate:
+            add(findings, "PUBDOC-015", "warning", "docs/product-track/11-implementation-start-gate.md", "current focus does not name the refactor-first publication sub-track", "make PUB0 the current action before publication")
+        if "only after that" not in start_gate or "S11/PUB5 staged crates.io publication" not in start_gate:
+            add(findings, "PUBDOC-016", "error", "docs/product-track/11-implementation-start-gate.md", "implementation gate does not order refactor/readability/API/docs/history before publication", "state the PUB0-PUB5 ordering explicitly")
+
+    status = "pass" if not any(f.severity == "error" for f in findings) else "fail"
+    payload = {
+        "schema_version": 1,
+        "status": status,
+        "summary": {
+            "errors": sum(1 for f in findings if f.severity == "error"),
+            "warnings": sum(1 for f in findings if f.severity == "warning"),
+            "findings": len(findings),
+        },
+        "findings": [f.__dict__ for f in findings],
+    }
+    if as_json:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        print(f"publication-plan-doc-lint: {status}")
+        for f in findings:
+            print(f"{f.severity.upper()} {f.check_id} {f.path}: {f.message}")
+    return 0 if status == "pass" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

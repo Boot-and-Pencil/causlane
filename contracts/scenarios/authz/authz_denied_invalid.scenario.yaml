@@ -1,0 +1,148 @@
+scenario_version: 0.1.0
+scenario_id: authz_denied_invalid
+action_id: act_promote_123
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: ship it
+expected_replay_result: fail
+expected_error_code: AuthzDecisionDenied
+formal_obligations: [I-001, I-002, I-003, I-006, I-008, I-009]
+events:
+  - event_id: evt_admitted
+    kind: action.admitted
+    action_id: act_promote_123
+  - event_id: evt_planned
+    kind: action.planned
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_dispatch
+    kind: dispatch.logged
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_leases_granted
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_env_staging
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+        holder_op_index: 0
+        epoch: 1
+        lease_event_id: evt_leases_granted
+      - lease_id: lease_rc_123
+        resource: release_candidate_write
+        scope: release_candidate:rc_123
+        mode: exclusive
+        holder_op_index: 0
+        epoch: 1
+        lease_event_id: evt_leases_granted
+  - event_id: evt_readiness_ok
+    kind: gate.approved
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    fact_kind: readiness_ok
+    scope: release_candidate:rc_123
+  - event_id: evt_authz
+    kind: authz.decision_recorded
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    authz_decision:
+      predicate_id: release.promote_candidate
+      actor: alice
+      stage: execution_barrier_logged
+      decision: deny
+      policy_id: demo-policy
+      policy_version: "1"
+      issued_at: 1
+      expires_at: 1000
+  - event_id: evt_barrier
+    kind: execution.barrier_logged
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+    occurred_at: 5
+    witnesses: [evt_readiness_ok]
+    execution_barrier:
+      barrier_id: evt_barrier
+      action_id: act_promote_123
+      plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+      op_indexes: [0]
+      impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+      authz_decision_refs: [evt_authz]
+      witnesses:
+        - event_id: evt_readiness_ok
+          requirement_id: readiness_before_promotion
+          kind: gate_approval
+          fact_kind: readiness_ok
+          scope: release_candidate:rc_123
+          binds_to:
+            action_id: act_promote_123
+            plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+            impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+      leases:
+        - lease_id: lease_env_staging
+          resource: environment_write
+          scope: environment:staging
+          mode: exclusive
+          holder_op_index: 0
+          epoch: 1
+          lease_event_id: evt_leases_granted
+        - lease_id: lease_rc_123
+          resource: release_candidate_write
+          scope: release_candidate:rc_123
+          mode: exclusive
+          holder_op_index: 0
+          epoch: 1
+          lease_event_id: evt_leases_granted
+  - event_id: evt_execution
+    kind: execution.started
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    execution_capability:
+      capability_id: cap:evt_barrier:0
+      op_index: 0
+      barrier_event_id: evt_barrier
+      lease_ids: [lease_env_staging, lease_rc_123]
+  - event_id: evt_observed_promoted
+    kind: observed_truth.committed
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    fact_kind: release_candidate_promoted
+    scope: environment:staging
+  - event_id: evt_projection
+    kind: projection.emitted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    anchors:
+      - event_id: evt_observed_promoted
+        action_id: act_promote_123
+        plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+        fact_kind: release_candidate_promoted
+        scope: environment:staging
+  - event_id: evt_leases_released
+    kind: constraint.lease_released
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_env_staging
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+      - lease_id: lease_rc_123
+        resource: release_candidate_write
+        scope: release_candidate:rc_123
+        mode: exclusive
+  - event_id: evt_closed
+    kind: lifecycle.closed
+    action_id: act_promote_123

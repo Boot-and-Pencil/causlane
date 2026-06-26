@@ -1,0 +1,37 @@
+scenario_version: 0.1.0
+scenario_id: drain_with_active_lease_invalid
+action_id: act_promote_123
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: ship it
+# I-007 negative control: a drain fence is acquired over environment:staging
+# while an exclusive lease is still actively held on that scope. The replay
+# oracle must refute with DrainFenceWithActiveOverlap (a fence may be acquired
+# only when no overlapping lease is active).
+expected_replay_result: fail
+expected_error_code: DrainFenceWithActiveOverlap
+formal_obligations: [I-007, I-008]
+events:
+  - event_id: evt_lease
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_env
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+  - event_id: evt_drain
+    kind: drain.fence_acquired
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    scope: environment:staging

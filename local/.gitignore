@@ -1,0 +1,8 @@
+# Machine-local, non-git working files.
+#
+# This directory lives inside the repo tree on purpose: existing backup/export
+# tooling that already covers the repository captures it without reconfiguration.
+# Its contents are NEVER committed — only this ignore rule and README.md are.
+*
+!.gitignore
+!README.md

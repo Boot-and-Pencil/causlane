@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cli-checker/devinfra/diagnostics.schema.json",
+  "type": "object",
+  "required": ["schema_version", "snapshot", "cache_class", "diagnostics"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "snapshot": { "type": "object" },
+    "cache_class": { "type": "string" },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "message", "file", "range"],
+        "properties": {
+          "severity": { "type": "string" },
+          "code": { "type": ["string", "null"] },
+          "message": { "type": "string" },
+          "file": { "type": "string" },
+          "range": { "type": "object" },
+          "suggestions": { "type": "array" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

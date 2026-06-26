@@ -1,0 +1,153 @@
+{
+    "channel": "stable",
+    "generated_at": "2026-06-04T00:00:00Z",
+    "schema_version": 1,
+    "tools": {
+        "agent_clis": [
+            {
+                "binary": "codex",
+                "install_method": "npm_pinned",
+                "name": "codex_cli",
+                "package": "@openai/codex",
+                "version": "0.137.0"
+            },
+            {
+                "binary": "claude",
+                "install_method": "npm_pinned",
+                "name": "claude_code",
+                "package": "@anthropic-ai/claude-code",
+                "version": "2.1.162"
+            }
+        ],
+        "cargo_tools": [
+            {
+                "binary": "bacon",
+                "package": "bacon",
+                "version": "3.17.0"
+            },
+            {
+                "binary": "bacon-ls",
+                "package": "bacon-ls",
+                "version": "0.23.0"
+            },
+            {
+                "binary": "cargo-nextest",
+                "package": "cargo-nextest",
+                "version": "0.9.98"
+            },
+            {
+                "binary": "cargo-llvm-cov",
+                "package": "cargo-llvm-cov",
+                "version": "0.6.21"
+            },
+            {
+                "binary": "cargo-deny",
+                "package": "cargo-deny",
+                "version": "0.19.8"
+            },
+            {
+                "binary": "watchexec",
+                "package": "watchexec-cli",
+                "version": "2.3.2"
+            },
+            {
+                "binary": "just",
+                "package": "just",
+                "version": "1.43.0"
+            }
+        ],
+        "cli_checker": {
+            "archive_sha256": "",
+            "archive_url": "",
+            "install_method": "script",
+            "note": "archive_url/archive_sha256 are intentionally EMPTY: a reproducible download source is not yet published. tools/bootstrap-full therefore does NOT fabricate a URL/hash; it detects a pre-installed cli-checker and otherwise emits a 'manual install required' remediation. Populate both fields to enable sha-verified auto-install.",
+            "version": "0.1.7"
+        },
+        "formal_tools": {
+            "alloy": {
+                "command": "java -jar .tools/alloy/alloy.jar",
+                "enabled": true,
+                "jar_path": ".tools/alloy/alloy.jar",
+                "jar_sha256": "6b8c1cb5bc93bedfc7c61435c4e1ab6e688a242dc702a394628d9a9801edb78d",
+                "jar_url": "https://github.com/AlloyTools/org.alloytools.alloy/releases/download/v6.2.0/org.alloytools.alloy.dist.jar",
+                "java_min_version": 17,
+                "repo": "AlloyTools/org.alloytools.alloy",
+                "source": "github-release",
+                "version": "6.2.0"
+            },
+            "kani": {
+                "binary": "cargo-kani",
+                "enabled": true,
+                "package": "kani-verifier",
+                "source": "cratesio",
+                "version": "0.67.0"
+            },
+            "lean4": {
+                "elan_asset_sha256": "df0b2b3a439961ffcbb3985214365ffe40f49bc871df04dff268c7d8e21ca8b2",
+                "elan_asset_url": "https://github.com/leanprover/elan/releases/download/v4.2.3/elan-x86_64-unknown-linux-gnu.tar.gz",
+                "elan_version": "4.2.3",
+                "enabled": true,
+                "lake_version": "5.0.0",
+                "lean_linux_tar_zst_sha256": "07a633cc8d9151cbc08825ea4cdda50d4b02a2c9cb852c0131b13046f49cad7f",
+                "lean_version": "4.31.0",
+                "profile_required": [
+                    "proof",
+                    "all"
+                ],
+                "source": "github-release+elan",
+                "toolchain": "leanprover/lean4:v4.31.0"
+            },
+            "p": {
+                "dotnet_sdk_major": 8,
+                "enabled": true,
+                "java_min_version": 11,
+                "package": "P",
+                "source": "nuget",
+                "version": "3.1.0"
+            },
+            "verus": {
+                "archive_path": ".tools/verus_dist/verus-x86-linux/verus",
+                "archive_sha256": "d234121e38718860e00edaadd2807278f720f9715f8d6c90e22f5d606be92cf1",
+                "archive_url": "https://github.com/verus-lang/verus/releases/download/release/0.2026.05.31.5dd6d83/verus-0.2026.05.31.5dd6d83-x86-linux.zip",
+                "channel": "weekly",
+                "enabled": true,
+                "enabled_reason": "binary pinned; Rust 1.95.0 toolchain is provisioned",
+                "repo": "verus-lang/verus",
+                "requires_rust_toolchain": "1.95.0",
+                "source": "github-release",
+                "version": "0.2026.05.31.5dd6d83"
+            },
+            "z3": {
+                "binary": ".tools/verus_dist/verus-x86-linux/z3",
+                "enabled": true,
+                "min_version": "4.8.0",
+                "source": "verus-bundled",
+                "version": "4.12.5"
+            }
+        },
+        "npm": {
+            "version": "11.16.0"
+        },
+        "process_compose": {
+            "sha256": "79f79f4efcb26b7abb29d5ce7aa2b9807afa1333b1ef1c5dee607b12fbc0ba89",
+            "version": "1.103.0"
+        },
+        "python_tools": [
+            {
+                "binary": "semgrep",
+                "package": "semgrep",
+                "version": "1.165.0"
+            }
+        ],
+        "rust": {
+            "components": [
+                "clippy",
+                "rustfmt",
+                "rust-src",
+                "llvm-tools-preview"
+            ],
+            "note": "rust-toolchain.toml is the canonical source of truth and pins channel=stable (a rolling channel). This `version` is the OBSERVED resolved version recorded for reproducibility/diagnostics, NOT a second pin. This is a deliberate policy (rolling channel + recorded observed version), not a drift to be 'fixed' by hardcoding a channel here. See docs/setup.md (Rust version policy).",
+            "version": "1.96.0"
+        }
+    }
+}

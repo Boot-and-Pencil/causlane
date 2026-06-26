@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/formal_obligation_manifest.schema.json",
+  "title": "Causlane Formal Obligation Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "authority", "models", "protocols", "obligations"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "authority": { "type": "string", "minLength": 1 },
+    "status": { "type": "string" },
+    "models": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/model" }
+    },
+    "protocols": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/protocol" }
+    },
+    "obligations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/obligation" }
+    }
+  },
+  "$defs": {
+    "model": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^FM-[0-9]{3}$" },
+        "title": { "type": "string", "minLength": 1 },
+        "protocols": { "type": "array", "items": { "type": "string", "pattern": "^PR-[0-9]{3}$" } },
+        "invariants": { "type": "array", "items": { "$ref": "#/$defs/invariant_id" } }
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^PR-[0-9]{3}$" },
+        "title": { "type": "string", "minLength": 1 }
+      }
+    },
+    "obligation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "model_id", "protocol_id", "invariant_id", "statement", "lanes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^OBL-[A-Z0-9-]+$" },
+        "model_id": { "type": "string", "pattern": "^FM-[0-9]{3}$" },
+        "protocol_id": { "type": "string", "pattern": "^PR-[0-9]{3}$" },
+        "invariant_id": { "$ref": "#/$defs/invariant_id" },
+        "statement": { "type": "string", "minLength": 1 },
+        "lanes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["replay", "alloy", "p", "kani", "verus", "lean4"],
+          "properties": {
+            "replay": { "$ref": "#/$defs/lane" },
+            "alloy": { "$ref": "#/$defs/lane" },
+            "p": { "$ref": "#/$defs/lane" },
+            "kani": { "$ref": "#/$defs/lane" },
+            "verus": { "$ref": "#/$defs/lane" },
+            "lean4": { "$ref": "#/$defs/lane" }
+          }
+        },
+        "negative_controls": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "lane": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["required", "planned", "not_applicable", "proof_profile_required", "non_blocking", "optional"]
+        },
+        "check_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "reason": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "not_applicable" } } },
+          "then": { "required": ["reason"] }
+        },
+        {
+          "if": { "properties": { "status": { "enum": ["required", "proof_profile_required"] } } },
+          "then": { "required": ["check_ids"] }
+        }
+      ]
+    },
+    "invariant_id": { "$ref": "common.schema.json#/$defs/known_invariant_id" }
+  }
+}

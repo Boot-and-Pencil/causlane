@@ -1,0 +1,6 @@
+[toolchain]
+# Canonical Rust source of truth (P0-002). `.devinfra/tool-versions.json`
+# records the observed resolved version for reproducibility; this file decides
+# the channel + components actually used.
+channel = "stable"
+components = ["rustfmt", "clippy", "rust-src", "llvm-tools-preview"]

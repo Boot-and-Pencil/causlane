@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "authority": "machine_checked_proof_refinement_scope",
+  "generated_markdown": "docs/formal/08-proof-refinement-scope.md",
+  "note": "This artifact classifies proof/refinement strength. It does not grant coverage credit; current per-invariant lane status and check_id credit remain receipt-derived in docs/invariants/coverage-matrix.json.",
+  "entries": [
+    {
+      "id": "receipt-bound-coverage-authority",
+      "title": "Receipt-bound coverage authority",
+      "evidence_class": "tested",
+      "responsible_lanes": ["replay", "alloy", "p", "kani", "verus", "lean4", "tooling"],
+      "claim": "A coverage cell is authoritative only when fresh generated artifacts, tool-run receipts, stale-check and the derived coverage report agree.",
+      "authority_surface": "target/causlane/formal-coverage-report.json plus docs/invariants/coverage-matrix.json",
+      "scope": "Per-lane status, check_id credit and covered/not_applicable cells for active invariants.",
+      "limits": "This scope artifact describes evidence strength only; it does not create or upgrade coverage.",
+      "verification": "tools/formal-verify-all and tools/coverage-matrix --check",
+      "source_links": [
+        "docs/invariants/coverage-matrix.json",
+        "docs/invariants/coverage-matrix.md",
+        "tools/coverage-matrix"
+      ]
+    },
+    {
+      "id": "replay-concrete-oracle",
+      "title": "Replay concrete oracle",
+      "evidence_class": "tested",
+      "responsible_lanes": ["replay"],
+      "claim": "Replay checks concrete bundle-bound traces and refutes invalid scenarios with stable error codes.",
+      "authority_surface": "causlane-replay plus contracts/scenarios negative controls",
+      "scope": "Concrete trace semantics, payload binding, authz freshness/policy checks and executable negative controls.",
+      "limits": "Replay is not an exhaustive interleaving or abstract proof of every possible runtime execution.",
+      "verification": "tools/formal-verify-all replay prerequisite and replay negative-control blocks",
+      "source_links": [
+        "crates/causlane-replay/src",
+        "contracts/scenarios",
+        "docs/formal-readiness-status.md"
+      ]
+    },
+    {
+      "id": "alloy-structural-models",
+      "title": "Alloy structural models",
+      "evidence_class": "simulated",
+      "responsible_lanes": ["alloy"],
+      "claim": "Alloy gives small-scope structural counterexample search over generated bundle/scenario facts.",
+      "authority_surface": "formal/alloy/core plus formal/alloy/generated and Alloy tool-run receipts",
+      "scope": "Structural lifecycle, anchor, witness, lease, authz and drain relations where the generated model has facts and assertions.",
+      "limits": "Alloy cells are not evidence for time/freshness, overlay, routing or constraint-update behavior unless the generated model explicitly carries that obligation.",
+      "verification": "AlloyRunner blocks and Alloy negative controls inside tools/formal-verify-all",
+      "source_links": [
+        "formal/alloy",
+        "formal/tools/AlloyRunner.java",
+        "docs/invariants/coverage-matrix.json"
+      ]
+    },
+    {
+      "id": "p-generated-monitors",
+      "title": "P generated monitors",
+      "evidence_class": "simulated",
+      "responsible_lanes": ["p"],
+      "claim": "P checks generated protocol monitors and bounded interleaving controls for modeled event streams.",
+      "authority_surface": "formal/p/generated and P tool-run receipts",
+      "scope": "Event-order monitors, payload-grounding monitors, drain/race controls and planned interleaving hooks that are explicitly run by the gate.",
+      "limits": "P does not prove Rust implementation paths or lanes not represented by generated monitors.",
+      "verification": "P protocol run and P monitor-firing negative controls inside tools/formal-verify-all",
+      "source_links": [
+        "formal/p",
+        "docs/adr/0027-m10-2-p-interleavings-bootstrap.md",
+        "tools/formal-verify-all"
+      ]
+    },
+    {
+      "id": "kani-bounded-rust-rules",
+      "title": "Kani bounded Rust rules",
+      "evidence_class": "bounded",
+      "responsible_lanes": ["kani"],
+      "claim": "Kani checks Rust-facing pure reducers and validators over bounded nondeterministic input spaces configured by the lane profile.",
+      "authority_surface": "formal/kani/profile.json plus generated Kani harnesses and tool-run receipts",
+      "scope": "Bounded executable confirmation that selected Rust predicates match intended rules for active coverage cells.",
+      "limits": "Kani is not an unbounded proof and does not cover external IO or adapter behavior outside the harness shape.",
+      "verification": "Kani lane in tools/formal-verify-all and schema validation of formal/kani/profile.json",
+      "source_links": [
+        "formal/kani/profile.json",
+        "contracts/schema/formal_kani_profile.schema.json",
+        "docs/adr/0028-m10-3-kani-profile-bootstrap.md"
+      ]
+    },
+    {
+      "id": "verus-code-adjacent-proofs",
+      "title": "Verus code-adjacent proofs",
+      "evidence_class": "proved",
+      "responsible_lanes": ["verus"],
+      "claim": "Verus proves preservation and rule lemmas over generated Rust-like proof artifacts under the always-on no-cheating profile.",
+      "authority_surface": "formal/verus/generated plus Verus codegen/tool-run receipts",
+      "scope": "Pure kernel/rule preservation lemmas that are generated from Formal IR and credited by the coverage report.",
+      "limits": "Verus does not by itself prove external adapters, concrete storage, network IO or all parser behavior.",
+      "verification": "verus --no-cheating inside tools/formal-verify-all",
+      "source_links": [
+        "formal/verus",
+        "formal/proof-lanes.json",
+        "docs/formal/03-lean4-verus-proof-obligations.md"
+      ]
+    },
+    {
+      "id": "lean4-abstract-theorem-applications",
+      "title": "Lean4 abstract theorem applications",
+      "evidence_class": "proved",
+      "responsible_lanes": ["lean4"],
+      "claim": "Lean4 proves generated scenario-bound theorem applications over the abstract protocol vocabulary and generated facts.",
+      "authority_surface": "formal/lean core package, formal/lean4/generated and Lean4 receipts",
+      "scope": "Abstract protocol theorem applications connected to generated Formal IR payloads and credited by the coverage report.",
+      "limits": "Lean4 alone does not claim Rust implementation correctness; that connection comes from replay, Kani and Verus evidence.",
+      "verification": "lake build plus lake env lean inside tools/formal-verify-all",
+      "source_links": [
+        "formal/lean",
+        "formal/lean4/generated",
+        "docs/formal/03-lean4-verus-proof-obligations.md"
+      ]
+    },
+    {
+      "id": "cryptographic-and-toolchain-assumptions",
+      "title": "Cryptographic and toolchain assumptions",
+      "evidence_class": "assumed",
+      "responsible_lanes": ["tooling"],
+      "claim": "Hash collision resistance, signature primitive correctness and external solver/compiler correctness are trusted assumptions, not repository proofs.",
+      "authority_surface": "toolchain pins, HMAC/SHA tests and formal-doctor installation checks",
+      "scope": "Environmental and cryptographic assumptions needed for the evidence chain to be meaningful.",
+      "limits": "The repository tests deterministic use of primitives but does not prove cryptographic hardness or solver soundness.",
+      "verification": "tools/formal-doctor, tools/formal-install, unit tests and pinned tool versions",
+      "source_links": [
+        ".devinfra/tool-versions.json",
+        "tools/formal-doctor",
+        "docs/setup.md"
+      ]
+    },
+    {
+      "id": "external-provider-ci-adoption",
+      "title": "External provider CI adoption",
+      "evidence_class": "out_of_scope",
+      "responsible_lanes": ["tooling"],
+      "claim": "Provider-specific PR CI wiring is outside the repository proof contour until a workflow supplies the baseline and changed-file source.",
+      "authority_surface": "repository-local gates and formal-discipline-check entrypoints",
+      "scope": "Local and repo-gate enforcement exists; external provider adoption remains integration work.",
+      "limits": "No checked-in provider workflow is claimed by this milestone.",
+      "verification": "tools/formal-discipline-check supports --from-git and --changed-files",
+      "source_links": [
+        "docs/formal/07-integration-tz.md",
+        "tools/formal-discipline-check",
+        "tools/specs/formal-discipline-check.md"
+      ]
+    },
+    {
+      "id": "future-invariants-and-unbounded-io",
+      "title": "Future invariants and unbounded IO",
+      "evidence_class": "out_of_scope",
+      "responsible_lanes": ["replay", "alloy", "p", "kani", "verus", "lean4"],
+      "claim": "Planned invariants, deeper refinement theorems, unbounded parser/IO behavior and external adapter semantics are future obligations until generated artifacts and receipts exist.",
+      "authority_surface": "formal catalogs, obligation manifest and product-track future milestones",
+      "scope": "Target-state formal surface that is documented but not current coverage.",
+      "limits": "Catalog mentions are not coverage and must remain out of current proof claims until the coverage matrix credits them.",
+      "verification": "formal-discipline-check, coverage-matrix drift check and generated proof/refinement scope check",
+      "source_links": [
+        "docs/formal/01-formal-model-catalog.md",
+        "docs/formal/02-protocol-catalog.md",
+        "formal/obligations/lifecycle_product_obligations.yaml"
+      ]
+    }
+  ]
+}

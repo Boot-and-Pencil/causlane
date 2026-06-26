@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export DEVINFRA_BACKGROUND=1
+export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-12}"
+
+exec nice -n "${DEVINFRA_NICE:-15}" \
+  ionice -c "${DEVINFRA_IONICE_CLASS:-3}" \
+  "$(dirname "$0")/cargo-dev" "$@"

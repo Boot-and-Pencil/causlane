@@ -1,0 +1,38 @@
+bundle_id: causlane.demo.multi_action_reference
+registry_version: 0.0.0
+# A deliberately minimal, non-RuntimeExecution reference bundle whose only purpose
+# is to carry a replay-valid MULTI-ACTION history (P2-004). RuntimeExecution
+# predicates require a full barrier ceremony per action, so a minimal multi-action
+# trace cannot replay-validate against them; an EvidenceMeta predicate has the
+# `admitted -> planned -> dispatch_logged -> closed` lifecycle with no barrier,
+# projection or lease obligations, which is exactly enough to exercise the
+# per-action lifecycle reduction and the action-keyed closed-terminal invariant.
+predicates:
+  - id: reference.multi_action
+    version: 1
+    consequence_profile: EvidenceMeta
+    # Schemas are reused from the release_promote fixture: this predicate carries
+    # no subject/circumstance bindings of its own, and the hashes only bind the
+    # bundle to a concrete schema version (they are not replay-gating).
+    subject_schema_ref: schemas/release_promote_subject.schema.json
+    circumstance_schema_ref: schemas/release_promote_circumstance.schema.json
+    lifecycle_class: meta
+    route_id: route.evidence_meta
+    route_derivation: consequence_profile
+    barrier_policy: none
+    projection_policy: none
+    authz_policy:
+      mode: disabled_for_local_dev
+      allowed_in_profiles: [EvidenceMeta]
+      rationale: meta reference fixture without real PDP
+    truth_commit_policy: disallowed
+    schema_hashes:
+      subject: sha256:ea2c8af26bc27ef69a62d1ce9f4b144335fe82e98240cfad8594e357f193900d
+      circumstance: sha256:a55a9965b12284ca1c2692025e67deb311b965167cfe41d696eddd70e32339eb
+    constraint_policy:
+      claim_coverage: disabled
+      lease_conflicts: disabled
+    formal_obligations:
+      - I-008
+    scenario_refs:
+      - contracts/scenarios/multi_action_reference.scenario.yaml

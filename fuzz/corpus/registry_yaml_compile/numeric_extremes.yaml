@@ -1,0 +1,30 @@
+bundle_id: numeric.edge.bundle
+registry_version: "0.0.0"
+predicates:
+  - id: numeric.edge
+    version: 4294967295
+    consequence_profile: OutsideKernel
+    subject_schema_ref: schemas/numeric_subject.schema.json
+    circumstance_schema_ref: schemas/numeric_circumstance.schema.json
+    lifecycle_class: meta
+    route_id: route.numeric_meta
+    route_derivation: consequence_profile
+    barrier_policy: none
+    projection_policy: none
+    authz_policy:
+      mode: disabled_for_local_dev
+      allowed_in_profiles: [OutsideKernel]
+      freshness_max_age: 18446744073709551615
+      rationale: numeric edge fuzz seed
+    truth_commit_policy: disallowed
+    schema_hashes:
+      subject: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      circumstance: sha256:2222222222222222222222222222222222222222222222222222222222222222
+    constraint_policy:
+      claim_coverage: disabled
+      lease_conflicts: disabled
+merge_protocols:
+  - id: numeric_edge_merge
+    version: 4294967295
+    status: declared_but_unverified
+    algebra: append_only_disjoint_keys

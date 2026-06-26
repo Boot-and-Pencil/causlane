@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+REAL_CARGO="${REAL_CARGO:-$(rustup which cargo 2>/dev/null || command -v cargo)}"
+REAL_RUSTC="${REAL_RUSTC:-$(rustup which rustc 2>/dev/null || command -v rustc)}"
+
+usage() {
+  cat <<'EOF'
+Usage: ./tools/cargo-cov-prebuild [cargo test options]
+
+Build coverage-instrumented test binaries without running tests. This is the
+background coverage prewarm path for cargo-llvm-cov versions where
+`--no-report --no-clean` and `--no-run --no-clean` are invalid combinations.
+EOF
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+mkdir -p "$ROOT/.agent-state/locks"
+
+unset RUSTFLAGS
+unset CARGO_ENCODED_RUSTFLAGS
+unset RUSTDOCFLAGS
+unset CARGO_ENCODED_RUSTDOCFLAGS
+unset CARGO_BUILD_RUSTFLAGS
+unset CARGO_BUILD_RUSTDOCFLAGS
+unset RUSTC_WRAPPER
+unset CARGO_BUILD_RUSTC_WRAPPER
+unset RUSTC_WORKSPACE_WRAPPER
+
+export CARGO="$REAL_CARGO"
+export RUSTC="$REAL_RUSTC"
+export CARGO_TARGET_DIR="$ROOT/target"
+export CARGO_LLVM_COV_TARGET_DIR="$ROOT/target/llvm-cov-target"
+export CARGO_LLVM_COV_BUILD_DIR="$ROOT/target/llvm-cov-target"
+export CARGO_INCREMENTAL=1
+export CARGO_TERM_PROGRESS_WHEN=never
+
+run_prebuild() {
+  "$ROOT/tools/devctl" ensure-coverage-clean --quiet
+  eval "$("$REAL_CARGO" llvm-cov show-env --export-prefix)"
+
+  export CARGO="$REAL_CARGO"
+  export RUSTC="$REAL_RUSTC"
+  export CARGO_TARGET_DIR="$ROOT/target/llvm-cov-target"
+  export CARGO_LLVM_COV_TARGET_DIR="$ROOT/target/llvm-cov-target"
+  export CARGO_LLVM_COV_BUILD_DIR="$ROOT/target/llvm-cov-target"
+  export CARGO_INCREMENTAL=1
+  export CARGO_TERM_PROGRESS_WHEN=never
+
+  "$REAL_CARGO" test \
+    "$@" \
+    --target-dir "$ROOT/target/llvm-cov-target" \
+    --no-run \
+    --message-format=json-diagnostic-rendered-ansi
+}
+
+LOCK="$ROOT/.agent-state/locks/cargo-coverage.lock"
+FOREGROUND="$ROOT/.agent-state/locks/foreground-active"
+LOCK_SKIPPED_EXIT_CODE="${DEVINFRA_LOCK_SKIPPED_EXIT_CODE:-75}"
+exec 9>"$LOCK"
+
+if [[ "${DEVINFRA_BACKGROUND:-0}" == "1" ]]; then
+  if [[ -e "$FOREGROUND" ]]; then
+    echo '{"devinfra_status":"skipped_foreground_active"}' >&2
+    exit "$LOCK_SKIPPED_EXIT_CODE"
+  fi
+  if ! flock -n 9; then
+    echo '{"devinfra_status":"skipped_lock_busy"}' >&2
+    exit "$LOCK_SKIPPED_EXIT_CODE"
+  fi
+  if [[ -e "$FOREGROUND" ]]; then
+    echo '{"devinfra_status":"skipped_foreground_active"}' >&2
+    exit "$LOCK_SKIPPED_EXIT_CODE"
+  fi
+  run_prebuild "$@"
+else
+  "$ROOT/tools/devctl" background stop --quiet --reason "foreground-coverage-prebuild" || true
+  touch "$FOREGROUND"
+  trap 'rm -f "$FOREGROUND" "$ROOT/.agent-state/background-stop-request.json"' EXIT
+  flock 9
+  set +e
+  run_prebuild "$@"
+  status=$?
+  set -e
+  "$ROOT/tools/devctl" write-snapshot --quiet || true
+  exit "$status"
+fi

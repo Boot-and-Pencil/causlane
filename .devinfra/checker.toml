@@ -1,0 +1,18 @@
+[checker]
+name = "cli-checker"
+wrapper = "./tools/checker-wrapper"
+state = ".agent-state/checker.json"
+default_cache_class = "dev"
+heavy_cache_class = "custom_checker_heavy"
+
+[checker.policy]
+warnings_are_pass = false
+
+[checker.allowed]
+cargo = "./tools/cargo-dev"
+output_roots = [".agent-state", "target/custom-checker-state", "target/custom-checker"]
+
+[checker.denied]
+cargo_subcommands = ["clean", "update"]
+source_mutation_without_content_diff = true
+dev_target_heavy_flags = true

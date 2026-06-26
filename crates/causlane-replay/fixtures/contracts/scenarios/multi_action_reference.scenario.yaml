@@ -1,0 +1,42 @@
+scenario_version: 0.1.0
+scenario_id: multi_action_reference
+# Two independent actions share one trace. The top-level action_id names the
+# primary action, but every event carries its own action_id and each action's
+# lifecycle is reduced independently (per-action validate_lifecycle). The two
+# lifecycles are interleaved to show they do not interfere: act_ref_a closes
+# before act_ref_b finishes, and the action-keyed closed-terminal invariant
+# (I-008) does not let one action's close affect the other.
+action_id: act_ref_a
+predicate: reference.multi_action
+plan_hash: sha256:1111111111111111111111111111111111111111111111111111111111111111
+expected_replay_result: pass
+formal_obligations: [I-008]
+events:
+  - event_id: evt_a_admitted
+    kind: action.admitted
+    action_id: act_ref_a
+  - event_id: evt_b_admitted
+    kind: action.admitted
+    action_id: act_ref_b
+  - event_id: evt_a_planned
+    kind: action.planned
+    action_id: act_ref_a
+    plan_hash: sha256:1111111111111111111111111111111111111111111111111111111111111111
+  - event_id: evt_b_planned
+    kind: action.planned
+    action_id: act_ref_b
+    plan_hash: sha256:2222222222222222222222222222222222222222222222222222222222222222
+  - event_id: evt_a_dispatch
+    kind: dispatch.logged
+    action_id: act_ref_a
+    plan_hash: sha256:1111111111111111111111111111111111111111111111111111111111111111
+  - event_id: evt_b_dispatch
+    kind: dispatch.logged
+    action_id: act_ref_b
+    plan_hash: sha256:2222222222222222222222222222222222222222222222222222222222222222
+  - event_id: evt_a_closed
+    kind: lifecycle.closed
+    action_id: act_ref_a
+  - event_id: evt_b_closed
+    kind: lifecycle.closed
+    action_id: act_ref_b

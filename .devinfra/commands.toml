@@ -1,0 +1,102 @@
+[commands.fetch]
+argv = ["./tools/cargo-bg", "fetch", "--locked"]
+cache_class = "dev"
+on_manifest_change = true
+
+[commands.metadata]
+argv = ["./tools/cargo-bg", "metadata", "--locked", "--format-version=1", "--no-deps"]
+cache_class = "dev"
+
+[commands.check]
+argv = [
+  "./tools/cargo-bg", "check",
+  "--workspace", "--all-targets", "--all-features",
+  "--locked", "--keep-going",
+  "--message-format=json-diagnostic-rendered-ansi",
+]
+cache_class = "dev"
+produces = ["diagnostics"]
+
+[commands.clippy]
+argv = [
+  "./tools/cargo-bg", "clippy",
+  "--workspace", "--all-targets", "--all-features",
+  "--locked",
+  "--message-format=json-diagnostic-rendered-ansi",
+  "--",
+  "-D", "warnings",
+]
+cache_class = "dev"
+produces = ["diagnostics"]
+
+[commands.test_build]
+argv = [
+  "./tools/cargo-bg", "nextest", "run",
+  "--workspace", "--all-targets", "--all-features",
+  "--locked", "--no-run",
+]
+cache_class = "dev"
+produces = ["test-binaries"]
+
+[commands.coverage_build]
+argv = [
+  "./tools/cargo-cov-prebuild-bg",
+  "--workspace", "--all-features",
+  "--locked",
+]
+cache_class = "coverage"
+idle_only = true
+
+[commands.coverage_report]
+argv = [
+  "./tools/cargo-cov", "nextest",
+  "--workspace", "--all-features",
+  "--no-clean",
+  "--lcov", "--output-path", "target/llvm-cov-target/lcov.info",
+]
+cache_class = "coverage"
+foreground_only = true
+
+[commands.custom_checker]
+argv = [
+  "./tools/checker-wrapper",
+  "run",
+  "--mode=background",
+  "--cache-class=dev",
+  "--cargo=./tools/cargo-dev",
+  "--snapshot-file=.agent-state/current-snapshot.json",
+  "--output=.agent-state/checker.json",
+  "--message-format=json",
+]
+cache_class = "dev"
+produces = ["custom-checker"]
+
+[commands.fmt]
+argv = ["./tools/cargo-dev", "fmt", "--all", "--check"]
+cache_class = "none"
+cheap = true
+enabled = true
+
+[commands.deny]
+argv = ["./tools/cargo-dev", "deny", "check"]
+cache_class = "metadata"
+on_manifest_change = true
+enabled = true
+
+[commands.audit]
+argv = ["cargo", "audit", "--deny", "warnings"]
+cache_class = "metadata"
+on_manifest_change = true
+enabled = false
+
+[commands.machete]
+argv = ["cargo", "machete"]
+cache_class = "metadata"
+on_manifest_change = true
+enabled = false
+
+[commands.doc]
+argv = ["./tools/cargo-bg", "doc", "--workspace", "--all-features", "--no-deps", "--locked"]
+cache_class = "doc"
+idle_only = true
+enabled = false

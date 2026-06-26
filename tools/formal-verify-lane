@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Provider-neutral formal lane entrypoint.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+KANI_PROFILE="formal/kani/profile.json"
+PROFILE="${FORMAL_PROFILE:-all}"
+DRY_RUN=0
+
+usage() {
+  cat >&2 <<'EOF'
+usage: tools/formal-verify-lane <lane> [--profile base|rust|proof|all] [--dry-run]
+
+Valid lanes are read from formal/kani/profile.json.
+EOF
+}
+
+if [ "$#" -lt 1 ] || [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  usage
+  if [ "$#" -lt 1 ]; then exit 2; fi
+  exit 0
+fi
+
+LANE="$1"
+shift
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --profile)
+      PROFILE="${2:?missing value for --profile}"
+      shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "formal-verify-lane: unknown argument $1" >&2
+      usage
+      exit 2
+      ;;
+  esac
+done
+
+case "$PROFILE" in
+  base|rust|proof|all)
+    ;;
+  *)
+    echo "formal-verify-lane: unsupported profile $PROFILE" >&2
+    exit 2
+    ;;
+esac
+
+if ! jq -e --arg lane "$LANE" '.lanes | has($lane)' "$KANI_PROFILE" >/dev/null; then
+  valid_lanes="$(jq -r '.lanes | keys | sort | join(", ")' "$KANI_PROFILE")"
+  echo "formal-verify-lane: unknown lane $LANE (valid: $valid_lanes)" >&2
+  exit 2
+fi
+
+KANI_DEFAULT_UNWIND="$(jq -er --arg lane "$LANE" '.lanes[$lane].default_unwind' "$KANI_PROFILE")"
+KANI_OUTPUT_FORMAT="$(jq -er '.output_format' "$KANI_PROFILE")"
+
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "command=tools/formal-verify-all --profile $PROFILE --lane $LANE"
+  echo "kani_default_unwind=$KANI_DEFAULT_UNWIND"
+  echo "kani_output_format=$KANI_OUTPUT_FORMAT"
+  exit 0
+fi
+
+exec tools/formal-verify-all --profile "$PROFILE" --lane "$LANE"

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/formal_ir.schema.json",
+  "title": "Causlane Formal IR v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "formal_ir_hash",
+    "generator_version",
+    "canonical_serialization_version",
+    "source_bundle_hash",
+    "bundle_schema_version",
+    "bundle_id",
+    "bundle_version",
+    "scenario_hash",
+    "expected_result",
+    "expected_error_code",
+    "predicates",
+    "merge_protocols",
+    "scenario_events",
+    "invariants"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "formal_ir_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "generator_version": { "type": "string", "minLength": 1 },
+    "canonical_serialization_version": { "type": "integer", "minimum": 1 },
+    "source_bundle_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "bundle_schema_version": { "type": "integer", "minimum": 1 },
+    "bundle_id": { "type": "string", "minLength": 1 },
+    "bundle_version": { "type": "string", "minLength": 1 },
+    "scenario_hash": {
+      "anyOf": [
+        { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "expected_result": {
+      "anyOf": [
+        { "type": "string", "enum": ["pass", "fail"] },
+        { "type": "null" }
+      ]
+    },
+    "expected_error_code": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "null" }
+      ]
+    },
+    "predicates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/predicate" }
+    },
+    "merge_protocols": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/merge_protocol" }
+    },
+    "scenario_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/active_invariant_id" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "fact_kind", "scope"],
+      "properties": {
+        "event_id": { "type": "string", "minLength": 1 },
+        "fact_kind": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "scope": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] }
+      }
+    },
+    "merge_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_id", "version", "status", "permits_concurrency"],
+      "properties": {
+        "protocol_id": { "type": "string", "minLength": 1 },
+        "version": { "type": "integer", "minimum": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["absent", "declared_but_unverified", "verified", "disabled"]
+        },
+        "permits_concurrency": { "type": "boolean" }
+      }
+    },
+    "predicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "predicate",
+        "version",
+        "consequence_profile",
+        "lifecycle_class",
+        "route_id",
+        "barrier_policy",
+        "projection_policy",
+        "truth_commit_policy",
+        "authz_required",
+        "authz_required_stages",
+        "witness_selector_schema",
+        "impact_set_policy",
+        "lifecycle_transition_policy",
+        "projection_anchor_policy",
+        "lease_claim_coverage",
+        "lease_conflicts",
+        "drain_policy",
+        "required_witnesses",
+        "claims",
+        "effect_templates",
+        "formal_obligations",
+        "scenario_refs"
+      ],
+      "properties": {
+        "predicate": { "type": "string", "minLength": 1 },
+        "version": { "type": "integer", "minimum": 1 },
+        "consequence_profile": { "type": "string", "minLength": 1 },
+        "lifecycle_class": { "type": "string", "minLength": 1 },
+        "route_id": { "type": "string", "minLength": 1 },
+        "barrier_policy": { "type": "string", "minLength": 1 },
+        "projection_policy": { "type": "string", "minLength": 1 },
+        "truth_commit_policy": { "type": "string", "minLength": 1 },
+        "authz_required": { "type": "boolean" },
+        "authz_required_stages": { "type": "array", "items": { "type": "string" } },
+        "witness_selector_schema": { "type": "string", "minLength": 1 },
+        "impact_set_policy": { "type": "string", "minLength": 1 },
+        "lifecycle_transition_policy": { "type": "string", "minLength": 1 },
+        "projection_anchor_policy": { "type": "string", "minLength": 1 },
+        "lease_claim_coverage": { "type": "string", "minLength": 1 },
+        "lease_conflicts": { "type": "string", "minLength": 1 },
+        "drain_policy": { "type": "string", "minLength": 1 },
+        "required_witnesses": { "type": "array", "items": { "$ref": "#/$defs/witness_requirement" } },
+        "claims": { "type": "array", "items": { "$ref": "#/$defs/claim" } },
+        "effect_templates": { "type": "array", "items": { "$ref": "#/$defs/effect" } },
+        "formal_obligations": { "type": "array", "items": { "type": "string" } },
+        "scenario_refs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "witness_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement_id", "target_stage", "event_kind", "producer_predicate", "fact_kind", "scope_expr"],
+      "properties": {
+        "requirement_id": { "type": "string", "minLength": 1 },
+        "target_stage": { "type": "string", "minLength": 1 },
+        "event_kind": { "type": "string", "minLength": 1 },
+        "producer_predicate": { "type": "string", "minLength": 1 },
+        "fact_kind": { "type": "string", "minLength": 1 },
+        "scope_expr": { "type": "string", "minLength": 1 }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource", "scope_expr", "mode"],
+      "properties": {
+        "resource": { "type": "string", "minLength": 1 },
+        "scope_expr": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["exclusive", "shared", "token"] }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op_kind",
+        "reads",
+        "writes",
+        "produces",
+        "requires",
+        "conflict_domains",
+        "hardness",
+        "idempotency_domain"
+      ],
+      "properties": {
+        "op_kind": { "type": "string", "minLength": 1 },
+        "reads": { "type": "array", "items": { "type": "string" } },
+        "writes": { "type": "array", "items": { "type": "string" } },
+        "produces": { "type": "array", "items": { "type": "string" } },
+        "requires": { "type": "array", "items": { "type": "string" } },
+        "conflict_domains": { "type": "array", "items": { "type": "string" } },
+        "hardness": { "type": "string", "enum": ["hard", "soft", "meta"] },
+        "idempotency_domain": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "kind",
+        "action_id",
+        "plan_hash",
+        "op_index",
+        "fact_kind",
+        "scope",
+        "anchors",
+        "leases",
+        "barrier",
+        "capability",
+        "authz_decision"
+      ],
+      "properties": {
+        "event_id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "action_id": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "plan_hash": {
+          "anyOf": [
+            { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+            { "type": "null" }
+          ]
+        },
+        "op_index": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }] },
+        "fact_kind": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "scope": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "anchors": { "type": "array", "items": { "$ref": "#/$defs/anchor" } },
+        "leases": { "type": "array", "items": { "$ref": "#/$defs/lease" } },
+        "barrier": { "anyOf": [{ "$ref": "#/$defs/barrier" }, { "type": "null" }] },
+        "capability": { "anyOf": [{ "$ref": "#/$defs/capability" }, { "type": "null" }] },
+        "authz_decision": { "anyOf": [{ "$ref": "#/$defs/authz_decision" }, { "type": "null" }] }
+      }
+    },
+    "lease": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lease_id", "resource", "scope", "mode"],
+      "properties": {
+        "lease_id": { "type": "string", "minLength": 1 },
+        "resource": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["exclusive", "shared", "token"] },
+        "epoch": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "barrier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "barrier_event_id",
+        "action_id",
+        "plan_hash",
+        "op_indexes",
+        "impact_set_hash",
+        "witnesses",
+        "lease_ids",
+        "authz_decision_event_ids"
+      ],
+      "properties": {
+        "barrier_event_id": { "type": "string", "minLength": 1 },
+        "action_id": { "type": "string", "minLength": 1 },
+        "plan_hash": { "type": "string" },
+        "op_indexes": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "impact_set_hash": { "type": "string" },
+        "witnesses": { "type": "array", "items": { "$ref": "#/$defs/witness_payload" } },
+        "lease_ids": { "type": "array", "items": { "type": "string" } },
+        "authz_decision_event_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "barrier_event_id", "op_index", "lease_ids"],
+      "properties": {
+        "capability_id": { "type": "string", "minLength": 1 },
+        "barrier_event_id": { "type": "string", "minLength": 1 },
+        "op_index": { "type": "integer", "minimum": 0 },
+        "lease_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "witness_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "witness_event_id",
+        "requirement_id",
+        "kind",
+        "fact_kind",
+        "scope",
+        "binds_to_action_id",
+        "binds_to_plan_hash",
+        "binds_to_impact_set_hash"
+      ],
+      "properties": {
+        "witness_event_id": { "type": "string", "minLength": 1 },
+        "requirement_id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "fact_kind": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "scope": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "binds_to_action_id": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "binds_to_plan_hash": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "binds_to_impact_set_hash": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+      }
+    },
+    "authz_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_event_id", "action_id", "plan_hash", "stage", "decision"],
+      "properties": {
+        "decision_event_id": { "type": "string", "minLength": 1 },
+        "action_id": { "type": "string", "minLength": 1 },
+        "plan_hash": { "type": "string" },
+        "stage": { "type": "string", "minLength": 1 },
+        "decision": { "type": "string", "enum": ["allow", "deny"] }
+      }
+    }
+  }
+}

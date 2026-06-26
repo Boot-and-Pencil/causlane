@@ -1,0 +1,48 @@
+# Contract-test manifest (M04.5).
+#
+# A data-driven harness over the scenario corpus: each scenario is compiled
+# against its suite's bundle and replayed, and must satisfy its OWN declared
+# contract — `expected_replay_result` (pass/fail) plus `expected_error_code` for
+# negative cases. Add a scenario here to give it contract coverage; no Rust
+# required. Run with: `causlane contract test --manifest contracts/contract-tests.yaml`.
+suites:
+  - name: release_promote
+    registry: contracts/examples/release_promote.registry.yaml
+    scenarios:
+      - contracts/scenarios/release_promote_success.scenario.yaml
+      - contracts/scenarios/conflict_free_parallelism_success.scenario.yaml
+      - contracts/scenarios/execution_without_barrier_invalid.scenario.yaml
+      - contracts/scenarios/observed_without_execution_invalid.scenario.yaml
+      - contracts/scenarios/projection_without_anchor_invalid.scenario.yaml
+      - contracts/scenarios/conflicting_leases_invalid.scenario.yaml
+      - contracts/scenarios/missing_witness_invalid.scenario.yaml
+      - contracts/scenarios/approval_wrong_plan_invalid.scenario.yaml
+      - contracts/scenarios/execution_without_capability_invalid.scenario.yaml
+      - contracts/scenarios/witness_wrong_scope_invalid.scenario.yaml
+      - contracts/scenarios/witness_event_wrong_fact_kind_invalid.scenario.yaml
+      - contracts/scenarios/projection_anchor_wrong_fact_invalid.scenario.yaml
+      - contracts/scenarios/event_after_closed_invalid.scenario.yaml
+      - contracts/scenarios/drain_with_active_lease_invalid.scenario.yaml
+  - name: authz
+    registry: contracts/examples/release_promote_authz.registry.yaml
+    scenarios:
+      - contracts/scenarios/authz/authz_success.scenario.yaml
+      - contracts/scenarios/authz/authz_denied_invalid.scenario.yaml
+      - contracts/scenarios/authz/authz_missing_invalid.scenario.yaml
+      - contracts/scenarios/authz/authz_expired_invalid.scenario.yaml
+      - contracts/scenarios/authz/authz_wrong_policy_invalid.scenario.yaml
+      - contracts/scenarios/authz/authz_issued_after_barrier_invalid.scenario.yaml
+      - contracts/scenarios/authz/authz_stale_invalid.scenario.yaml
+  - name: projection_readonly
+    registry: contracts/examples/projection_readonly.registry.yaml
+    scenarios:
+      - contracts/scenarios/projection_success.scenario.yaml
+      - contracts/scenarios/read_only_sidecar_success.scenario.yaml
+  - name: multi_action
+    registry: contracts/examples/multi_action_reference.registry.yaml
+    scenarios:
+      - contracts/scenarios/multi_action_reference.scenario.yaml
+  - name: merge
+    registry: contracts/examples/release_promote_merge.registry.yaml
+    scenarios:
+      - contracts/scenarios/unrelated_merge_protocol_does_not_allow_conflict_invalid.scenario.yaml

@@ -1,0 +1,386 @@
+#!/usr/bin/env python3
+"""Bootstrap formal-toolchain doctor for causlane (T-001 / B-001).
+
+Runs WITHOUT a Rust toolchain: it diagnoses the presence/version/SHA of every
+tool the formal contour needs, so a missing cargo/rustc is reported as a
+diagnosable state rather than crashing the doctor. Source of truth for expected
+versions/SHAs is .devinfra/tool-versions.json.
+
+Usage:
+  tools/formal-doctor [--json] [--profile base|rust|proof|all] [--lane <profile-lane>] [--require all|rust,alloy,z3,...]
+
+Exit code: 0 if every required tool is "ok", else 1.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CONFIG = REPO / ".devinfra" / "tool-versions.json"
+KANI_PROFILE = REPO / "formal" / "kani" / "profile.json"
+VERSION_RE = re.compile(r"(\d+\.\d+\.\d+[\w.+-]*)")
+
+
+def load_config() -> dict:
+    try:
+        return json.loads(CONFIG.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def load_kani_lanes() -> list[str]:
+    try:
+        profile = json.loads(KANI_PROFILE.read_text())
+        lanes = profile["lanes"]
+    except (OSError, KeyError, TypeError, ValueError) as err:
+        raise SystemExit(f"formal-doctor: cannot read Kani lanes from {KANI_PROFILE}: {err}")
+    if not isinstance(lanes, dict) or not lanes:
+        raise SystemExit(f"formal-doctor: Kani profile has no lanes: {KANI_PROFILE}")
+    return sorted(lanes.keys())
+
+
+def dig(data: dict, *keys: str):
+    cur = data
+    for key in keys:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(key)
+    return cur
+
+
+def run_version(binary: str, args: list[str], select: str | None = None) -> str | None:
+    if "/" in binary:
+        candidate = Path(binary)
+        if not candidate.is_absolute():
+            candidate = REPO / candidate
+        path = str(candidate) if candidate.is_file() else None
+    else:
+        path = shutil.which(binary)
+    if path is None:
+        return None
+    env = os.environ.copy()
+    # Suppress the .NET first-run banner/telemetry notice so a freshly-installed
+    # dotnet global tool (e.g. P) prints only its own version line, rather than the
+    # runtime's first-run "Welcome to .NET 8.0.x" text (which VERSION_RE would
+    # otherwise grab). This does NOT cover a missing runtime: if dotnet is absent
+    # from PATH the apphost prints "You must install .NET ... App host version:
+    # 8.0.x" — that 8.0.x is the apphost, not the tool. The `select`-line filter
+    # below (with its empty-match guard) is what makes the probe robust to that,
+    # reporting unknown instead of the apphost version.
+    env["DOTNET_NOLOGO"] = "1"
+    env["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
+    env["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1"
+    lean_home = REPO / ".tools" / "elan" / "home"
+    if str(path).startswith(str(lean_home / "bin")):
+        env["ELAN_HOME"] = str(lean_home)
+    try:
+        proc = subprocess.run(
+            [path, *args], capture_output=True, text=True, timeout=20, check=False, env=env
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    text = proc.stdout.strip() or proc.stderr.strip()
+    if select:
+        # Some tools (e.g. P) emit a .NET runtime banner before their own version
+        # line, or — if the runtime is missing — only an apphost error carrying a
+        # runtime version. Keep only the line(s) identifying the tool so VERSION_RE
+        # reads the tool version, not the runtime's. If no identifying line is
+        # present the output is a banner/error, so report unknown ("") rather than
+        # letting VERSION_RE grab an unrelated runtime version. Deterministic
+        # regardless of banner/runtime-presence state.
+        selected = [line for line in text.splitlines() if select in line]
+        if not selected:
+            return ""
+        text = "\n".join(selected)
+    match = VERSION_RE.search(text)
+    return match.group(1) if match else (text.splitlines()[0] if text else "")
+
+
+def sha256_of(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def status_binary(spec: dict, cfg: dict) -> dict:
+    expected = dig(cfg, *spec["config_version"]) if spec.get("config_version") else None
+    binary = dig(cfg, *spec["config_binary"]) if spec.get("config_binary") else None
+    if not binary:
+        binary = spec["binary"]
+    actual = run_version(
+        binary, spec.get("version_args", ["--version"]), spec.get("version_select")
+    )
+    found = actual is not None
+    enabled = spec.get("enabled_path") is None or bool(dig(cfg, *spec["enabled_path"]))
+    state = "ok"
+    if not enabled:
+        state = "disabled"
+    elif not found:
+        state = "missing"
+    elif expected and actual and expected not in actual:
+        state = "version_mismatch"
+    return {
+        "found": found,
+        "enabled": enabled,
+        "expected_version": expected,
+        "actual_version": actual,
+        "expected_sha": None,
+        "actual_sha": None,
+        "status": state,
+        "hint": spec.get("hint"),
+    }
+
+
+def status_artifact(spec: dict, cfg: dict) -> dict:
+    path = REPO / spec["file"]
+    expected = dig(cfg, *spec["config_version"]) if spec.get("config_version") else None
+    expected_sha = dig(cfg, *spec["config_sha"]) if spec.get("config_sha") else None
+    enabled = spec.get("enabled_path") is None or bool(dig(cfg, *spec["enabled_path"]))
+    actual_sha = sha256_of(path)
+    found = actual_sha is not None
+    state = "ok"
+    if not enabled:
+        state = "disabled"
+    elif not found:
+        state = "missing"
+    elif expected_sha and actual_sha and expected_sha != actual_sha:
+        state = "sha_mismatch"
+    return {
+        "found": found,
+        "enabled": enabled,
+        "expected_version": expected,
+        "actual_version": expected if found else None,
+        "expected_sha": expected_sha or None,
+        "actual_sha": actual_sha,
+        "status": state,
+        "hint": spec.get("hint"),
+    }
+
+
+# Tool registry. Each entry probes one tool. `config_version`/`config_sha` are
+# dotted paths into tool-versions.json; `enabled_path` (if set) reads an enabled
+# flag. `groups` lets --require target families.
+TOOLS = [
+    {"name": "rustc", "kind": "binary", "binary": "rustc",
+     "config_version": ["tools", "rust", "version"], "groups": ["rust"],
+     "hint": "install Rust: https://rustup.rs"},
+    {"name": "cargo", "kind": "binary", "binary": "cargo",
+     "config_version": ["tools", "rust", "version"], "groups": ["rust"],
+     "hint": "install Rust: https://rustup.rs"},
+    {"name": "rustup", "kind": "binary", "binary": "rustup", "groups": ["rust"],
+     "hint": "install Rust: https://rustup.rs"},
+    {"name": "java", "kind": "binary", "binary": "java", "version_args": ["-version"],
+     "groups": ["alloy", "p"], "hint": "Java >= 17 needed for Alloy"},
+    {"name": "javac", "kind": "binary", "binary": "javac", "version_args": ["-version"],
+     "groups": ["alloy"], "hint": "JDK needed to build the Alloy runner"},
+    {"name": "jq", "kind": "binary", "binary": "jq", "groups": ["smoke"]},
+    {"name": "python3", "kind": "binary", "binary": "python3", "groups": ["smoke"]},
+    {"name": "dotnet", "kind": "binary", "binary": "dotnet", "groups": ["p"],
+     "hint": "dotnet SDK 8 needed for P"},
+    {"name": "p", "kind": "binary", "binary": "p", "version_select": "P version",
+     "config_version": ["tools", "formal_tools", "p", "version"],
+     "enabled_path": ["tools", "formal_tools", "p", "enabled"], "groups": ["p"],
+     "hint": "run: tools/formal-install p"},
+    {"name": "cargo-kani", "kind": "binary", "binary": "cargo-kani",
+     "config_version": ["tools", "formal_tools", "kani", "version"],
+     "enabled_path": ["tools", "formal_tools", "kani", "enabled"], "groups": ["kani"],
+     "hint": "run: tools/formal-install kani"},
+    {"name": "z3", "kind": "binary", "binary": "z3",
+     "config_binary": ["tools", "formal_tools", "z3", "binary"],
+     "config_version": ["tools", "formal_tools", "z3", "version"],
+     "enabled_path": ["tools", "formal_tools", "z3", "enabled"], "groups": ["z3", "verus"],
+     "hint": "run: tools/formal-install z3"},
+    {"name": "alloy", "kind": "artifact", "file": ".tools/alloy/alloy.jar",
+     "config_version": ["tools", "formal_tools", "alloy", "version"],
+     "config_sha": ["tools", "formal_tools", "alloy", "jar_sha256"],
+     "enabled_path": ["tools", "formal_tools", "alloy", "enabled"], "groups": ["alloy"],
+     "hint": "run: tools/formal-install alloy"},
+    {"name": "verus", "kind": "binary", "binary": "verus",
+     "config_binary": ["tools", "formal_tools", "verus", "archive_path"],
+     "config_version": ["tools", "formal_tools", "verus", "version"],
+     "enabled_path": ["tools", "formal_tools", "verus", "enabled"], "groups": ["verus"],
+     "hint": "run: tools/formal-install verus (needs Rust 1.95.0 toolchain)"},
+    {"name": "elan", "kind": "binary", "binary": ".tools/elan/home/bin/elan",
+     "config_version": ["tools", "formal_tools", "lean4", "elan_version"],
+     "enabled_path": ["tools", "formal_tools", "lean4", "enabled"], "groups": ["lean4"],
+     "hint": "run: tools/formal-install lean4"},
+    {"name": "lean", "kind": "binary", "binary": ".tools/elan/home/bin/lean",
+     "config_version": ["tools", "formal_tools", "lean4", "lean_version"],
+     "enabled_path": ["tools", "formal_tools", "lean4", "enabled"], "groups": ["lean4"],
+     "hint": "run: tools/formal-install lean4"},
+    {"name": "lake", "kind": "binary", "binary": ".tools/elan/home/bin/lake",
+     "config_version": ["tools", "formal_tools", "lean4", "lake_version"],
+     "enabled_path": ["tools", "formal_tools", "lean4", "enabled"], "groups": ["lean4"],
+     "hint": "run: tools/formal-install lean4"},
+]
+
+PROFILE_REQUIREMENTS = {
+    "base": ["alloy", "java", "javac", "jq", "python3", "p", "dotnet"],
+    "rust": ["rustc", "cargo", "rustup", "cargo-kani"],
+    "proof": ["verus", "z3", "lean4"],
+}
+
+def resolve_required(tokens: list[str]) -> set[str]:
+    names = {tool["name"] for tool in TOOLS}
+    required: set[str] = set()
+    for raw in tokens:
+        token = raw.strip()
+        if not token:
+            continue
+        if token == "all":
+            required |= names
+        elif token in names:
+            required.add(token)
+        else:
+            for tool in TOOLS:
+                if token in tool.get("groups", []):
+                    required.add(tool["name"])
+    return required
+
+
+def required_for_profile(profile: str) -> set[str]:
+    if profile == "custom":
+        return set()
+    if profile == "all":
+        required: set[str] = set()
+        for group in PROFILE_REQUIREMENTS.values():
+            required |= resolve_required(group)
+        return required
+    return resolve_required(PROFILE_REQUIREMENTS.get(profile, []))
+
+
+def git_dirty() -> bool | None:
+    if not (REPO / ".git").exists():
+        return None
+    try:
+        proc = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    return bool(proc.stdout.strip())
+
+
+def has_working_tree_versions(cfg: dict) -> bool:
+    text = json.dumps(cfg, sort_keys=True)
+    return "+working-tree" in text
+
+
+def lane_checks(lane: str, cfg: dict) -> list[dict]:
+    checks: list[dict] = []
+    if lane != "local_smoke":
+        dirty = git_dirty()
+        checks.append({
+            "name": "clean_worktree",
+            "status": "unknown" if dirty is None else ("fail" if dirty else "ok"),
+            "required": True,
+        })
+        wt_versions = has_working_tree_versions(cfg)
+        checks.append({
+            "name": "no_working_tree_tool_versions",
+            "status": "fail" if wt_versions else "ok",
+            "required": True,
+        })
+    else:
+        checks.append({
+            "name": "local_publication_may_be_skipped",
+            "status": "ok",
+            "required": False,
+        })
+    return checks
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="causlane bootstrap formal doctor")
+    parser.add_argument("--json", action="store_true", help="emit JSON")
+    parser.add_argument(
+        "--profile",
+        choices=["custom", "base", "rust", "proof", "all"],
+        default="custom",
+        help="tool requirement profile; proof/all are the only profiles that require Verus/Lean4",
+    )
+    parser.add_argument(
+        "--lane",
+        choices=load_kani_lanes(),
+        default="local_smoke",
+        help="verification lane contract to check",
+    )
+    parser.add_argument("--require", default="", help="comma list or 'all'")
+    args = parser.parse_args()
+
+    cfg = load_config()
+    required = required_for_profile(args.profile)
+    if args.require:
+        required |= resolve_required(args.require.split(","))
+    checks = lane_checks(args.lane, cfg)
+
+    tools_report: dict[str, dict] = {}
+    overall_ok = True
+    for spec in TOOLS:
+        report = status_binary(spec, cfg) if spec["kind"] == "binary" else status_artifact(spec, cfg)
+        is_required = spec["name"] in required
+        report["required"] = is_required
+        if is_required and report["status"] != "ok":
+            overall_ok = False
+        tools_report[spec["name"]] = report
+    for check in checks:
+        if check["required"] and check["status"] != "ok":
+            overall_ok = False
+
+    if any(r["required"] and r["status"] != "ok" for r in tools_report.values()):
+        overall = "required_missing"
+    elif any(c["required"] and c["status"] != "ok" for c in checks):
+        overall = "lane_contract_failed"
+    elif any(r["status"] not in ("ok", "disabled") for r in tools_report.values()):
+        overall = "missing"
+    else:
+        overall = "ok"
+
+    if args.json:
+        print(json.dumps({
+            "schema_version": 1,
+            "status": overall,
+            "profile": args.profile,
+            "lane": args.lane,
+            "lane_checks": checks,
+            "tools": tools_report,
+        }, indent=2, sort_keys=True))
+    else:
+        print(f"formal doctor (bootstrap): {overall} profile={args.profile} lane={args.lane}")
+        for name, r in tools_report.items():
+            mark = {"ok": "ok     ", "disabled": "disabled", "missing": "MISSING",
+                    "version_mismatch": "VER!   ", "sha_mismatch": "SHA!   "}.get(r["status"], r["status"])
+            req = " (required)" if r["required"] else ""
+            ver = r["actual_version"] or "-"
+            line = f"  {mark} {name:<11}{req}  {ver}"
+            if r["status"] not in ("ok", "disabled") and r.get("hint"):
+                line += f"   -> {r['hint']}"
+            print(line)
+        for check in checks:
+            req = " (required)" if check["required"] else ""
+            print(f"  {check['status']:<7} lane:{check['name']}{req}")
+
+    return 0 if overall_ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

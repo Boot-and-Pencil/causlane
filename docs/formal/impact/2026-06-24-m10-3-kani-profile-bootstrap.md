@@ -1,0 +1,31 @@
+# Formal Impact Record: M10.3 Kani Profile Bootstrap
+
+Date: 2026-06-24
+
+## Summary
+
+This change starts M10.3 by making Kani runner configuration explicit and
+machine-validated. The generated Kani harnesses and coverage obligations are
+unchanged; `formal-verify-all` now consumes a checked profile for the Kani
+fixture, output format and lane-specific unwind bound.
+
+## Changed Surface
+
+- `formal/kani/profile.json` records the Kani fixture and lane unwind bounds.
+- `contracts/schema/formal_kani_profile.schema.json` validates the profile.
+- `tools/formal-verify-all` reads Kani run parameters from the profile instead
+  of hardcoding them.
+- `tools/schema-validate-all` validates the Kani profile alongside existing
+  schema gates.
+
+## Coverage Effect
+
+No active coverage changes. Kani still covers the same active invariant rows,
+and planned invariants remain outside coverage credit.
+
+## Validation
+
+- profile schema validation
+- `schema-validate-all`
+- `formal-verify-all`
+- coverage-matrix check

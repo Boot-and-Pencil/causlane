@@ -1,0 +1,1237 @@
+{
+  "project": "causlane",
+  "generated_at": "2026-06-21",
+  "positioning": "Typed action semantics + consequence-aware dispatch for Rust systems.",
+  "principles": [
+    "semantic control layer, not workflow engine",
+    "generated truth chain",
+    "single observed truth authority",
+    "pure planning",
+    "barrier before hard effects",
+    "projection from anchor",
+    "deny by default authz",
+    "explicit merge protocols only",
+    "formal claims require receipts"
+  ],
+  "stages": [
+    {
+      "id": "S00",
+      "slug": "context-product-charter",
+      "title": "Контекст, назначение и продуктовая рамка",
+      "status": "baseline_exists",
+      "theme": "Зафиксировать смысл продукта, non-goals, целевую аудиторию, язык и границы.",
+      "milestones": [
+        {
+          "id": "M00.1",
+          "title": "Product charter",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M00.2",
+          "title": "Glossary freeze v0.1",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M00.3",
+          "title": "ADR baseline",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M00.4",
+          "title": "Context hygiene",
+          "status": "ongoing"
+        }
+      ],
+      "gate": "Команда может одним документом объяснить, что такое Causlane, чем он не является, и почему он не конкурирует с workflow/job engines."
+    },
+    {
+      "id": "S01",
+      "slug": "contract-formal-readiness",
+      "title": "Контрактный фундамент и formal readiness",
+      "status": "advanced_in_repo",
+      "theme": "Стабилизировать compiled bundle, canonical hash, scenario/replay, formal IR, receipts и stale-check.",
+      "milestones": [
+        {
+          "id": "M01.1",
+          "title": "Toolchain doctor",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M01.2",
+          "title": "Formal install/provisioning",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M01.3",
+          "title": "Canonical serialization v1",
+          "status": "exists"
+        },
+        {
+          "id": "M01.4",
+          "title": "Bundle formal input v0.2",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M01.5",
+          "title": "Scenario catalog v1",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M01.6",
+          "title": "Replay oracle strict bundle mode",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M01.7",
+          "title": "Receipts/stale-check v2",
+          "status": "exists_harden"
+        }
+      ],
+      "gate": "`just formal-ready` и `just formal-verify-all` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose."
+    },
+    {
+      "id": "S02",
+      "slug": "formal-models-v1",
+      "title": "Формальные модели v1",
+      "status": "advanced_in_repo",
+      "theme": "Сделать Alloy/P/Kani/Verus/Lean4 не демонстрацией, а рабочим verification contour для ключевых инвариантов.",
+      "milestones": [
+        {
+          "id": "M02.1",
+          "title": "Alloy structural checks v1",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M02.2",
+          "title": "P protocol monitors v1",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M02.3",
+          "title": "Kani bounded harnesses v1",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M02.4",
+          "title": "Verus proof facet v1",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M02.5",
+          "title": "Lean4 proof applications v1",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M02.6",
+          "title": "Negative controls discipline",
+          "status": "exists_harden"
+        },
+        {
+          "id": "M02.7",
+          "title": "Formal exceptions policy",
+          "status": "exists_harden"
+        }
+      ],
+      "gate": "Для I-001/I-002/I-003/I-006/I-008/I-009 есть generated artifact + tool receipt + stale-check + negative controls."
+    },
+    {
+      "id": "S03",
+      "slug": "reference-kernel",
+      "title": "Reference kernel и executable semantics",
+      "status": "advanced_in_repo",
+      "theme": "Превратить контракт в маленькое чистое ядро: lifecycle reducer, guards, frontier abstractions, replay oracle.",
+      "milestones": [
+        {
+          "id": "M03.1",
+          "title": "Pure lifecycle reducer",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M03.2",
+          "title": "Consequence profile obligations",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M03.3",
+          "title": "Effect signature core",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M03.4",
+          "title": "Barrier/capability core",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M03.5",
+          "title": "LeaseTable core",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M03.6",
+          "title": "Domain errors and stable codes",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "Core reducer и validators можно использовать без runtime/adapters; все protocol-critical функции покрыты unit/property/Kani checks."
+    },
+    {
+      "id": "S04",
+      "slug": "scenario-replay-contract-testing",
+      "title": "Сценарии, replay и contract testing",
+      "status": "advanced_in_repo",
+      "theme": "Расширить executable scenario catalog и replay oracle до уровня основного devtool.",
+      "milestones": [
+        {
+          "id": "M04.1",
+          "title": "Golden success scenarios",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M04.2",
+          "title": "Negative scenario suite",
+          "status": "planned"
+        },
+        {
+          "id": "M04.3",
+          "title": "Scenario-to-trace compiler",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M04.4",
+          "title": "Replay explain output",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M04.5",
+          "title": "Contract testing harness",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M04.6",
+          "title": "Mutation/fuzz tests",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "Каждое новое predicate/feature требует scenario + replay expectation + formal obligation/exemption."
+    },
+    {
+      "id": "S05",
+      "slug": "constraint-frontier-scheduler",
+      "title": "Constraint Plane, graph/frontier и lanes/tiers",
+      "status": "advanced_in_repo",
+      "theme": "Реализовать безопасную автоматическую диспетчеризацию параллельности на основе consequences, claims, leases, witnesses и constraints.",
+      "milestones": [
+        {
+          "id": "M05.1",
+          "title": "Tier model",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.2",
+          "title": "Lane model",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.3",
+          "title": "ConstraintSpec/Provider",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.4",
+          "title": "Graph indexes",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.5",
+          "title": "Safe frontier selection",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.6",
+          "title": "Drain/fence protocol",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.7",
+          "title": "Runtime constraint updates",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M05.8",
+          "title": "why-not-parallel",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "Dispatcher может объяснить `ready`, `blocked`, `why-not-parallel` и выдать safe antichain без конфликтующих mutable writes."
+    },
+    {
+      "id": "S06",
+      "slug": "authz-policy-approvals",
+      "title": "AuthZ, RBAC/ABAC/ReBAC, approvals и capabilities",
+      "status": "advanced_in_repo",
+      "theme": "Сделать доступ частью dispatch protocol, а не middleware around endpoints.",
+      "milestones": [
+        {
+          "id": "M06.1",
+          "title": "Authz policy model",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M06.2",
+          "title": "Cedar adapter prototype",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M06.3",
+          "title": "Casbin/AuthZEN/OpenFGA sketches",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M06.4",
+          "title": "Approval as action",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M06.5",
+          "title": "Step-up and SoD",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M06.6",
+          "title": "Execution capability enforcement",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M06.7",
+          "title": "Projection access/redaction",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "RuntimeExecution action не пересекает barrier без свежего Allow, approval bound к action_id+plan_hash+impact_set_hash, executor работает только со scoped capability."
+    },
+    {
+      "id": "S07",
+      "slug": "observability-explainability-dx",
+      "title": "Observability, explainability и DX",
+      "status": "advanced_in_repo",
+      "theme": "Сделать систему понятной и приятной: explain(), CLI, graph export, redaction, support bundles, docs/cookbook.",
+      "milestones": [
+        {
+          "id": "M07.1",
+          "title": "CLI explain/why",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M07.2",
+          "title": "Graph export",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M07.3",
+          "title": "Tracing connector",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M07.4",
+          "title": "OpenTelemetry optional",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M07.5",
+          "title": "Redaction policy",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M07.6",
+          "title": "Support bundle",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M07.7",
+          "title": "Cookbook docs",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "Пользователь может понять, почему action запущен, заблокирован, не параллелится, требует approval/drain/lease, и воспроизвести это в replay."
+    },
+    {
+      "id": "S08",
+      "slug": "runtime-adapters",
+      "title": "Runtime shell и adapters",
+      "status": "active_next",
+      "theme": "Подключить execution backends и persistence без превращения Causlane в workflow engine.",
+      "milestones": [
+        {
+          "id": "M08.1",
+          "title": "In-process runtime",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M08.2",
+          "title": "Audit adapters",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M08.3",
+          "title": "Executor port/adapters",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M08.4",
+          "title": "Apalis adapter",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M08.5",
+          "title": "Restate adapter",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M08.6",
+          "title": "Temporal/Dapr/Conductor adapters",
+          "status": "future"
+        },
+        {
+          "id": "M08.7",
+          "title": "Adapter certification",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M08.8",
+          "title": "Shadow mode",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "Есть in-process runtime, SQL audit, tracing adapter, Cedar adapter и один job/durable backend adapter, прошедшие adapter certification."
+    },
+    {
+      "id": "S09",
+      "slug": "performance-reliability",
+      "title": "Performance, reliability и high-throughput readiness",
+      "status": "active_next",
+      "theme": "Сохранить correctness, но не превратить hot path в тяжелый workflow/control-plane overhead.",
+      "milestones": [
+        {
+          "id": "M09.1",
+          "title": "Bench suite",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M09.2",
+          "title": "Partitioned dispatcher",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M09.3",
+          "title": "Batched durability",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M09.4",
+          "title": "Backpressure policy",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M09.5",
+          "title": "Plan/template caches",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M09.6",
+          "title": "Operational SLOs",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M09.7",
+          "title": "Chaos/recovery tests",
+          "status": "done_or_near_done"
+        }
+      ],
+      "gate": "Есть benchmark profile, partitioned dispatcher, bounded queues, batched durable writes и typed SLO catalog для admission/barrier/replay/explain."
+    },
+    {
+      "id": "S10",
+      "slug": "formal-depth-proof-hardening",
+      "title": "Formal depth и proof hardening",
+      "status": "active_next",
+      "theme": "Углубить доказательства после стабилизации ядра: больше invariants, scopes, interleavings, preservation/refinement.",
+      "milestones": [
+        {
+          "id": "M10.1",
+          "title": "Invariant expansion",
+          "status": "exists"
+        },
+        {
+          "id": "M10.2",
+          "title": "P interleavings depth",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M10.3",
+          "title": "Kani integration",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M10.4",
+          "title": "Verus/Lean proof hardening",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M10.5",
+          "title": "Coverage anti-theatre",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M10.6",
+          "title": "Proof/refinement docs",
+          "status": "exists_expand"
+        }
+      ],
+      "gate": "Coverage matrix показывает blocking proof lanes для релизных invariants, stale proofs блокируют release, exceptions имеют expiry и owner."
+    },
+    {
+      "id": "S11",
+      "slug": "alpha-publication",
+      "title": "Public pre-alpha/bootstrap and alpha publication",
+      "status": "active_pre_alpha_prep",
+      "theme": "Prepare public source/package provenance before public alpha.",
+      "milestones": [
+        {
+          "id": "M11.1",
+          "title": "Crate naming/publish check",
+          "status": "exists_expand"
+        },
+        {
+          "id": "M11.2",
+          "title": "Feature flags",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M11.3",
+          "title": "Public API review",
+          "status": "done_or_near_done"
+        },
+        {
+          "id": "M11.4",
+          "title": "Examples",
+          "status": "planned"
+        },
+        {
+          "id": "M11.5",
+          "title": "Security/release hygiene",
+          "status": "planned"
+        },
+        {
+          "id": "M11.6",
+          "title": "Contributor guide",
+          "status": "planned"
+        },
+        {
+          "id": "M11.7",
+          "title": "Release notes",
+          "status": "planned"
+        }
+      ],
+      "gate": "For 0.0.1, the refactor-before-publication gate records PUB0-PUB4 complete, public API review is recorded, GitHub baseline is curated/scanned, package file lists are reviewed, crates are dry-run/published in dependency order, and downstream smoke can depend on causlane@0.0.1. Public alpha 0.1.x additionally requires runnable examples, usable cookbook/docs, honest receipt-backed formal/replay status and a shaped feature/facade surface."
+    },
+    {
+      "id": "S12",
+      "slug": "beta-ecosystem",
+      "title": "Beta integrations и ecosystem validation",
+      "status": "planned",
+      "theme": "Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters.",
+      "milestones": [
+        {
+          "id": "M12.1",
+          "title": "Reference integration 1",
+          "status": "planned"
+        },
+        {
+          "id": "M12.2",
+          "title": "Reference integration 2",
+          "status": "planned"
+        },
+        {
+          "id": "M12.3",
+          "title": "Migration/shadow docs",
+          "status": "planned"
+        },
+        {
+          "id": "M12.4",
+          "title": "Adapter ecosystem",
+          "status": "planned"
+        },
+        {
+          "id": "M12.5",
+          "title": "DX feedback loop",
+          "status": "planned"
+        },
+        {
+          "id": "M12.6",
+          "title": "Semver pre-1.0 freeze plan",
+          "status": "planned"
+        }
+      ],
+      "gate": "Есть 2–3 reference integrations, migration/shadow-mode story и feedback-driven API hardening."
+    },
+    {
+      "id": "S13",
+      "slug": "one-zero-release",
+      "title": "1.0 release readiness",
+      "status": "planned",
+      "theme": "Стабилизировать публичный API, semver, invariants, docs, formal/replay gates и эксплуатационные гарантии.",
+      "milestones": [
+        {
+          "id": "M13.1",
+          "title": "API stabilization",
+          "status": "planned"
+        },
+        {
+          "id": "M13.2",
+          "title": "Compatibility policy",
+          "status": "planned"
+        },
+        {
+          "id": "M13.3",
+          "title": "Formal/replay release gate",
+          "status": "planned"
+        },
+        {
+          "id": "M13.4",
+          "title": "Production readiness docs",
+          "status": "planned"
+        },
+        {
+          "id": "M13.5",
+          "title": "Security model docs",
+          "status": "planned"
+        },
+        {
+          "id": "M13.6",
+          "title": "1.0 release",
+          "status": "planned"
+        }
+      ],
+      "gate": "1.0 может быть выпущен без обещаний, которые ядро/формальные gates/replay/adapters не подтверждают."
+    },
+    {
+      "id": "S14",
+      "slug": "post-one-zero-platform",
+      "title": "Post-1.0: platform, ecosystem, advanced modes",
+      "status": "future",
+      "theme": "Развивать control-plane/service mode, marketplace adapters, richer proofs, dashboards, distributed deployment.",
+      "milestones": [
+        {
+          "id": "M14.1",
+          "title": "Service/control-plane mode",
+          "status": "future"
+        },
+        {
+          "id": "M14.2",
+          "title": "Dashboard/UI",
+          "status": "future"
+        },
+        {
+          "id": "M14.3",
+          "title": "Advanced distributed coordination",
+          "status": "future"
+        },
+        {
+          "id": "M14.4",
+          "title": "Adapter marketplace/catalog",
+          "status": "future"
+        },
+        {
+          "id": "M14.5",
+          "title": "Advanced proof/language support",
+          "status": "future"
+        }
+      ],
+      "gate": "Post-1.0 расширения не ломают small-core principle и не превращают проект в скрытый workflow engine."
+    }
+  ],
+  "milestones": {
+    "M00.1": {
+      "title": "Product charter",
+      "description": "Зафиксировать positioning, target users, non-goals, first use cases, success metrics.",
+      "status": "done_or_near_done",
+      "stage": "S00"
+    },
+    "M00.2": {
+      "title": "Glossary freeze v0.1",
+      "description": "Уточнить ActionCall/ActionPlan/Op/Impact/Witness/Anchor/Lease/Barrier/Projection/Overlay/Constraint.",
+      "status": "done_or_near_done",
+      "stage": "S00"
+    },
+    "M00.3": {
+      "title": "ADR baseline",
+      "description": "Поддерживать ADR chain: docs-first, SSOT, hexagonal architecture, authz default deny, plan hash, anchor/witness, merge protocol.",
+      "status": "done_or_near_done",
+      "stage": "S00"
+    },
+    "M00.4": {
+      "title": "Context hygiene",
+      "description": "Контекст-паки, generated files, formal artifacts и секреты должны иметь hygiene/check tools.",
+      "status": "ongoing",
+      "stage": "S00"
+    },
+    "M01.1": {
+      "title": "Toolchain doctor",
+      "description": "Проверка Rust, Cargo, Java, Alloy, P, Kani, Verus, Lean4, Z3, jq, python3, just; machine-readable report.",
+      "status": "exists_harden",
+      "stage": "S01"
+    },
+    "M01.2": {
+      "title": "Formal install/provisioning",
+      "description": "Reproducible установка/проверка инструментов, pin versions, SHA/checksum, offline/CI story.",
+      "status": "exists_harden",
+      "stage": "S01"
+    },
+    "M01.3": {
+      "title": "Canonical serialization v1",
+      "description": "Canonical JSON, content_hash, bundle_hash, plan_hash, impact_set_hash, stable formatting.",
+      "status": "exists",
+      "stage": "S01"
+    },
+    "M01.4": {
+      "title": "Bundle formal input v0.2",
+      "description": "CompiledDispatchBundle содержит predicates, profiles, routes, effects, claims, witness requirements, authz policies, formal obligations.",
+      "status": "exists_harden",
+      "stage": "S01"
+    },
+    "M01.5": {
+      "title": "Scenario catalog v1",
+      "description": "Executable *.scenario.yaml + generated traces + positive/negative controls.",
+      "status": "exists_expand",
+      "stage": "S01"
+    },
+    "M01.6": {
+      "title": "Replay oracle strict bundle mode",
+      "description": "Replay проверяет trace against bundle, plan_hash, witnesses, anchors, leases, lifecycle, authz, claims.",
+      "status": "exists_expand",
+      "stage": "S01"
+    },
+    "M01.7": {
+      "title": "Receipts/stale-check v2",
+      "description": "Codegen/tool-run receipts, generated artifact hashes, stale-check-all, coverage derivation.",
+      "status": "exists_harden",
+      "stage": "S01"
+    },
+    "M02.1": {
+      "title": "Alloy structural checks v1",
+      "description": "Generated facts + generic core assertions for lifecycle, anchors, route/profile, conflict frontier, witness/approval binding.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M02.2": {
+      "title": "P protocol monitors v1",
+      "description": "Generated monitors for barrier-before-execution, drain/admission races, retry/idempotency, lease release/expiry.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M02.3": {
+      "title": "Kani bounded harnesses v1",
+      "description": "Generated/handwritten harnesses for reducers, trace validation, lease table, capability derivation, parser boundaries.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M02.4": {
+      "title": "Verus proof facet v1",
+      "description": "Abstract preservation proofs: lifecycle, overlay monotonicity, replay soundness, lease map invariants.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M02.5": {
+      "title": "Lean4 proof applications v1",
+      "description": "Generated scenario-bound theorem applications checked in the full formal gate.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M02.6": {
+      "title": "Negative controls discipline",
+      "description": "Each invariant lane has expected-failure controls; accidental failure is not evidence.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M02.7": {
+      "title": "Formal exceptions policy",
+      "description": "Every allowed formal-lane exception has owner, rationale, expiry, profile, allowed scope.",
+      "status": "exists_harden",
+      "stage": "S02"
+    },
+    "M03.1": {
+      "title": "Pure lifecycle reducer",
+      "description": "No async/I/O; transition(state,event,contracts)->decision; used by replay/runtime/tests.",
+      "status": "done_or_near_done",
+      "stage": "S03"
+    },
+    "M03.2": {
+      "title": "Consequence profile obligations",
+      "description": "RuntimeExecution/ProjectionRead/Oversight/Topology/Evidence obligations in code and bundle.",
+      "status": "done_or_near_done",
+      "stage": "S03"
+    },
+    "M03.3": {
+      "title": "Effect signature core",
+      "description": "reads/writes/produces/requires/invalidates/conflict_domains/claims.",
+      "status": "done_or_near_done",
+      "stage": "S03"
+    },
+    "M03.4": {
+      "title": "Barrier/capability core",
+      "description": "ExecutionBarrier, ExecutionCapability, scoped execution permission, executor guard.",
+      "status": "done_or_near_done",
+      "stage": "S03"
+    },
+    "M03.5": {
+      "title": "LeaseTable core",
+      "description": "Exclusive/shared/token leases, no-overlap, expiry/revocation, claim coverage.",
+      "status": "done_or_near_done",
+      "stage": "S03"
+    },
+    "M03.6": {
+      "title": "Domain errors and stable codes",
+      "description": "Typed errors with stable codes for replay/explain/CLI/tests.",
+      "status": "done_or_near_done",
+      "stage": "S03"
+    },
+    "M04.1": {
+      "title": "Golden success scenarios",
+      "description": "release_promote, approval, projection, conflict-free parallelism, read-only sidecar.",
+      "status": "done_or_near_done",
+      "stage": "S04"
+    },
+    "M04.2": {
+      "title": "Negative scenario suite",
+      "description": "execution_without_barrier, observed_without_execution, projection_without_anchor, wrong plan, missing witness, conflicting leases.",
+      "status": "planned",
+      "stage": "S04"
+    },
+    "M04.3": {
+      "title": "Scenario-to-trace compiler",
+      "description": "One scenario source emits trace, formal facts, replay expectation.",
+      "status": "done_or_near_done",
+      "stage": "S04"
+    },
+    "M04.4": {
+      "title": "Replay explain output",
+      "description": "Replay failures return exact invariant/error and causal location.",
+      "status": "done_or_near_done",
+      "stage": "S04"
+    },
+    "M04.5": {
+      "title": "Contract testing harness",
+      "description": "dispatch_test! / YAML runner for predicates and adapters.",
+      "status": "done_or_near_done",
+      "stage": "S04"
+    },
+    "M04.6": {
+      "title": "Mutation/fuzz tests",
+      "description": "Generate malformed traces and small worlds; ensure fail-closed.",
+      "status": "done_or_near_done",
+      "stage": "S04"
+    },
+    "M05.1": {
+      "title": "Tier model",
+      "description": "Admission/planning/dispatch/barrier/execution/observation/projection/closure as authority stages.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.2": {
+      "title": "Lane model",
+      "description": "Lane capacity/capability/fairness without semantic authority.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.3": {
+      "title": "ConstraintSpec/Provider",
+      "description": "Requirement/Claim/Lease, snapshots/epochs, Allow/Wait/Deny/Restrict decisions.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.4": {
+      "title": "Graph indexes",
+      "description": "wait_by_fact, wait_by_scope, active_by_write_scope, ready_by_lane, incremental rebuild.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.5": {
+      "title": "Safe frontier selection",
+      "description": "Ready antichain, no hard deps, no conflicts, lane/resource budgets.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.6": {
+      "title": "Drain/fence protocol",
+      "description": "domain/global drain epochs, safe points, disjoint domains, frozen sidecars.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.7": {
+      "title": "Runtime constraint updates",
+      "description": "capacity/quota/freeze/rate-limit updates with epoch, rebuild frontier, no truth rewrite.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M05.8": {
+      "title": "why-not-parallel",
+      "description": "Machine-readable blocker/rationale for concurrency decisions.",
+      "status": "done_or_near_done",
+      "stage": "S05"
+    },
+    "M06.1": {
+      "title": "Authz policy model",
+      "description": "AuthzPolicy, stages, policy_id/version, freshness/expiry, default deny.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M06.2": {
+      "title": "Cedar adapter prototype",
+      "description": "Embedded PDP mapping Predicate/Subject/Context to Cedar Principal/Action/Resource/Context.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M06.3": {
+      "title": "Casbin/AuthZEN/OpenFGA sketches",
+      "description": "Adapter contracts; do not bake one engine into core.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M06.4": {
+      "title": "Approval as action",
+      "description": "gate.approve/gate.deny bound to action_id+plan_hash+impact_set_hash.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M06.5": {
+      "title": "Step-up and SoD",
+      "description": "MFA/step-up, separation-of-duties, approval freshness.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M06.6": {
+      "title": "Execution capability enforcement",
+      "description": "Worker executes only with scoped capability derived from barrier.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M06.7": {
+      "title": "Projection access/redaction",
+      "description": "Read/projection authz, sensitive-field redaction policy.",
+      "status": "done_or_near_done",
+      "stage": "S06"
+    },
+    "M07.1": {
+      "title": "CLI explain/why",
+      "description": "explain, why-blocked, why-not-parallel, graph export, replay diagnostics.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M07.2": {
+      "title": "Graph export",
+      "description": "Mermaid/DOT/JSON graph slices with blockers/witnesses/leases.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M07.3": {
+      "title": "Tracing connector",
+      "description": "Structured action/op spans; logs derived, not truth.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M07.4": {
+      "title": "OpenTelemetry optional",
+      "description": "OTLP logs/traces/metrics adapter; fail-open for telemetry only.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M07.5": {
+      "title": "Redaction policy",
+      "description": "Audit/log/projection/replay/support-bundle redaction classes.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M07.6": {
+      "title": "Support bundle",
+      "description": "Sanitized bundle with trace, graph slice, route rationale, environment/tool report.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M07.7": {
+      "title": "Cookbook docs",
+      "description": "Add action, approval, conflict, drain, replay, adapter, authz, projection recipes.",
+      "status": "done_or_near_done",
+      "stage": "S07"
+    },
+    "M08.1": {
+      "title": "In-process runtime",
+      "description": "Tokio partition loops, bounded queues, semaphores for capacity, no global lock.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M08.2": {
+      "title": "Audit adapters",
+      "description": "In-memory, SQLite, Postgres append-only audit; group commit policies.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M08.3": {
+      "title": "Executor port/adapters",
+      "description": "Tower-like Service port; hard effects only with capability.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M08.4": {
+      "title": "Apalis adapter",
+      "description": "Rust-native jobs backend; certification tests.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M08.5": {
+      "title": "Restate adapter",
+      "description": "Durable handler/workflow adapter; optional feature.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M08.6": {
+      "title": "Temporal/Dapr/Conductor adapters",
+      "description": "Experimental/community boundary; no hard dependency.",
+      "status": "future",
+      "stage": "S08"
+    },
+    "M08.7": {
+      "title": "Adapter certification",
+      "description": "Bounded certification matrix for existing adapters; retry/cancel/truth orchestration deferred.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M08.8": {
+      "title": "Shadow mode",
+      "description": "Runtime shadow comparer over InProcessRuntimeEvent; compare expected vs actual without enforcement.",
+      "status": "done_or_near_done",
+      "stage": "S08"
+    },
+    "M09.1": {
+      "title": "Bench suite",
+      "description": "Criterion baseline for registry normalize, plan_hash, bundle load, replay verify, frontier conflict selection, lease grant, barrier append, explain.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M09.2": {
+      "title": "Partitioned dispatcher",
+      "description": "Host dispatch v2 partition routes and in-process admission coordinator with deterministic cross-partition ordering.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M09.3": {
+      "title": "Batched durability",
+      "description": "`AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M09.4": {
+      "title": "Backpressure policy",
+      "description": "Runtime-local wait/fail-fast overload policy over bounded in-process partition queues.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M09.5": {
+      "title": "Plan/template caches",
+      "description": "Pure in-memory plan/template cache keyed by canonical plan material and compile snapshot refs.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M09.6": {
+      "title": "Operational SLOs",
+      "description": "Typed operational SLO measurement catalog for submit/admission/barrier/replay/explain p50/p95, queue depth and stale snapshot age.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M09.7": {
+      "title": "Chaos/recovery tests",
+      "description": "Bounded in-process chaos/recovery evidence for slow handlers, host-owned retry, provider failure, route contention and ephemeral partition restart.",
+      "status": "done_or_near_done",
+      "stage": "S09"
+    },
+    "M10.1": {
+      "title": "Invariant expansion",
+      "description": "Shared active/planned/known invariant-id catalog and planned I-011..I-020 reservations without coverage credit.",
+      "status": "exists",
+      "stage": "S10"
+    },
+    "M10.2": {
+      "title": "P interleavings depth",
+      "description": "P-first bounded controls for retry duplicate execution, authz revocation and constraint epoch; cancellation/partition remain planned.",
+      "status": "exists_expand",
+      "stage": "S10"
+    },
+    "M10.3": {
+      "title": "Kani integration",
+      "description": "cargo kani profile, unwind bounds, generated fixtures, CI/nightly split.",
+      "status": "exists_expand",
+      "stage": "S10"
+    },
+    "M10.4": {
+      "title": "Verus/Lean proof hardening",
+      "description": "Verus and Lean4 proof lanes have a machine-readable always-blocking contract; deeper proof semantics remain expansion work.",
+      "status": "exists_expand",
+      "stage": "S10"
+    },
+    "M10.5": {
+      "title": "Coverage anti-theatre",
+      "description": "Coverage matrix Markdown is fully drift-checked from the receipt-derived report; active docs point to generated coverage instead of hand-maintained live inventories.",
+      "status": "exists_expand",
+      "stage": "S10"
+    },
+    "M10.6": {
+      "title": "Proof/refinement docs",
+      "description": "Schema-validated proof/refinement scope classifies claim strength, and generated Markdown drift is checked by the formal gate.",
+      "status": "exists_expand",
+      "stage": "S10"
+    },
+    "M11.1": {
+      "title": "Crate naming/publish check",
+      "description": "No-publish readiness clears local facade blockers while publication execution remains deferred.",
+      "status": "exists_expand",
+      "stage": "S11"
+    },
+    "M11.2": {
+      "title": "Feature flags",
+      "description": "default minimal; existing optional runtime integrations are explicit and non-default.",
+      "status": "done_or_near_done",
+      "stage": "S11"
+    },
+    "M11.3": {
+      "title": "Public API review",
+      "description": "Rust API guidelines, builders, newtypes, no raw Strings on critical fields.",
+      "status": "done_or_near_done",
+      "stage": "S11"
+    },
+    "M11.4": {
+      "title": "Examples",
+      "description": "simple-local, approval-gate, consequence-parallelism, why-not-parallel.",
+      "status": "planned",
+      "stage": "S11"
+    },
+    "M11.5": {
+      "title": "Security/release hygiene",
+      "description": "licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.",
+      "status": "planned",
+      "stage": "S11"
+    },
+    "M11.6": {
+      "title": "Contributor guide",
+      "description": "ADR process, new predicate checklist, formal obligation template, adapter certification.",
+      "status": "planned",
+      "stage": "S11"
+    },
+    "M11.7": {
+      "title": "Release notes",
+      "description": "Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.",
+      "status": "planned",
+      "stage": "S11"
+    },
+    "M12.1": {
+      "title": "Reference integration 1",
+      "description": "Rust service with API+worker+audit+projection.",
+      "status": "planned",
+      "stage": "S12"
+    },
+    "M12.2": {
+      "title": "Reference integration 2",
+      "description": "Agent/tool execution or CI/CD/release orchestration.",
+      "status": "planned",
+      "stage": "S12"
+    },
+    "M12.3": {
+      "title": "Migration/shadow docs",
+      "description": "How to adopt incrementally without rewrite.",
+      "status": "planned",
+      "stage": "S12"
+    },
+    "M12.4": {
+      "title": "Adapter ecosystem",
+      "description": "Document external adapter interface, compatibility/certification.",
+      "status": "planned",
+      "stage": "S12"
+    },
+    "M12.5": {
+      "title": "DX feedback loop",
+      "description": "Simplify common paths, reduce ceremony, improve error messages.",
+      "status": "planned",
+      "stage": "S12"
+    },
+    "M12.6": {
+      "title": "Semver pre-1.0 freeze plan",
+      "description": "Identify APIs slated for stabilization.",
+      "status": "planned",
+      "stage": "S12"
+    },
+    "M13.1": {
+      "title": "API stabilization",
+      "description": "Core types, bundle format, event model, replay trace, adapter traits.",
+      "status": "planned",
+      "stage": "S13"
+    },
+    "M13.2": {
+      "title": "Compatibility policy",
+      "description": "Schema migration, trace replay across versions, deprecation windows.",
+      "status": "planned",
+      "stage": "S13"
+    },
+    "M13.3": {
+      "title": "Formal/replay release gate",
+      "description": "No release unless formal-ready, replay corpus, coverage matrix, exceptions valid.",
+      "status": "planned",
+      "stage": "S13"
+    },
+    "M13.4": {
+      "title": "Production readiness docs",
+      "description": "Operations, performance tuning, failure modes, backup/restore audit.",
+      "status": "planned",
+      "stage": "S13"
+    },
+    "M13.5": {
+      "title": "Security model docs",
+      "description": "Threat model, authz defaults, capability scope, redaction, supply chain.",
+      "status": "planned",
+      "stage": "S13"
+    },
+    "M13.6": {
+      "title": "1.0 release",
+      "description": "Publish stable crates and docs with honest guarantees.",
+      "status": "planned",
+      "stage": "S13"
+    },
+    "M14.1": {
+      "title": "Service/control-plane mode",
+      "description": "Optional server mode; still small kernel authority.",
+      "status": "future",
+      "stage": "S14"
+    },
+    "M14.2": {
+      "title": "Dashboard/UI",
+      "description": "Visual graph, blockers, audit/replay exploration.",
+      "status": "future",
+      "stage": "S14"
+    },
+    "M14.3": {
+      "title": "Advanced distributed coordination",
+      "description": "Multi-node scheduler, HA audit, failover only after formal model/design.",
+      "status": "future",
+      "stage": "S14"
+    },
+    "M14.4": {
+      "title": "Adapter marketplace/catalog",
+      "description": "Community adapters with certification receipts.",
+      "status": "future",
+      "stage": "S14"
+    },
+    "M14.5": {
+      "title": "Advanced proof/language support",
+      "description": "More proof generators/languages as generated projections, not manual authority.",
+      "status": "future",
+      "stage": "S14"
+    }
+  }
+}

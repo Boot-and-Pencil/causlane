@@ -1,0 +1,490 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import fnmatch
+import hashlib
+import json
+import os
+import selectors
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.devinfra_common import (
+    atomic_write_json,
+    atomic_write_text,
+    ensure_state_dirs,
+    load_toml,
+    normalize_cargo_json,
+    repo_root,
+    snapshot,
+    utc_now,
+)
+
+
+STAGE_ORDER = ["fetch", "metadata", "check", "clippy", "custom_checker", "test_build", "coverage_build"]
+LOCK_SKIPPED_EXIT_CODE = int(os.environ.get("DEVINFRA_LOCK_SKIPPED_EXIT_CODE", "75"))
+DIAGNOSTIC_STAGES = {"check", "clippy", "custom_checker"}
+
+
+def state_path(root: Path, name: str) -> Path:
+    return root / ".agent-state" / name
+
+
+def write_state(root: Path, state: dict[str, Any]) -> None:
+    state["updated_at"] = utc_now()
+    atomic_write_json(state_path(root, "prewarm-state.json"), state)
+
+
+def stop_requested(root: Path) -> bool:
+    return state_path(root, "background-stop-request.json").exists()
+
+
+def foreground_active(root: Path) -> bool:
+    return (root / ".agent-state/locks/foreground-active").exists()
+
+
+def should_ignore(path: Path, root: Path, ignored: list[str]) -> bool:
+    rel = path.relative_to(root).as_posix()
+    for pattern in ignored:
+        if fnmatch.fnmatch(rel, pattern):
+            return True
+    return False
+
+
+def watched_files(root: Path, watch: dict[str, Any]) -> list[Path]:
+    inputs = watch.get("inputs", [])
+    ignored = watch.get("ignored", [])
+    files: set[Path] = set()
+    for pattern in inputs:
+        for match in root.glob(pattern):
+            if match.is_file() and not should_ignore(match, root, ignored):
+                files.add(match)
+    return sorted(files)
+
+
+def source_fingerprint(root: Path, watch: dict[str, Any]) -> str:
+    rows = []
+    for path in watched_files(root, watch):
+        stat = path.stat()
+        rows.append(f"{path.relative_to(root).as_posix()}:{stat.st_mtime_ns}:{stat.st_size}")
+    return "\n".join(rows)
+
+
+def manifest_fingerprint(root: Path) -> str:
+    patterns = ["Cargo.lock", "Cargo.toml", "crates/**/Cargo.toml", ".cargo/config.toml", "rust-toolchain.toml"]
+    rows = []
+    for pattern in patterns:
+        for path in sorted(root.glob(pattern)):
+            if path.is_file():
+                stat = path.stat()
+                rows.append(f"{path.relative_to(root).as_posix()}:{stat.st_mtime_ns}:{stat.st_size}")
+    return "\n".join(rows)
+
+
+def command_config(config: dict[str, Any], stage: str) -> dict[str, Any]:
+    command = config.get("commands", {}).get(stage, {})
+    return command if isinstance(command, dict) else {}
+
+
+def stage_command(config: dict[str, Any], stage: str) -> list[str] | None:
+    command = command_config(config, stage)
+    if not command:
+        return None
+    argv = command.get("argv")
+    return list(argv) if isinstance(argv, list) else None
+
+
+def stage_cache_class(config: dict[str, Any], stage: str) -> str:
+    command = command_config(config, stage)
+    return str(command.get("cache_class", "dev"))
+
+
+def skipped_stage(stage: str, reason: str) -> dict[str, Any]:
+    return {
+        "name": stage,
+        "status": "skipped",
+        "duration_ms": 0,
+        "exit_code": 0,
+        "reason": reason,
+    }
+
+
+def skip_status_from_stderr(stderr: str) -> str:
+    for line in reversed(stderr.splitlines()):
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        status = row.get("devinfra_status")
+        if status in {"skipped_lock_busy", "skipped_foreground_active"}:
+            return str(status)
+    return "skipped_lock_busy"
+
+
+def run_stage(root: Path, stage: str, argv: list[str], snap: dict[str, str], cache_class: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    started = time.monotonic()
+    log_dir = root / ".devinfra/logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    stdout_log = log_dir / f"{stage}.stdout.log"
+    stderr_log = log_dir / f"{stage}.stderr.log"
+
+    proc = subprocess.Popen(
+        argv,
+        cwd=root,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=1,
+        start_new_session=True,
+    )
+    atomic_write_text(state_path(root, "prewarm-active.pid"), f"{proc.pid}\n")
+    cargo_json_lines: list[str] = []
+    stderr_tail = ""
+    selector = selectors.DefaultSelector()
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+    selector.register(proc.stdout, selectors.EVENT_READ, "stdout")
+    selector.register(proc.stderr, selectors.EVENT_READ, "stderr")
+    with stdout_log.open("w", encoding="utf-8") as stdout_handle, stderr_log.open("w", encoding="utf-8") as stderr_handle:
+        while selector.get_map():
+            for key, _ in selector.select():
+                line = key.fileobj.readline()
+                if line == "":
+                    selector.unregister(key.fileobj)
+                    continue
+                if key.data == "stdout":
+                    stdout_handle.write(line)
+                    if line.startswith("{"):
+                        cargo_json_lines.append(line)
+                else:
+                    stderr_handle.write(line)
+                    stderr_tail = (stderr_tail + line)[-8000:]
+        proc.wait()
+    state_path(root, "prewarm-active.pid").unlink(missing_ok=True)
+
+    duration_ms = int((time.monotonic() - started) * 1000)
+    diagnostics = normalize_cargo_json("".join(cargo_json_lines), root, snap, cache_class)
+    for diagnostic in diagnostics:
+        diagnostic["source"] = f"cargo-{stage.replace('_', '-')}"
+    status = "ok" if proc.returncode == 0 else "failed"
+    if proc.returncode == LOCK_SKIPPED_EXIT_CODE:
+        status = skip_status_from_stderr(stderr_tail)
+    if stop_requested(root) or foreground_active(root):
+        status = "skipped_foreground_active" if proc.returncode in (0, -signal.SIGTERM, LOCK_SKIPPED_EXIT_CODE) else status
+    return (
+        {
+            "name": stage,
+            "status": status,
+            "duration_ms": duration_ms,
+            "exit_code": proc.returncode,
+            "stdout_log": str(stdout_log.relative_to(root)),
+            "stderr_log": str(stderr_log.relative_to(root)),
+        },
+        diagnostics,
+    )
+
+
+def run_once(root: Path, config: dict[str, Any], watch: dict[str, Any], include_coverage: bool) -> int:
+    ensure_state_dirs(root)
+    previous_state = {}
+    previous_path = state_path(root, "prewarm-state.json")
+    if previous_path.exists():
+        try:
+            previous_state = json.loads(previous_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            previous_state = {}
+    snap = snapshot(root)
+    current_manifest = manifest_fingerprint(root)
+    atomic_write_json(state_path(root, "current-snapshot.json"), snap)
+    state: dict[str, Any] = {
+        "schema_version": 1,
+        "status": "running",
+        "active_stage": None,
+        "last_completed_stage": None,
+        "snapshot": snap,
+        "cache_class": "dev",
+        "started_at": utc_now(),
+        "updated_at": utc_now(),
+        "foreground_active": foreground_active(root),
+        "manifest_fingerprint": current_manifest,
+        "commands": [],
+    }
+    write_state(root, state)
+
+    all_diagnostics: list[dict[str, Any]] = []
+    for stage in STAGE_ORDER:
+        command_data = command_config(config, stage)
+        if command_data.get("enabled") is False:
+            state["commands"].append(skipped_stage(stage, "disabled"))
+            write_state(root, state)
+            continue
+        if command_data.get("foreground_only"):
+            state["commands"].append(skipped_stage(stage, "foreground_only"))
+            write_state(root, state)
+            continue
+        if command_data.get("idle_only") and not include_coverage:
+            state["commands"].append(skipped_stage(stage, "idle_only_not_due"))
+            write_state(root, state)
+            continue
+        if stage == "coverage_build" and not include_coverage:
+            continue
+        if command_data.get("on_manifest_change") and previous_state.get("manifest_fingerprint") == current_manifest:
+            state["commands"].append(skipped_stage(stage, "manifest_unchanged"))
+            write_state(root, state)
+            continue
+        if stop_requested(root) or foreground_active(root):
+            state["status"] = "skipped_foreground_active"
+            state["active_stage"] = None
+            state["foreground_active"] = True
+            write_state(root, state)
+            write_skipped_diagnostics(root, snap, "foreground_active")
+            return 0
+        refreshed_snap = snapshot(root)
+        if refreshed_snap != snap:
+            snap = refreshed_snap
+            all_diagnostics = []
+            atomic_write_json(state_path(root, "current-snapshot.json"), snap)
+            state["snapshot"] = snap
+            write_state(root, state)
+        argv = stage_command(config, stage)
+        if argv is None:
+            continue
+        cache_class = stage_cache_class(config, stage)
+        state["active_stage"] = stage
+        state["cache_class"] = cache_class
+        state["foreground_active"] = False
+        write_state(root, state)
+        result, diagnostics = run_stage(root, stage, argv, snap, cache_class)
+        state["commands"].append(result)
+        state["last_completed_stage"] = stage
+        state["active_stage"] = None
+        all_diagnostics.extend(diagnostics)
+        write_state(root, state)
+        if result["status"] in {"skipped_lock_busy", "skipped_foreground_active"}:
+            state["status"] = result["status"]
+            state["active_stage"] = None
+            state["foreground_active"] = result["status"] == "skipped_foreground_active"
+            write_state(root, state)
+            if stage in DIAGNOSTIC_STAGES:
+                write_skipped_diagnostics(root, snap, result["status"])
+            return 0
+        if result["status"] == "failed":
+            state["status"] = "failed"
+            write_state(root, state)
+            write_diagnostics(root, snap, all_diagnostics)
+            return int(result["exit_code"] or 1)
+
+    write_diagnostics(root, snap, all_diagnostics)
+    state["status"] = "ok"
+    state["active_stage"] = None
+    state["foreground_active"] = False
+    write_state(root, state)
+    return 0
+
+
+def dev_ok_for_coverage(root: Path) -> bool:
+    state_file = state_path(root, "prewarm-state.json")
+    if not state_file.exists():
+        return False
+    try:
+        state = json.loads(state_file.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return False
+    if state.get("status") not in {"ok", "warnings_only"}:
+        return False
+    commands = state.get("commands", [])
+    if not isinstance(commands, list):
+        return False
+    relevant = {
+        command.get("name"): command.get("status")
+        for command in commands
+        if isinstance(command, dict) and command.get("name") in {"check", "clippy"}
+    }
+    return all(status == "ok" for status in relevant.values()) and bool(relevant)
+
+
+def diagnostic_fingerprint(row: dict[str, Any]) -> str:
+    rng = row.get("range") if isinstance(row.get("range"), dict) else {}
+    material = {
+        "file": row.get("file", ""),
+        "start_line": rng.get("start_line", 0),
+        "end_line": rng.get("end_line", 0),
+        "code": row.get("code"),
+        "message": row.get("message", ""),
+        "source": row.get("source", ""),
+    }
+    encoded = json.dumps(material, sort_keys=True).encode("utf-8")
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
+def severity_rank(row: dict[str, Any]) -> int:
+    severity = str(row.get("severity", "")).lower()
+    return {"error": 0, "deny": 0, "warning": 1, "warn": 1, "note": 2, "help": 3}.get(severity, 4)
+
+
+def normalize_diagnostics(root: Path, diagnostics: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    previous: dict[str, str] = {}
+    path = state_path(root, "diagnostics.jsonl")
+    if path.exists():
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            fingerprint = row.get("fingerprint")
+            first_seen = row.get("first_seen_at")
+            if isinstance(fingerprint, str) and isinstance(first_seen, str):
+                previous[fingerprint] = first_seen
+
+    now = utc_now()
+    rows: dict[str, dict[str, Any]] = {}
+    for diagnostic in diagnostics:
+        row = dict(diagnostic)
+        fingerprint = diagnostic_fingerprint(row)
+        row["fingerprint"] = fingerprint
+        row["first_seen_at"] = previous.get(fingerprint, now)
+        row["last_seen_at"] = now
+        rows[fingerprint] = row
+    return sorted(
+        rows.values(),
+        key=lambda row: (
+            severity_rank(row),
+            str(row.get("file", "")),
+            int((row.get("range") or {}).get("start_line", 0)) if isinstance(row.get("range"), dict) else 0,
+            str(row.get("source", "")),
+            str(row.get("code", "")),
+            str(row.get("message", "")),
+        ),
+    )
+
+
+def write_bacon_locations(root: Path, diagnostics: list[dict[str, Any]]) -> None:
+    rows = []
+    for row in diagnostics:
+        rng = row.get("range") if isinstance(row.get("range"), dict) else {}
+        rendered = str(row.get("rendered") or row.get("message") or "").replace("\n", "\\n")
+        rows.append(
+            "|:|".join(
+                [
+                    str(row.get("severity", "unknown")),
+                    str(row.get("file", "")),
+                    str(rng.get("start_line", 0)),
+                    str(rng.get("end_line", rng.get("start_line", 0))),
+                    str(rng.get("start_col", 0)),
+                    str(rng.get("end_col", 0)),
+                    str(row.get("message", "")),
+                    rendered,
+                    "",
+                ]
+            )
+        )
+    atomic_write_text(root / ".bacon-locations", "\n".join(rows) + ("\n" if rows else ""))
+
+
+def write_diagnostics(root: Path, snap: dict[str, str], diagnostics: list[dict[str, Any]]) -> None:
+    diagnostics = normalize_diagnostics(root, diagnostics)
+    bundle = {
+        "schema_version": 1,
+        "status": "ok",
+        "snapshot": snap,
+        "cache_class": "dev",
+        "diagnostics": diagnostics,
+        "updated_at": utc_now(),
+    }
+    atomic_write_json(state_path(root, "diagnostics.json"), bundle)
+    lines = "".join(json.dumps(row, sort_keys=True) + "\n" for row in diagnostics)
+    atomic_write_text(state_path(root, "diagnostics.jsonl"), lines)
+    write_bacon_locations(root, diagnostics)
+
+
+def write_skipped_diagnostics(root: Path, snap: dict[str, str], reason: str) -> None:
+    bundle = {
+        "schema_version": 1,
+        "status": "skipped",
+        "snapshot": {},
+        "current_snapshot": snap,
+        "cache_class": "dev",
+        "diagnostics": [],
+        "fresh": False,
+        "stale_reasons": [reason],
+        "updated_at": utc_now(),
+    }
+    atomic_write_json(state_path(root, "diagnostics.json"), bundle)
+    atomic_write_text(state_path(root, "diagnostics.jsonl"), "")
+
+
+def run_loop(root: Path, config: dict[str, Any], watch: dict[str, Any], include_coverage: bool) -> int:
+    debounce = float(os.environ.get("DEVINFRA_DEBOUNCE_SECONDS", watch.get("debounce_seconds", 5)))
+    coverage_delay = float(
+        os.environ.get("DEVINFRA_COVERAGE_IDLE_DELAY_SECONDS", watch.get("coverage_idle_delay_seconds", 60))
+    )
+    coverage_enabled = include_coverage or os.environ.get("DEVINFRA_COVERAGE_ENABLED", "0") == "1"
+    last_fingerprint = None
+    pending_since: float | None = None
+    dev_pending = False
+    coverage_pending = False
+    while True:
+        current = source_fingerprint(root, watch)
+        now = time.monotonic()
+        if current != last_fingerprint:
+            last_fingerprint = current
+            pending_since = now
+            dev_pending = True
+            coverage_pending = coverage_enabled
+        if dev_pending and pending_since is not None and now - pending_since >= debounce:
+            state_path(root, "background-stop-request.json").unlink(missing_ok=True)
+            run_once(root, config, watch, False)
+            dev_pending = False
+        if (
+            coverage_pending
+            and not dev_pending
+            and pending_since is not None
+            and now - pending_since >= coverage_delay
+            and dev_ok_for_coverage(root)
+        ):
+            state_path(root, "background-stop-request.json").unlink(missing_ok=True)
+            run_once(root, config, watch, True)
+            coverage_pending = False
+        time.sleep(1.0)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Background Rust prewarm daemon.")
+    sub = parser.add_subparsers(dest="command", required=True)
+    run = sub.add_parser("run")
+    run.add_argument("--config", default=".devinfra/commands.toml")
+    run.add_argument("--watch", default=".devinfra/watch.toml")
+    run.add_argument("--once", action="store_true")
+    run.add_argument("--include-coverage", action="store_true")
+    run.set_defaults(func=cmd_run)
+    return parser
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    root = repo_root()
+    config = load_toml(root / args.config)
+    watch = load_toml(root / args.watch)
+    if args.once:
+        return run_once(root, config, watch, args.include_coverage)
+    return run_loop(root, config, watch, args.include_coverage)
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,43 @@
+[package]
+name = "causlane-cli"
+description = "Developer/operator CLI for causlane."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "causlane"
+path = "src/main.rs"
+doc = false
+
+# Explicit declaration of the formal orchestration helper (it is also
+# auto-discovered from src/bin/, but declaring it keeps the gate's
+# `--bin causlane-formal` wiring unambiguous).
+[[bin]]
+name = "causlane-formal"
+path = "src/bin/causlane-formal.rs"
+doc = false
+
+[[bin]]
+name = "causlane-formal-discipline"
+path = "src/bin/causlane-formal-discipline.rs"
+doc = false
+
+[dependencies]
+causlane-core = { path = "../causlane-core", version = "0.0.1" }
+causlane-codegen = { path = "../causlane-codegen", version = "0.0.1" }
+causlane-contracts = { path = "../causlane-contracts", version = "0.0.1" }
+causlane-replay = { path = "../causlane-replay", version = "0.0.1" }
+causlane-formal = { path = "../causlane-formal", version = "0.0.1" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+[lints]
+workspace = true

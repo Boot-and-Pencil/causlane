@@ -1,0 +1,53 @@
+scenario_version: 0.1.0
+scenario_id: unrelated_merge_protocol_does_not_allow_conflict_invalid
+action_id: act_promote_123
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: ship it
+# I-006 / P0-005: this bundle has a VERIFIED, APPLICABLE merge protocol, so its
+# conflict-domain scopes (environment:staging, release_candidate:rc_123) are
+# mergeable. A single mergeable-scope lease (environment) coexists fine, but two
+# overlapping exclusive leases on an UNRELATED scope (queue:deploy) must still
+# conflict — the merge protocol must not suppress conflicts globally. Replay and the
+# scope-keyed Alloy assertion both reject this; the old global `some mergeable or`
+# would have wrongly accepted it.
+expected_replay_result: fail
+expected_error_code: ConflictingLeases
+formal_obligations: [I-006]
+events:
+  - event_id: evt_lease_env
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_env
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+  - event_id: evt_lease_queue_a
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_queue_a
+        resource: queue_write
+        scope: queue:deploy
+        mode: exclusive
+  - event_id: evt_lease_queue_b
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_queue_b
+        resource: queue_write
+        scope: queue:deploy
+        mode: exclusive

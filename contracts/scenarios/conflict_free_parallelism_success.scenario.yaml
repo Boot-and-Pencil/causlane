@@ -1,0 +1,270 @@
+scenario_version: 0.1.0
+scenario_id: conflict_free_parallelism_success
+# M04.1 golden success: conflict-free parallelism (the positive control for the
+# I-006 lease no-overlap invariant, complementing conflicting_leases_invalid).
+#
+# Two independent `release.promote_candidate` (RuntimeExecution) actions share one
+# trace and run fully interleaved. Their write scopes are DISJOINT
+# (act_promote_123 -> environment:staging + release_candidate:rc_123;
+#  act_promote_456 -> environment:prod    + release_candidate:rc_456),
+# so their exclusive leases never overlap and both barrier ceremonies complete.
+# This shows the kernel admits parallel execution when (and only when) the
+# consequence/lease frontier proves the two actions cannot conflict.
+#
+# The trace-level action_id names the primary action: it carries the full
+# predicate-validated witness/lease/capability ceremony. The secondary action's
+# lifecycle and the cross-action invariants (barrier-before-execution,
+# observed-after-execution, projection-anchored, lease no-overlap, closed
+# terminality) are still enforced per the profile-agnostic invariant pass.
+action_id: act_promote_123
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: ship it
+expected_replay_result: pass
+formal_obligations: [I-001, I-002, I-003, I-006, I-008, I-009]
+events:
+  # --- both actions admitted / planned / dispatched (interleaved) ---
+  - event_id: evt_a_admitted
+    kind: action.admitted
+    action_id: act_promote_123
+  - event_id: evt_b_admitted
+    kind: action.admitted
+    action_id: act_promote_456
+  - event_id: evt_a_planned
+    kind: action.planned
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_b_planned
+    kind: action.planned
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  - event_id: evt_a_dispatch
+    kind: dispatch.logged
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_b_dispatch
+    kind: dispatch.logged
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  # --- disjoint exclusive leases granted for both actions (no overlap) ---
+  - event_id: evt_a_leases_granted
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_a_env_staging
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+        holder_op_index: 0
+        epoch: 1
+        lease_event_id: evt_a_leases_granted
+      - lease_id: lease_a_rc_123
+        resource: release_candidate_write
+        scope: release_candidate:rc_123
+        mode: exclusive
+        holder_op_index: 0
+        epoch: 1
+        lease_event_id: evt_a_leases_granted
+  - event_id: evt_b_leases_granted
+    kind: constraint.lease_granted
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    leases:
+      - lease_id: lease_b_env_prod
+        resource: environment_write
+        scope: environment:prod
+        mode: exclusive
+        holder_op_index: 0
+        epoch: 1
+        lease_event_id: evt_b_leases_granted
+      - lease_id: lease_b_rc_456
+        resource: release_candidate_write
+        scope: release_candidate:rc_456
+        mode: exclusive
+        holder_op_index: 0
+        epoch: 1
+        lease_event_id: evt_b_leases_granted
+  # --- approvals (readiness witnesses) for both actions ---
+  - event_id: evt_a_readiness_ok
+    kind: gate.approved
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    fact_kind: readiness_ok
+    scope: release_candidate:rc_123
+  - event_id: evt_b_readiness_ok
+    kind: gate.approved
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    fact_kind: readiness_ok
+    scope: release_candidate:rc_456
+  # --- barriers logged for both actions (disjoint impact sets) ---
+  - event_id: evt_a_barrier
+    kind: execution.barrier_logged
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+    witnesses: [evt_a_readiness_ok]
+    execution_barrier:
+      barrier_id: evt_a_barrier
+      action_id: act_promote_123
+      plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+      op_indexes: [0]
+      impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+      witnesses:
+        - event_id: evt_a_readiness_ok
+          requirement_id: readiness_before_promotion
+          kind: gate_approval
+          fact_kind: readiness_ok
+          scope: release_candidate:rc_123
+          binds_to:
+            action_id: act_promote_123
+            plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+            impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+      leases:
+        - lease_id: lease_a_env_staging
+          resource: environment_write
+          scope: environment:staging
+          mode: exclusive
+          holder_op_index: 0
+          epoch: 1
+          lease_event_id: evt_a_leases_granted
+        - lease_id: lease_a_rc_123
+          resource: release_candidate_write
+          scope: release_candidate:rc_123
+          mode: exclusive
+          holder_op_index: 0
+          epoch: 1
+          lease_event_id: evt_a_leases_granted
+  - event_id: evt_b_barrier
+    kind: execution.barrier_logged
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    impact_set_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    witnesses: [evt_b_readiness_ok]
+    execution_barrier:
+      barrier_id: evt_b_barrier
+      action_id: act_promote_456
+      plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+      op_indexes: [0]
+      impact_set_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      witnesses:
+        - event_id: evt_b_readiness_ok
+          requirement_id: readiness_before_promotion
+          kind: gate_approval
+          fact_kind: readiness_ok
+          scope: release_candidate:rc_456
+          binds_to:
+            action_id: act_promote_456
+            plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+            impact_set_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+      leases:
+        - lease_id: lease_b_env_prod
+          resource: environment_write
+          scope: environment:prod
+          mode: exclusive
+          holder_op_index: 0
+          epoch: 1
+          lease_event_id: evt_b_leases_granted
+        - lease_id: lease_b_rc_456
+          resource: release_candidate_write
+          scope: release_candidate:rc_456
+          mode: exclusive
+          holder_op_index: 0
+          epoch: 1
+          lease_event_id: evt_b_leases_granted
+  # --- executions started under capability for both actions ---
+  - event_id: evt_a_execution
+    kind: execution.started
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    execution_capability:
+      capability_id: cap:evt_a_barrier:0
+      op_index: 0
+      barrier_event_id: evt_a_barrier
+      lease_ids: [lease_a_env_staging, lease_a_rc_123]
+  - event_id: evt_b_execution
+    kind: execution.started
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    execution_capability:
+      capability_id: cap:evt_b_barrier:0
+      op_index: 0
+      barrier_event_id: evt_b_barrier
+      lease_ids: [lease_b_env_prod, lease_b_rc_456]
+  # --- observed truth committed for both actions ---
+  - event_id: evt_a_observed
+    kind: observed_truth.committed
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    fact_kind: release_candidate_promoted
+    scope: environment:staging
+  - event_id: evt_b_observed
+    kind: observed_truth.committed
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    fact_kind: release_candidate_promoted
+    scope: environment:prod
+  # --- projections anchored to each action's own observed truth ---
+  - event_id: evt_a_projection
+    kind: projection.emitted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    anchors:
+      - event_id: evt_a_observed
+        action_id: act_promote_123
+        plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+        fact_kind: release_candidate_promoted
+        scope: environment:staging
+  - event_id: evt_b_projection
+    kind: projection.emitted
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    anchors:
+      - event_id: evt_b_observed
+        action_id: act_promote_456
+        plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        fact_kind: release_candidate_promoted
+        scope: environment:prod
+  # --- leases released and both actions closed ---
+  - event_id: evt_a_leases_released
+    kind: constraint.lease_released
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_a_env_staging
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+      - lease_id: lease_a_rc_123
+        resource: release_candidate_write
+        scope: release_candidate:rc_123
+        mode: exclusive
+  - event_id: evt_b_leases_released
+    kind: constraint.lease_released
+    action_id: act_promote_456
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    leases:
+      - lease_id: lease_b_env_prod
+        resource: environment_write
+        scope: environment:prod
+        mode: exclusive
+      - lease_id: lease_b_rc_456
+        resource: release_candidate_write
+        scope: release_candidate:rc_456
+        mode: exclusive
+  - event_id: evt_a_closed
+    kind: lifecycle.closed
+    action_id: act_promote_123
+  - event_id: evt_b_closed
+    kind: lifecycle.closed
+    action_id: act_promote_456

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Executable formal-lane exceptions policy enforcement (P1-FM-012).
+#
+# Reads docs/formal-exceptions.json and formal/proof-lanes.json, then:
+#   * fails if any exception is past its allowed_until date;
+#   * fails if the exception policy tries to skip an always-blocking proof lane;
+#   * with --skipped-target <lane>, fails unless a non-expired exception permits
+#     treating that lane as non-authoritative under --profile (the lane's profile
+#     must be in allowed_profiles and NOT in forbidden_profiles).
+#
+# Usage:
+#   tools/formal-exceptions-check --profile rust
+#   tools/formal-exceptions-check --profile rust --skipped-target verus
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+POLICY="docs/formal-exceptions.json"
+PROOF_LANES="formal/proof-lanes.json"
+PROFILE=""
+SKIPPED_TARGET=""
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --profile) PROFILE="${2:?--profile needs a value}"; shift 2 ;;
+    --skipped-target) SKIPPED_TARGET="${2:?--skipped-target needs a value}"; shift 2 ;;
+    --policy) POLICY="${2:?--policy needs a value}"; shift 2 ;;
+    --proof-lanes) PROOF_LANES="${2:?--proof-lanes needs a value}"; shift 2 ;;
+    *) echo "formal-exceptions-check: unknown arg $1" >&2; exit 2 ;;
+  esac
+done
+
+if [ ! -f "$POLICY" ]; then
+  echo "formal-exceptions-check: policy $POLICY not found" >&2
+  exit 2
+fi
+if ! jq -e '.schema_version == 1 and (.exceptions | type == "array")' "$POLICY" >/dev/null 2>&1; then
+  echo "formal-exceptions-check: malformed policy $POLICY" >&2
+  exit 2
+fi
+if [ ! -f "$PROOF_LANES" ]; then
+  echo "formal-exceptions-check: proof-lane contract $PROOF_LANES not found" >&2
+  exit 2
+fi
+if ! jq -e '.schema_version == 1 and (.lanes | type == "object")' "$PROOF_LANES" >/dev/null 2>&1; then
+  echo "formal-exceptions-check: malformed proof-lane contract $PROOF_LANES" >&2
+  exit 2
+fi
+
+TODAY="$(date +%F)"
+PROTECTED_TARGETS="$(jq -c '[.lanes | to_entries[] | select(.value.blocking == true and .value.exception_allowed == false) | .key]' "$PROOF_LANES")"
+
+# 1) No exception may be past its allowed_until date.
+EXPIRED="$(jq -r --arg today "$TODAY" \
+  '[.exceptions[] | select(.allowed_until < $today) | .id] | join(",")' "$POLICY")"
+if [ -n "$EXPIRED" ]; then
+  echo "formal-exceptions-check: FAILED expired exception(s): $EXPIRED (today=$TODAY)" >&2
+  exit 1
+fi
+
+# 2) Always-blocking proof lanes may not have exceptions in policy.
+PROTECTED_EXCEPTIONS="$(jq -r --argjson protected "$PROTECTED_TARGETS" \
+  '[.exceptions[] | select(.target as $target | $protected | index($target)) | "\(.id):\(.target)"] | join(",")' "$POLICY")"
+if [ -n "$PROTECTED_EXCEPTIONS" ]; then
+  echo "formal-exceptions-check: FAILED always-blocking lane exception(s): $PROTECTED_EXCEPTIONS" >&2
+  exit 1
+fi
+
+# 3) A skipped lane must be justified by a valid exception for this profile.
+if [ -n "$SKIPPED_TARGET" ]; then
+  if jq -e --arg target "$SKIPPED_TARGET" '.lanes[$target].blocking == true and .lanes[$target].exception_allowed == false' "$PROOF_LANES" >/dev/null; then
+    echo "formal-exceptions-check: FAILED lane '$SKIPPED_TARGET' is always-blocking by $PROOF_LANES and cannot be skipped" >&2
+    exit 1
+  fi
+  if [ -z "$PROFILE" ]; then
+    echo "formal-exceptions-check: --skipped-target requires --profile" >&2
+    exit 2
+  fi
+  OK="$(jq -r --arg t "$SKIPPED_TARGET" --arg p "$PROFILE" --arg today "$TODAY" '
+    [ .exceptions[]
+      | select(.target == $t)
+      | select(.allowed_until >= $today)
+      | select(.allowed_profiles | index($p))
+      | select((.forbidden_profiles | index($p)) | not)
+    ] | length' "$POLICY")"
+  if [ "$OK" -lt 1 ]; then
+    echo "formal-exceptions-check: FAILED lane '$SKIPPED_TARGET' is non-authoritative under profile '$PROFILE' with no valid exception" >&2
+    exit 1
+  fi
+  echo "formal-exceptions-check: OK ($SKIPPED_TARGET skip allowed under profile $PROFILE by policy)"
+  exit 0
+fi
+
+echo "formal-exceptions-check: OK (no expired exceptions; policy $POLICY)"
+exit 0

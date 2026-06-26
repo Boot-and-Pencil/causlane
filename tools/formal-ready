@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Unified formal-readiness gate for the bundle -> replay -> generated facts
+# -> receipt -> stale-check chain.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+CLI=(./tools/cargo-dev run -q -p causlane-cli --bin causlane --)
+REGISTRY="contracts/examples/release_promote.registry.yaml"
+TRACE="contracts/examples/release_promote.trace.json"
+SCENARIO="contracts/scenarios/release_promote_success.scenario.yaml"
+TARGET_DIR="target/causlane"
+BUNDLE="$TARGET_DIR/release_promote.bundle.json"
+EMITTED_TRACE="$TARGET_DIR/release_promote_success.trace.json"
+GENERATED="formal/alloy/generated/release_promote_success.als"
+RECEIPT="formal/receipts/release_promote_success.codegen.json"
+REPORT="$TARGET_DIR/formal-readiness-report.json"
+DOCTOR_REPORT="$TARGET_DIR/formal-doctor.json"
+
+mkdir -p "$TARGET_DIR" formal/alloy/generated formal/receipts
+
+echo "== formal doctor =="
+python3 tools/formal-doctor --json --profile base --lane local_smoke > "$DOCTOR_REPORT"
+
+echo "== rust checks =="
+./tools/cargo-dev fmt --all --check
+./tools/cargo-dev clippy --workspace --all-targets --all-features --locked -- -D warnings
+./tools/cargo-dev check --workspace --all-targets --all-features --locked --keep-going
+./tools/cargo-dev test --workspace --all-targets --all-features --locked
+
+echo "== bundle/replay/scenario/codegen =="
+"${CLI[@]}" bundle compile --registry "$REGISTRY" --out "$BUNDLE"
+"${CLI[@]}" replay verify --bundle "$BUNDLE" --trace "$TRACE"
+"${CLI[@]}" scenario emit-trace --scenario "$SCENARIO" --out "$EMITTED_TRACE"
+"${CLI[@]}" replay verify --bundle "$BUNDLE" --trace "$EMITTED_TRACE"
+"${CLI[@]}" formal generate alloy --bundle "$BUNDLE" --scenario "$SCENARIO" --out "$GENERATED" --receipt "$RECEIPT"
+"${CLI[@]}" formal stale-check --bundle "$BUNDLE" --scenario "$SCENARIO" --generated "$GENERATED" --receipt "$RECEIPT"
+
+echo "== multi-action reference (P2-004): replay-valid two-action history =="
+# A non-RuntimeExecution (EvidenceMeta) bundle carrying a single trace with two
+# independent actions. Proves multi-action replay (each action's lifecycle reduced
+# on its own substream) without the per-action barrier ceremony.
+MULTI_REGISTRY="contracts/examples/multi_action_reference.registry.yaml"
+MULTI_SCENARIO="contracts/scenarios/multi_action_reference.scenario.yaml"
+MULTI_BUNDLE="$TARGET_DIR/multi_action_reference.bundle.json"
+MULTI_TRACE="$TARGET_DIR/multi_action_reference.trace.json"
+"${CLI[@]}" bundle compile --registry "$MULTI_REGISTRY" --out "$MULTI_BUNDLE"
+"${CLI[@]}" scenario emit-trace --scenario "$MULTI_SCENARIO" --bundle "$MULTI_BUNDLE" --out "$MULTI_TRACE"
+"${CLI[@]}" replay verify --bundle "$MULTI_BUNDLE" --trace "$MULTI_TRACE" --require-bundle-hash
+
+echo "== formal smoke =="
+bash formal/smoke.sh
+
+BUNDLE_HASH="$(jq -r .bundle_hash "$BUNDLE")"
+SCENARIO_HASH="$(jq -r .scenario_hash "$RECEIPT")"
+ARTIFACT_HASH="$(jq -r .generated_artifact_hash "$RECEIPT")"
+TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cat > "$REPORT" <<JSON
+{
+  "schema_version": 1,
+  "status": "pass",
+  "checked_at": "$TS",
+  "registry": "$REGISTRY",
+  "bundle": "$BUNDLE",
+  "bundle_hash": "$BUNDLE_HASH",
+  "trace": "$TRACE",
+  "scenario": "$SCENARIO",
+  "scenario_hash": "$SCENARIO_HASH",
+  "generated": "$GENERATED",
+  "generated_artifact_hash": "$ARTIFACT_HASH",
+  "receipt": "$RECEIPT",
+  "doctor_report": "$DOCTOR_REPORT",
+  "gates": [
+    "formal-doctor",
+    "cargo-fmt",
+    "cargo-clippy",
+    "cargo-check",
+    "cargo-test",
+    "bundle-compile",
+    "replay-verify",
+    "scenario-emit-trace",
+    "multi-action-reference-replay",
+    "formal-generate-alloy",
+    "formal-stale-check",
+    "formal-smoke"
+  ]
+}
+JSON
+
+echo "formal-ready: OK"
+echo "report: $REPORT"

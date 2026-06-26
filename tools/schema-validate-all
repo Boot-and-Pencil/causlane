@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Schema validation gate (P0-008): make contract-schema drift fail closed.
+#
+#  1. no duplicate keys in any contract schema file (P0-004 guard);
+#  2. every scenario parses through the typed Rust DTO (the source of truth);
+#  3. the emitted Formal IR validates against formal_ir.schema.json.
+#
+# YAML scenarios are validated via the typed DTO (the toolchain has no PyYAML and
+# the DTO is authoritative); JSON artifacts are validated against their JSON
+# Schema with the stdlib-only tools/validate-json-schema.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+CLI=(./tools/cargo-dev run -q -p causlane-cli --bin causlane --)
+TARGET_DIR="target/causlane"
+mkdir -p "$TARGET_DIR"
+
+echo "== schema files have no duplicate keys =="
+python3 tools/check-json-no-duplicate-keys contracts/schema/*.json
+
+echo "== scenarios validate through the typed DTO =="
+while IFS= read -r scenario; do
+  "${CLI[@]}" scenario validate "$scenario" >/dev/null
+  echo "  ok: $scenario"
+done < <(find contracts/scenarios -name '*.scenario.yaml' | sort)
+
+echo "== emitted Formal IR validates against formal_ir.schema.json =="
+BUNDLE="$TARGET_DIR/release_promote.bundle.json"
+IR="$TARGET_DIR/release_promote.formal-ir.json"
+"${CLI[@]}" bundle compile \
+  --registry contracts/examples/release_promote.registry.yaml --out "$BUNDLE" >/dev/null
+"${CLI[@]}" formal ir emit \
+  --bundle "$BUNDLE" \
+  --scenario contracts/scenarios/release_promote_success.scenario.yaml \
+  --out "$IR" >/dev/null
+python3 tools/validate-json-schema --schema contracts/schema/formal_ir.schema.json "$IR"
+
+echo "== Kani profile validates against formal_kani_profile.schema.json =="
+python3 tools/validate-json-schema --schema contracts/schema/formal_kani_profile.schema.json formal/kani/profile.json
+
+echo "== Formal exceptions validate against formal_exceptions.schema.json =="
+python3 tools/validate-json-schema --schema contracts/schema/formal_exceptions.schema.json docs/formal-exceptions.json
+
+echo "== Proof lanes validate against formal_proof_lanes.schema.json =="
+python3 tools/validate-json-schema --schema contracts/schema/formal_proof_lanes.schema.json formal/proof-lanes.json
+
+echo "== Proof/refinement scope validates against formal_proof_refinement_scope.schema.json =="
+python3 tools/validate-json-schema --schema contracts/schema/formal_proof_refinement_scope.schema.json docs/formal/proof-refinement-scope.json
+
+echo "== Publish readiness validates against publish_readiness.schema.json =="
+python3 tools/validate-json-schema --schema contracts/schema/publish_readiness.schema.json docs/release/publish-readiness.json
+
+echo "schema-validate-all: OK"

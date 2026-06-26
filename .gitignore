@@ -1,0 +1,50 @@
+# BEGIN devinfra managed ignores
+.agent-state/
+.local/
+.devinfra/logs/
+.devinfra/run/
+.bacon-locations
+target/llvm-cov-target/
+lcov.info
+coverage/
+__pycache__/
+*.pyc
+.claude/hook-runs/
+.codex/hook-runs/
+# END devinfra managed ignores
+
+# BEGIN causlane (Rust) ignores
+/target
+**/*.rs.bk
+.DS_Store
+.env
+*.env
+**/*.env
+**/mc/config.json
+**/*secret*
+**/*credential*
+.idea
+.vscode
+*.log
+# END causlane (Rust) ignores
+
+# BEGIN causlane formal tooling
+/.tools/
+formal/alloy/classes/
+formal/alloy/generated/*.als
+formal/ir/generated/*.json
+formal/kani/generated/*.rs
+formal/lean/.lake/
+formal/lean4/generated/*.lean
+formal/p/generated/*.p
+formal/verus/generated/*.rs
+formal/receipts/*.json
+PCheckerOutput/
+minio/
+objectstore/
+objectstore-data/
+run-cache/
+# END causlane formal tooling
+
+# stray binary emitted by `verus` compiling the generated proof in the repo root
+/release_promote_success

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/common.schema.json",
+  "title": "Causlane shared schema definitions",
+  "$defs": {
+    "active_invariant_id": {
+      "type": "string",
+      "pattern": "^I-00[1-9]$|^I-010$"
+    },
+    "known_invariant_id": {
+      "type": "string",
+      "pattern": "^I-0(0[1-9]|1[0-9]|20)$"
+    }
+  }
+}

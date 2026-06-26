@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+"""Pre-publication review gate for Causlane.
+
+This is intentionally lightweight and dependency-free. It catches the classes of
+publication/refactor regressions surfaced by the 2026-06-25 skeptical review.
+It is not a substitute for Cargo, formal-tool or security checks.
+
+Policy note: this repository deliberately keeps crate-level `#![deny(warnings)]`
+and enforces warnings-as-errors in CI as well (clippy `-D warnings`). The
+upstream review proposed removing those attributes; that recommendation is
+declined here, so this gate does not flag them. See
+`docs/refactor/code-review-finding-resolution-matrix-2026-06-25.md` (row M5).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+from typing import Iterable
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class Finding(dict):
+    def __init__(self, check_id: str, severity: str, path: str, message: str, remediation: str):
+        super().__init__(
+            check_id=check_id,
+            severity=severity,
+            path=path,
+            message=message,
+            remediation=remediation,
+        )
+
+
+def rel(path: Path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def iter_files(base: Path, patterns: Iterable[str]) -> Iterable[Path]:
+    for pattern in patterns:
+        yield from base.glob(pattern)
+
+
+def check_declared_bins(findings: list[Finding]) -> None:
+    for cargo in ROOT.glob("crates/*/Cargo.toml"):
+        text = cargo.read_text()
+        for block in re.split(r"(?m)^\[\[bin\]\]\s*$", text)[1:]:
+            name = re.search(r'(?m)^name\s*=\s*"([^"]+)"', block)
+            path = re.search(r'(?m)^path\s*=\s*"([^"]+)"', block)
+            if path is None:
+                continue
+            source = cargo.parent / path.group(1)
+            if not source.exists():
+                label = name.group(1) if name else path.group(1)
+                findings.append(
+                    Finding(
+                        "PUB-DECLARED-BIN",
+                        "error",
+                        rel(cargo),
+                        f'declared binary "{label}" points to missing file {path.group(1)}',
+                        "add the binary source file or remove the [[bin]] entry",
+                    )
+                )
+
+
+def check_docsrs_metadata(findings: list[Finding]) -> None:
+    for cargo in ROOT.glob("crates/*/Cargo.toml"):
+        text = cargo.read_text()
+        has_features = "[features]" in text
+        has_optional = "optional = true" in text
+        if (has_features or has_optional) and "[package.metadata.docs.rs]" not in text:
+            findings.append(
+                Finding(
+                    "PUB-DOCSRS-METADATA",
+                    "warning",
+                    rel(cargo),
+                    "crate has optional/features surface but no package.metadata.docs.rs",
+                    "add all-features docs.rs metadata or justify a narrower docs surface",
+                )
+            )
+
+
+def check_external_include_str(findings: list[Finding]) -> None:
+    # Flag include_str!/include_bytes! whose target resolves OUTSIDE the crate's
+    # own package directory (such files are absent from the crate's .crate
+    # tarball). In-crate relative includes (e.g. ../fixtures/...) are fine even
+    # when they walk up several directories from a deeply nested source file.
+    regex = re.compile(r'include_(?:str|bytes)!\s*\(\s*"([^"]+)"')
+    for path in iter_files(ROOT / "crates", ["**/*.rs"]):
+        parts = path.relative_to(ROOT).parts
+        if len(parts) < 2 or parts[0] != "crates":
+            continue
+        crate_root = ROOT / parts[0] / parts[1]
+        text = path.read_text(errors="replace")
+        for match in regex.finditer(text):
+            include = match.group(1)
+            if not include.startswith(".."):
+                continue
+            target = Path(os.path.normpath(path.parent / include))
+            try:
+                target.relative_to(crate_root)
+            except ValueError:
+                findings.append(
+                    Finding(
+                        "PUB-EXTERNAL-INCLUDE",
+                        "error",
+                        rel(path),
+                        f"include path {include!r} escapes the crate package ({rel(target)})",
+                        "vendor the file inside the crate or include it explicitly in the crate package",
+                    )
+                )
+                break
+
+
+def check_ci(findings: list[Finding]) -> None:
+    workflows = list((ROOT / ".github" / "workflows").glob("*.yml")) + list(
+        (ROOT / ".github" / "workflows").glob("*.yaml")
+    )
+    if not workflows:
+        findings.append(
+            Finding(
+                "PUB-NO-CI",
+                "error",
+                ".github/workflows",
+                "no CI workflow is present",
+                "add at least a Rust/repository gate workflow before public baseline publication",
+            )
+        )
+
+
+def check_formal_readme_api(findings: list[Finding]) -> None:
+    readme = ROOT / "crates" / "causlane-formal" / "README.md"
+    if not readme.exists():
+        return
+    text = readme.read_text()
+    if "DoctorRequirement" in text or "evaluate_doctor" in text:
+        findings.append(
+            Finding(
+                "PUB-FORMAL-README-API",
+                "error",
+                rel(readme),
+                "causlane-formal README references stale API names",
+                "replace with Requirement/report/report_with_context and clarify crate role",
+            )
+        )
+
+
+def check_install_docs(findings: list[Finding]) -> None:
+    readme = ROOT / "README.md"
+    text = readme.read_text() if readme.exists() else ""
+    if "cargo install causlane-cli" not in text:
+        findings.append(
+            Finding(
+                "PUB-INSTALL-DOCS",
+                "warning",
+                "README.md",
+                "root README does not document cargo install causlane-cli",
+                "add an install section explaining that causlane is the library facade and causlane-cli ships the binary",
+            )
+        )
+
+
+def check_review_matrix(findings: list[Finding]) -> None:
+    matrix = ROOT / "docs" / "refactor" / "code-review-finding-resolution-matrix-2026-06-25.md"
+    if not matrix.exists():
+        findings.append(
+            Finding(
+                "PUB-REVIEW-MATRIX",
+                "error",
+                rel(matrix),
+                "review finding resolution matrix is missing",
+                "add the 2026-06-25 review findings to the refactor plan before publication",
+            )
+        )
+
+
+def check_vendored_fixtures(findings: list[Finding]) -> None:
+    # Vendored test fixtures live under crates/<crate>/fixtures/<rel> and must be
+    # byte-identical to the canonical workspace source at <root>/<rel>. This keeps
+    # published crates self-contained (no workspace-root include_str!) while
+    # preventing the copies from drifting away from the source of truth.
+    for vendored in ROOT.glob("crates/*/fixtures/**/*"):
+        if not vendored.is_file():
+            continue
+        parts = vendored.relative_to(ROOT).parts  # ("crates", <crate>, "fixtures", *rel)
+        canonical_rel = Path(*parts[3:])
+        canonical = ROOT.joinpath(canonical_rel)
+        if not canonical.is_file():
+            findings.append(
+                Finding(
+                    "PUB-VENDORED-FIXTURE-ORPHAN",
+                    "error",
+                    rel(vendored),
+                    f"vendored fixture has no canonical source at {canonical_rel.as_posix()}",
+                    "remove the orphan copy or restore its canonical source",
+                )
+            )
+            continue
+        if vendored.read_bytes() != canonical.read_bytes():
+            findings.append(
+                Finding(
+                    "PUB-VENDORED-FIXTURE-DRIFT",
+                    "error",
+                    rel(vendored),
+                    f"vendored fixture differs from canonical {canonical_rel.as_posix()}",
+                    "re-copy the canonical file so the vendored copy stays byte-identical",
+                )
+            )
+
+
+def check_formal_provenance_policy(findings: list[Finding]) -> None:
+    policy = (
+        ROOT / "docs" / "formal" / "09-formal-evidence-provenance-and-trust-policy.md"
+    )
+    if not policy.exists():
+        findings.append(
+            Finding(
+                "PUB-FORMAL-PROVENANCE-POLICY",
+                "error",
+                rel(policy),
+                "formal-evidence provenance & trust-boundary policy is missing",
+                "document that receipts are unsigned and re-derived by formal-verify-all; "
+                "publication authority is CI re-derivation on the formal-capable host (H5/M6)",
+            )
+        )
+
+
+def run() -> dict:
+    findings: list[Finding] = []
+    check_declared_bins(findings)
+    check_docsrs_metadata(findings)
+    check_external_include_str(findings)
+    check_vendored_fixtures(findings)
+    check_ci(findings)
+    check_formal_readme_api(findings)
+    check_install_docs(findings)
+    check_review_matrix(findings)
+    check_formal_provenance_policy(findings)
+    errors = sum(1 for f in findings if f["severity"] == "error")
+    warnings = sum(1 for f in findings if f["severity"] == "warning")
+    return {
+        "schema_version": 1,
+        "status": "fail" if errors else "pass",
+        "summary": {"errors": errors, "warnings": warnings, "findings": len(findings)},
+        "findings": findings,
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    args = parser.parse_args()
+    result = run()
+    if args.json:
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    else:
+        print(f"pre-publication review gate: {result['status']}")
+        for finding in result["findings"]:
+            print(
+                f"{finding['severity'].upper()} {finding['check_id']} {finding['path']}: {finding['message']}"
+            )
+            print(f"  remediation: {finding['remediation']}")
+    return 0 if result["status"] == "pass" else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

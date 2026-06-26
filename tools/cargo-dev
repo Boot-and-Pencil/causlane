@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+REAL_CARGO="${REAL_CARGO:-$(rustup which cargo 2>/dev/null || command -v cargo)}"
+REAL_RUSTC="${REAL_RUSTC:-$(rustup which rustc 2>/dev/null || command -v rustc)}"
+
+mkdir -p "$ROOT/.agent-state/locks"
+
+case "${1:-}" in
+  clean|update)
+    echo "Direct cargo $1 is disabled for the dev cache class." >&2
+    echo "Use an explicit maintenance workflow instead." >&2
+    exit 2
+    ;;
+  llvm-cov)
+    echo "cargo llvm-cov is disabled for the dev cache class." >&2
+    echo "Use ./tools/cargo-cov or just coverage instead." >&2
+    exit 2
+    ;;
+esac
+
+unset RUSTFLAGS
+unset CARGO_ENCODED_RUSTFLAGS
+unset RUSTDOCFLAGS
+unset CARGO_ENCODED_RUSTDOCFLAGS
+unset CARGO_BUILD_RUSTFLAGS
+unset CARGO_BUILD_RUSTDOCFLAGS
+unset RUSTC_WORKSPACE_WRAPPER
+
+export CARGO_TARGET_DIR="$ROOT/target"
+export CARGO_INCREMENTAL=1
+export CARGO_TERM_PROGRESS_WHEN=never
+export CARGO="$REAL_CARGO"
+export RUSTC="$REAL_RUSTC"
+
+unset RUSTC_WRAPPER
+unset CARGO_BUILD_RUSTC_WRAPPER
+
+LOCK="$ROOT/.agent-state/locks/cargo-dev.lock"
+FOREGROUND="$ROOT/.agent-state/locks/foreground-active"
+LOCK_SKIPPED_EXIT_CODE="${DEVINFRA_LOCK_SKIPPED_EXIT_CODE:-75}"
+exec 9>"$LOCK"
+
+if [[ "${DEVINFRA_BACKGROUND:-0}" == "1" ]]; then
+  if [[ -e "$FOREGROUND" ]]; then
+    echo '{"devinfra_status":"skipped_foreground_active"}' >&2
+    exit "$LOCK_SKIPPED_EXIT_CODE"
+  fi
+  if ! flock -n 9; then
+    echo '{"devinfra_status":"skipped_lock_busy"}' >&2
+    exit "$LOCK_SKIPPED_EXIT_CODE"
+  fi
+  if [[ -e "$FOREGROUND" ]]; then
+    echo '{"devinfra_status":"skipped_foreground_active"}' >&2
+    exit "$LOCK_SKIPPED_EXIT_CODE"
+  fi
+  exec "$REAL_CARGO" "$@"
+else
+  "$ROOT/tools/devctl" background stop --quiet --reason "foreground-cargo-dev" || true
+  touch "$FOREGROUND"
+  trap 'rm -f "$FOREGROUND" "$ROOT/.agent-state/background-stop-request.json"' EXIT
+  flock 9
+  set +e
+  "$REAL_CARGO" "$@"
+  status=$?
+  set -e
+  "$ROOT/tools/devctl" write-snapshot --quiet || true
+  exit "$status"
+fi

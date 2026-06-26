@@ -1,0 +1,62 @@
+scenario_version: 0.1.0
+scenario_id: multi_action_cross_action_barrier_invalid
+# P1-001 part 3 cross-action negative control (P lane only — replay rejects it too).
+# act_x runs a clean, approved barrier; act_y has NO barrier of its own but its
+# execution "rides" act_x's barrier (its capability references x_barrier). Under the
+# action-sharded interleaving, a flat monitor that only asked "was SOME barrier
+# seen" would be fooled in the schedule where act_x's barrier is observed first.
+# The action-keyed NoExecutionBeforeBarrier (and CapabilityBindsToBarrier, keyed by
+# barrier) refute it: act_y has no barrier of its own and the capability's barrier
+# belongs to a different action.
+action_id: act_x
+predicate: release.promote_candidate
+plan_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+expected_replay_result: fail
+expected_error_code: ExecutionWithoutBarrier
+formal_obligations: [I-001]
+events:
+  - event_id: x_admit
+    kind: action.admitted
+    action_id: act_x
+  - event_id: x_plan
+    kind: action.planned
+    action_id: act_x
+    plan_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - event_id: x_dispatch
+    kind: dispatch.logged
+    action_id: act_x
+    plan_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - event_id: x_approved
+    kind: gate.approved
+    action_id: act_x
+    plan_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - event_id: x_barrier
+    kind: execution.barrier_logged
+    action_id: act_x
+    plan_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    impact_set_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    execution_barrier:
+      barrier_id: x_barrier
+      action_id: act_x
+      plan_hash: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      op_indexes: [0]
+      impact_set_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  - event_id: y_admit
+    kind: action.admitted
+    action_id: act_y
+  - event_id: y_plan
+    kind: action.planned
+    action_id: act_y
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  - event_id: y_dispatch
+    kind: dispatch.logged
+    action_id: act_y
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  - event_id: y_execution
+    kind: execution.started
+    action_id: act_y
+    plan_hash: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    execution_capability:
+      capability_id: cap:x_barrier:0
+      op_index: 0
+      barrier_event_id: x_barrier

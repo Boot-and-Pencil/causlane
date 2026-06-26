@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cli-checker/devinfra/checker.schema.json",
+  "type": "object",
+  "required": ["schema_version", "tool", "status", "mode", "cache_class", "cache_key", "snapshot"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "tool": { "type": "object" },
+    "status": { "enum": ["ok", "warnings", "errors", "stale", "skipped", "internal_error"] },
+    "mode": { "enum": ["background", "foreground"] },
+    "cache_class": { "type": "string" },
+    "cache_key": { "type": "object" },
+    "snapshot": { "type": "object" },
+    "diagnostics": { "type": "array" },
+    "cargo_contract": { "type": "object" },
+    "metrics": { "type": "object" }
+  },
+  "additionalProperties": true
+}

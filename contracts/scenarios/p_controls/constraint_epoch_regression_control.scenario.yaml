@@ -1,0 +1,48 @@
+scenario_version: 0.1.0
+scenario_id: constraint_epoch_regression_control
+action_id: act_epoch_a
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: constraint epoch control
+expected_replay_result: fail
+formal_obligations: [I-006, I-007, I-010]
+events:
+  - event_id: evt_lease_epoch_2
+    kind: constraint.lease_granted
+    action_id: act_epoch_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_epoch_2
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+        epoch: 2
+  - event_id: evt_lease_epoch_2_release
+    kind: constraint.lease_released
+    action_id: act_epoch_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_epoch_2
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+        epoch: 2
+  - event_id: evt_lease_epoch_1
+    kind: constraint.lease_granted
+    action_id: act_epoch_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_epoch_1
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive
+        epoch: 1

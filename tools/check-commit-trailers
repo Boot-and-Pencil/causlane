@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Check recent commit trailers for AI attribution policy."""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import sys
+
+
+AI_PATTERNS = re.compile(r"(chatgpt|openai|claude|copilot|gemini|cursor|devin)", re.I)
+
+
+def main() -> int:
+    count = sys.argv[1] if len(sys.argv) > 1 else "50"
+    proc = subprocess.run(
+        ["git", "log", f"-n{count}", "--format=%H%x00%B%x00END"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if proc.returncode != 0:
+        print(proc.stderr, file=sys.stderr)
+        return proc.returncode
+
+    bad = []
+    for chunk in proc.stdout.split("\x00END\n"):
+        if not chunk.strip():
+            continue
+        sha, _, body = chunk.partition("\x00")
+        for line in body.splitlines():
+            if line.lower().startswith("co-authored-by:") and AI_PATTERNS.search(line):
+                bad.append((sha[:12], line))
+
+    if bad:
+        print("AI-looking Co-authored-by trailers found:")
+        for sha, line in bad:
+            print(f"  {sha}: {line}")
+        print("Use Assisted-by: for AI tools instead.")
+        return 1
+
+    print("commit trailer policy: pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+

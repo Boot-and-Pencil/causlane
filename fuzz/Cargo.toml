@@ -1,0 +1,47 @@
+[package]
+name = "causlane-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+causlane-contracts = { path = "../crates/causlane-contracts" }
+causlane-formal = { path = "../crates/causlane-formal" }
+causlane-replay = { path = "../crates/causlane-replay" }
+
+[[bin]]
+name = "requirement_from_tokens"
+path = "fuzz_targets/requirement_from_tokens.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "replay_trace_json"
+path = "fuzz_targets/replay_trace_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "replay_scenario_yaml"
+path = "fuzz_targets/replay_scenario_yaml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "registry_yaml_compile"
+path = "fuzz_targets/registry_yaml_compile.rs"
+test = false
+doc = false
+bench = false
+
+# Detach from the parent workspace on purpose: the fuzz crate needs the nightly
+# toolchain + sanitizer runtime and must NOT be pulled into stable
+# `cargo --workspace` builds/checks. cargo-fuzz drives it directly.
+[workspace]

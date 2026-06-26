@@ -1,0 +1,57 @@
+name: ci
+
+# These jobs mirror the canonical local check sequence (PUBLISHING.md), so that
+# "CI == local": the same commands run on a maintainer's dedicated container and
+# on GitHub. To run them on your own container instead of GitHub-hosted runners,
+# register a self-hosted runner and replace `runs-on: ubuntu-latest` with
+# `runs-on: [self-hosted, linux]`. No paid plan is required: GitHub-hosted
+# runners are free for public repositories and self-hosted runners are free for
+# any repository.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  repository-gates:
+    name: repository gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python gate scripts
+        run: |
+          python3 tools/architecture-lint --json
+          python3 tools/publication-plan-doc-lint --json
+          python3 tools/semantic-naming-scan --json
+          tools/context-pack-scan
+
+  rust:
+    name: rust workspace
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Check
+        run: cargo check --workspace --all-targets --all-features --locked
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+      - name: Test
+        run: cargo test --workspace --all-targets --all-features --locked
+
+  msrv:
+    name: declared MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust 1.82
+        uses: dtolnay/rust-toolchain@1.82.0
+      - uses: Swatinem/rust-cache@v2
+      - name: Check MSRV
+        run: cargo check --workspace --locked

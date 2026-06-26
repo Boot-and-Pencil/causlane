@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Pre-share scanner for context-pack / repomix outputs.
+
+Default mode scans git-visible files in the current checkout. When paths are
+provided, it scans those files/directories directly; use that mode for a
+generated pack or an unpacked pack directory before sharing it.
+"""
+
+from __future__ import annotations
+
+import fnmatch
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+FORBIDDEN_PATHS = [
+    ".agent-state/**",
+    ".local/**",
+    ".devinfra/logs/**",
+    ".devinfra/run/**",
+    "**/mc/config.json",
+    "**/.env",
+    "**/*.env",
+    "**/*secret*",
+    "**/*credential*",
+    "minio/**",
+    "objectstore/**",
+    "objectstore-data/**",
+    "run-cache/**",
+]
+
+ENV_LIKE_RE = re.compile(
+    r"""(?m)^\s*(?:export\s+)?(?P<key>
+        [A-Z0-9_]*(?:SECRET|TOKEN|PASSWORD|CREDENTIAL|PRIVATE_KEY|ACCESS_KEY)[A-Z0-9_]*
+        |MINIO_(?:ROOT_USER|ROOT_PASSWORD|ACCESS_KEY|SECRET_KEY)
+        |AWS_(?:ACCESS_KEY_ID|SECRET_ACCESS_KEY|SESSION_TOKEN)
+    )\s*[:=]\s*['"]?(?P<value>[^'"\s#]{8,})""",
+    re.VERBOSE,
+)
+
+PRIVATE_KEY_RE = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")
+
+
+def rel(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def forbidden_path(path: Path) -> str | None:
+    name = rel(path)
+    lowered = name.lower()
+    for pattern in FORBIDDEN_PATHS:
+        if fnmatch.fnmatch(lowered, pattern.lower()):
+            return pattern
+    return None
+
+
+def git_visible_files() -> list[Path]:
+    try:
+        proc = subprocess.run(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return [
+            path
+            for path in ROOT.rglob("*")
+            if path.is_file() and ".git" not in path.relative_to(ROOT).parts
+        ]
+    return [ROOT / line for line in proc.stdout.splitlines() if line]
+
+
+def explicit_files(args: list[str]) -> list[Path]:
+    files: list[Path] = []
+    for raw in args:
+        path = Path(raw)
+        if path.is_dir():
+            files.extend(child for child in path.rglob("*") if child.is_file())
+        elif path.is_file():
+            files.append(path)
+        else:
+            print(f"context-pack-scan: missing path: {raw}", file=sys.stderr)
+            sys.exit(2)
+    return files
+
+
+def scan_text(path: Path, issues: list[str]) -> None:
+    try:
+        data = path.read_bytes()
+    except OSError as err:
+        issues.append(f"{rel(path)}: unreadable: {err}")
+        return
+    if b"\0" in data:
+        return
+    text = data.decode("utf-8", errors="ignore")
+    if PRIVATE_KEY_RE.search(text):
+        issues.append(f"{rel(path)}: private-key block")
+    for match in ENV_LIKE_RE.finditer(text):
+        key = match.group("key")
+        if key.endswith("_RE"):
+            continue
+        issues.append(f"{rel(path)}: env-like secret material for {key}")
+
+
+def main(argv: list[str]) -> int:
+    files = explicit_files(argv) if argv else git_visible_files()
+    issues: list[str] = []
+    for path in files:
+        pattern = forbidden_path(path)
+        if pattern is not None:
+            issues.append(f"{rel(path)}: forbidden path pattern {pattern}")
+            continue
+        scan_text(path, issues)
+    if issues:
+        print("context-pack-scan: FAILED")
+        for issue in sorted(set(issues)):
+            print(f"  {issue}")
+        return 1
+    print(f"context-pack-scan: OK ({len(files)} file(s) scanned)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

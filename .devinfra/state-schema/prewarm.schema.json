@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cli-checker/devinfra/prewarm.schema.json",
+  "type": "object",
+  "required": ["schema_version", "status", "snapshot", "cache_class", "updated_at"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "status": { "enum": ["running", "ok", "failed", "skipped", "stale"] },
+    "active_stage": { "type": ["string", "null"] },
+    "last_completed_stage": { "type": ["string", "null"] },
+    "cache_class": { "type": "string" },
+    "started_at": { "type": "string" },
+    "updated_at": { "type": "string" },
+    "foreground_active": { "type": "boolean" },
+    "snapshot": { "type": "object" },
+    "commands": { "type": "array" }
+  },
+  "additionalProperties": true
+}

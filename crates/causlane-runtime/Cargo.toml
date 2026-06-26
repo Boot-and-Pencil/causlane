@@ -1,0 +1,77 @@
+[package]
+name = "causlane-runtime"
+description = "Runtime composition shell and adapters for causlane."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+apalis = { version = "0.7.4", default-features = false, optional = true }
+causlane-core = { path = "../causlane-core", version = "0.0.1" }
+opentelemetry = { version = "0.32.0", default-features = false, features = [
+    "logs",
+    "metrics",
+    "trace",
+], optional = true }
+opentelemetry-otlp = { version = "0.32.0", default-features = false, features = [
+    "http-proto",
+    "logs",
+    "metrics",
+    "reqwest-blocking-client",
+    "trace",
+], optional = true }
+opentelemetry_sdk = { version = "0.32.1", default-features = false, features = [
+    "logs",
+    "metrics",
+    "trace",
+], optional = true }
+postgres = { version = "0.19.14", optional = true }
+restate-sdk = { version = "0.10.0", default-features = false, features = [
+    "http-body-util",
+    "rust_crypto",
+], optional = true }
+rusqlite = { version = "0.40.1", default-features = false, features = [
+    "bundled",
+], optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+tokio = { version = "1.52.3", default-features = false, features = [
+    "macros",
+    "rt",
+    "sync",
+    "time",
+], optional = true }
+tower = { version = "0.5", default-features = false, optional = true }
+
+[dev-dependencies]
+opentelemetry_sdk = { version = "0.32.1", default-features = false, features = [
+    "logs",
+    "metrics",
+    "testing",
+    "trace",
+] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = []
+apalis = ["dep:apalis", "dep:tower"]
+otel = [
+    "dep:opentelemetry",
+    "dep:opentelemetry-otlp",
+    "dep:opentelemetry_sdk",
+]
+postgres-audit = ["dep:postgres"]
+restate = ["dep:restate-sdk", "dep:serde"]
+sqlite-audit = ["dep:rusqlite"]
+tokio-runtime = ["dep:tokio"]
+
+[lints]
+workspace = true

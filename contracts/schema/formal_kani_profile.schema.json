@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/formal_kani_profile.schema.json",
+  "title": "Causlane Formal Kani Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "fixture_stem", "package_name", "output_format", "lanes"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "fixture_stem": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "package_name": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "output_format": { "type": "string", "enum": ["terse"] },
+    "lanes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["local_smoke", "fast_ci", "nightly", "manual_deep"],
+      "properties": {
+        "local_smoke": { "$ref": "#/$defs/lane" },
+        "fast_ci": { "$ref": "#/$defs/lane" },
+        "nightly": { "$ref": "#/$defs/lane" },
+        "manual_deep": { "$ref": "#/$defs/lane" }
+      }
+    }
+  },
+  "$defs": {
+    "lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default_unwind"],
+      "properties": {
+        "default_unwind": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

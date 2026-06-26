@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/cli-checker/devinfra/coverage.schema.json",
+  "type": "object",
+  "required": ["schema_version", "status", "cache_class", "snapshot"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "status": { "enum": ["ok", "missing", "stale", "failed"] },
+    "cache_class": { "const": "coverage" },
+    "snapshot": { "type": "object" },
+    "lcov_path": { "type": "string" },
+    "summary": { "type": "object" },
+    "files": { "type": "array" }
+  },
+  "additionalProperties": true
+}

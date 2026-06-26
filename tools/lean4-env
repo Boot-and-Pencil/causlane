@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Run a command with the repo-local Lean/elan toolchain on PATH.
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export ELAN_HOME="$REPO_ROOT/.tools/elan/home"
+export PATH="$ELAN_HOME/bin:$PATH"
+exec "$@"

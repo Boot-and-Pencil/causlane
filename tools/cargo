@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REAL_CARGO="${REAL_CARGO:-$(rustup which cargo 2>/dev/null || command -v cargo)}"
+SUBCOMMAND="${1:-}"
+
+if [[ "${DEVINFRA_ALLOW_DIRECT_CARGO:-0}" == "1" ]]; then
+  exec "$REAL_CARGO" "$@"
+fi
+
+case "$SUBCOMMAND" in
+  build|check|clippy|test|nextest|llvm-cov|clean|update)
+    cat >&2 <<'EOF'
+Direct cargo invocation is disabled in this repository.
+Use:
+  just check
+  just clippy
+  just test-build
+  just test
+  just coverage
+Reason:
+  direct cargo may invalidate shared Rust cache classes.
+EOF
+    exit 2
+    ;;
+esac
+
+exec "$REAL_CARGO" "$@"

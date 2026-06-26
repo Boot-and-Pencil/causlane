@@ -1,0 +1,34 @@
+scenario_version: 0.1.0
+scenario_id: projection_without_anchor_invalid
+action_id: act_promote_123
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: ship it
+expected_replay_result: fail
+expected_error_code: ProjectionWithoutAnchor
+formal_obligations: [I-003, I-008]
+events:
+  - event_id: evt_admitted
+    kind: action.admitted
+    action_id: act_promote_123
+  - event_id: evt_planned
+    kind: action.planned
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_dispatch
+    kind: dispatch.logged
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_projection
+    kind: projection.emitted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b

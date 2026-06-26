@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+args=()
+from_git_range=""
+while (($#)); do
+  case "$1" in
+    --from-git)
+      if [[ -n "$from_git_range" ]]; then
+        echo "tools/formal-discipline-check: --from-git may be provided only once" >&2
+        exit 2
+      fi
+      shift
+      if (($# == 0)); then
+        echo "tools/formal-discipline-check: --from-git requires a range" >&2
+        exit 2
+      fi
+      from_git_range="$1"
+      ;;
+    *)
+      args+=("$1")
+      ;;
+  esac
+  shift
+done
+
+if [[ -n "$from_git_range" ]]; then
+  mkdir -p target/causlane
+  changed_files="target/causlane/formal-discipline.changed-files.txt"
+  git diff --name-only "$from_git_range" > "$changed_files"
+  args+=(--changed-files "$changed_files")
+fi
+
+exec ./tools/cargo-dev run -q -p causlane-cli --bin causlane-formal-discipline -- "${args[@]}"

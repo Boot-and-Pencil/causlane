@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+"""Check product-track status consistency.
+
+The product track has several human-facing projections of the same status
+model. This checker prevents the common drift where roadmap.json moves forward
+but stage or milestone documents still advertise the previous active item.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+TRACK = ROOT / "docs" / "product-track"
+
+
+def first_status(text: str) -> str | None:
+    match = re.search(r"\*\*Status:\*\* `([^`]+)`", text)
+    return match.group(1) if match else None
+
+
+def roadmap_json() -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    data = json.loads((TRACK / "roadmap.json").read_text(encoding="utf-8"))
+    stages: dict[str, str] = {}
+    embedded_milestones: dict[str, str] = {}
+    for stage in data["stages"]:
+        stages[stage["id"]] = stage["status"]
+        for milestone in stage.get("milestones", []):
+            embedded_milestones[milestone["id"]] = milestone["status"]
+    root_milestones = {
+        milestone_id: milestone["status"]
+        for milestone_id, milestone in data.get("milestones", {}).items()
+    }
+    return stages, embedded_milestones, root_milestones
+
+
+def roadmap_yaml() -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    stages: dict[str, str] = {}
+    embedded_milestones: dict[str, str] = {}
+    root_milestones: dict[str, str] = {}
+    mode: str | None = None
+    current_stage: str | None = None
+    current_embedded_milestone: str | None = None
+    current_root_milestone: str | None = None
+
+    for raw_line in (TRACK / "roadmap.yaml").read_text(encoding="utf-8").splitlines():
+        line = raw_line.rstrip()
+        if line == "stages:":
+            mode = "stages"
+            continue
+        if line == "milestones:":
+            mode = "root_milestones"
+            current_stage = None
+            current_embedded_milestone = None
+            continue
+
+        if mode == "stages":
+            stage_match = re.match(r"- id: (S\d+)$", line)
+            if stage_match:
+                current_stage = stage_match.group(1)
+                current_embedded_milestone = None
+                continue
+            milestone_match = re.match(r"  - id: (M\d+\.\d+)$", line)
+            if milestone_match:
+                current_embedded_milestone = milestone_match.group(1)
+                continue
+            stage_status = re.match(r"  status: ([^#]+)$", line)
+            if stage_status and current_stage:
+                stages[current_stage] = stage_status.group(1).strip().strip("'\"")
+                continue
+            milestone_status = re.match(r"    status: ([^#]+)$", line)
+            if milestone_status and current_embedded_milestone:
+                embedded_milestones[current_embedded_milestone] = (
+                    milestone_status.group(1).strip().strip("'\"")
+                )
+                current_embedded_milestone = None
+                continue
+
+        if mode == "root_milestones":
+            root_match = re.match(r"  (M\d+\.\d+):$", line)
+            if root_match:
+                current_root_milestone = root_match.group(1)
+                continue
+            root_status = re.match(r"    status: ([^#]+)$", line)
+            if root_status and current_root_milestone:
+                root_milestones[current_root_milestone] = (
+                    root_status.group(1).strip().strip("'\"")
+                )
+                current_root_milestone = None
+                continue
+
+    return stages, embedded_milestones, root_milestones
+
+
+def product_map() -> tuple[dict[str, str], dict[str, str]]:
+    stages: dict[str, str] = {}
+    milestones: dict[str, str] = {}
+    current_stage: str | None = None
+    for line in (TRACK / "01-product-track-map.md").read_text(encoding="utf-8").splitlines():
+        stage_match = re.match(r"## (S\d+) ", line)
+        if stage_match:
+            current_stage = stage_match.group(1)
+            continue
+        stage_status = re.match(r"\*\*Status:\*\* `([^`]+)`", line)
+        if stage_status and current_stage:
+            stages[current_stage] = stage_status.group(1)
+            current_stage = None
+            continue
+        milestone_match = re.match(r"- `(M\d+\.\d+)` .* \(`([^`]+)`\):", line)
+        if milestone_match:
+            milestones[milestone_match.group(1)] = milestone_match.group(2)
+    return stages, milestones
+
+
+def catalog() -> dict[str, str]:
+    statuses: dict[str, str] = {}
+    current: str | None = None
+    for line in (TRACK / "02-milestone-catalog.md").read_text(encoding="utf-8").splitlines():
+        milestone_match = re.match(r"## (M\d+\.\d+) ", line)
+        if milestone_match:
+            current = milestone_match.group(1)
+            continue
+        status_match = re.match(r"- \*\*Status:\*\* `([^`]+)`", line)
+        if status_match and current:
+            statuses[current] = status_match.group(1)
+            current = None
+    return statuses
+
+
+def stage_files() -> tuple[dict[str, str], dict[str, str]]:
+    stages: dict[str, str] = {}
+    milestones: dict[str, str] = {}
+    for path in sorted((TRACK / "stages").glob("s*.md")):
+        text = path.read_text(encoding="utf-8")
+        heading = re.search(r"^# (S\d+) ", text, re.M)
+        if not heading:
+            continue
+        stage_id = heading.group(1)
+        status = first_status(text)
+        if status:
+            stages[stage_id] = status
+
+        current: str | None = None
+        for line in text.splitlines():
+            milestone_match = re.match(r"### (M\d+\.\d+) ", line)
+            if milestone_match:
+                current = milestone_match.group(1)
+                continue
+            status_match = re.match(r"- \*\*Status:\*\* `([^`]+)`", line)
+            if status_match and current:
+                milestones[current] = status_match.group(1)
+                current = None
+    return stages, milestones
+
+
+def milestone_files() -> dict[str, str]:
+    statuses: dict[str, str] = {}
+    for path in sorted((TRACK / "milestones").glob("m*.md")):
+        text = path.read_text(encoding="utf-8")
+        heading = re.search(r"^# (M\d+\.\d+) ", text, re.M)
+        status = first_status(text)
+        if heading and status:
+            statuses[heading.group(1)] = status
+    return statuses
+
+
+def compare(
+    errors: list[str],
+    expected: dict[str, str],
+    actual: dict[str, str],
+    label: str,
+) -> None:
+    for item_id in sorted(expected):
+        if item_id not in actual:
+            errors.append(f"{label}: missing {item_id}")
+        elif actual[item_id] != expected[item_id]:
+            errors.append(
+                f"{label}: {item_id} expected {expected[item_id]!r}, got {actual[item_id]!r}"
+            )
+
+
+def main() -> int:
+    errors: list[str] = []
+
+    json_stages, json_embedded_milestones, json_root_milestones = roadmap_json()
+    if json_embedded_milestones != json_root_milestones:
+        compare(
+            errors,
+            json_embedded_milestones,
+            json_root_milestones,
+            "roadmap.json root milestones",
+        )
+
+    yaml_stages, yaml_embedded_milestones, yaml_root_milestones = roadmap_yaml()
+    compare(errors, json_stages, yaml_stages, "roadmap.yaml stages")
+    compare(
+        errors,
+        json_embedded_milestones,
+        yaml_embedded_milestones,
+        "roadmap.yaml embedded milestones",
+    )
+    compare(
+        errors,
+        json_root_milestones,
+        yaml_root_milestones,
+        "roadmap.yaml root milestones",
+    )
+
+    map_stages, map_milestones = product_map()
+    compare(errors, json_stages, map_stages, "01-product-track-map stages")
+    compare(errors, json_embedded_milestones, map_milestones, "01-product-track-map milestones")
+
+    compare(errors, json_embedded_milestones, catalog(), "02-milestone-catalog")
+
+    file_stages, file_milestones = stage_files()
+    compare(errors, json_stages, file_stages, "stage files")
+    compare(errors, json_embedded_milestones, file_milestones, "stage file milestones")
+    compare(errors, json_embedded_milestones, milestone_files(), "milestone files")
+
+    if errors:
+        print("product-track-status-check: FAILED", file=sys.stderr)
+        for error in errors:
+            print(f"  {error}", file=sys.stderr)
+        return 1
+
+    print("product-track-status-check: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

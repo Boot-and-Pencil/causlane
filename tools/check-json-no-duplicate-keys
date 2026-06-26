@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Fail if any given JSON file contains duplicate object keys.
+
+JSON parsers silently keep the last value for a duplicated key, so a schema with
+two `$defs.witness` definitions (the P0-004 defect) parses cleanly while meaning
+something different from what a reader sees. This guards that class of bug across
+every contract schema, at any nesting depth.
+"""
+from __future__ import annotations
+
+import json
+import sys
+
+
+def find_duplicates(path: str) -> list[str]:
+    """Return the keys that appear more than once in any object in ``path``."""
+    duplicates: list[str] = []
+
+    def hook(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        seen: set[str] = set()
+        for key, _ in pairs:
+            if key in seen:
+                duplicates.append(key)
+            seen.add(key)
+        return dict(pairs)
+
+    with open(path, encoding="utf-8") as handle:
+        json.load(handle, object_pairs_hook=hook)
+    return duplicates
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 2:
+        print("usage: check-json-no-duplicate-keys <file.json>...", file=sys.stderr)
+        return 2
+    failed = False
+    for path in argv[1:]:
+        try:
+            duplicates = find_duplicates(path)
+        except (OSError, json.JSONDecodeError) as err:
+            print(f"FAIL {path}: {err}", file=sys.stderr)
+            failed = True
+            continue
+        if duplicates:
+            failed = True
+            for key in duplicates:
+                print(f"FAIL {path}: duplicate key '{key}'", file=sys.stderr)
+        else:
+            print(f"  ok: {path} (no duplicate keys)")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

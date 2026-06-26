@@ -1,0 +1,86 @@
+scenario_version: 0.1.0
+scenario_id: retry_duplicate_execution_control
+action_id: act_retry_a
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: retry duplicate control
+expected_replay_result: fail
+formal_obligations: [I-001, I-008]
+events:
+  - event_id: evt_a_admitted
+    kind: action.admitted
+    action_id: act_retry_a
+  - event_id: evt_a_planned
+    kind: action.planned
+    action_id: act_retry_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_a_dispatch
+    kind: dispatch.logged
+    action_id: act_retry_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_a_gate
+    kind: gate.approved
+    action_id: act_retry_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_a_barrier
+    kind: execution.barrier_logged
+    action_id: act_retry_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+    execution_barrier:
+      barrier_id: evt_a_barrier
+      action_id: act_retry_a
+      plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+      op_indexes: [0]
+      impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+  - event_id: evt_a_execution
+    kind: execution.started
+    action_id: act_retry_a
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    execution_capability:
+      capability_id: cap:evt_a_barrier:0
+      op_index: 0
+      barrier_event_id: evt_a_barrier
+  - event_id: evt_b_admitted
+    kind: action.admitted
+    action_id: act_retry_b
+  - event_id: evt_b_planned
+    kind: action.planned
+    action_id: act_retry_b
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_b_dispatch
+    kind: dispatch.logged
+    action_id: act_retry_b
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_b_gate
+    kind: gate.approved
+    action_id: act_retry_b
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+  - event_id: evt_b_barrier
+    kind: execution.barrier_logged
+    action_id: act_retry_b
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+    execution_barrier:
+      barrier_id: evt_b_barrier
+      action_id: act_retry_b
+      plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+      op_indexes: [0]
+      impact_set_hash: sha256:3148f111980508df7fb1acdeab78576ae1c2852f7ec9ac91f629f3f8701faf7f
+  - event_id: evt_b_execution
+    kind: execution.started
+    action_id: act_retry_b
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    execution_capability:
+      capability_id: cap:evt_b_barrier:0
+      op_index: 0
+      barrier_event_id: evt_b_barrier

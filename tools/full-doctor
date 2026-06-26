@@ -1,0 +1,513 @@
+#!/usr/bin/env python3
+"""Full toolchain doctor for causlane (spec section 9.16 / 11.4).
+
+A fast tool-presence/version gate covering the whole install surface:
+base OS tools, Rust + cargo tools, devinfra tools, Node/npm, and the formal
+contour. Formal-tool checks are delegated to tools/formal-doctor so the two
+doctors agree on versions/SHAs; everything else is probed here.
+
+Source of truth for expected versions is .devinfra/tool-versions.json.
+
+Usage:
+  tools/full-doctor [--json] [--profile base|dev|formal|ci|proof|all]
+                    [--require-optional] [--with-gates]
+
+Profiles (required-tool sets grow left to right):
+  base   OS basics + jq + python3 (NO Rust required)
+  dev    base + Rust toolchain + cargo tools + devinfra
+         (cli-checker/process-compose/semgrep) + node/npm
+  formal dev + Java/javac/dotnet + formal tools (alloy/z3/p/kani/verus)
+  ci     dev + formal smoke (agent CLIs never required)
+  proof  formal + Verus + Rust 1.95.0 (for Verus) + Z3 + Lean4
+  all    everything; agent CLIs become checked-but-optional
+
+Exit code: 0 if every REQUIRED tool for the profile passes, else 1.
+Optional tools that are missing produce a "warn", never a failure, unless
+--require-optional is passed (then drifted/missing optionals become failures).
+
+This is a presence/version gate ONLY. It does NOT run the heavy repo gates
+(rust-full-check / formal-verify-all) unless --with-gates is given.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+CONFIG = REPO / ".devinfra" / "tool-versions.json"
+FORMAL_DOCTOR = REPO / "tools" / "formal-doctor"
+VERSION_RE = re.compile(r"(\d+\.\d+\.\d+[\w.+-]*)")
+
+
+def load_config() -> dict:
+    try:
+        return json.loads(CONFIG.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def dig(data, *keys):
+    cur = data
+    for key in keys:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(key)
+    return cur
+
+
+def run_version(binary: str, args):
+    """Return (path, version_string) for a binary on PATH, or (None, None).
+
+    Runs with cwd=REPO so rustup's rust-toolchain.toml override resolves the
+    pinned channel rather than the global default.
+    """
+    path = shutil.which(binary)
+    if path is None:
+        return None, None
+    try:
+        proc = subprocess.run(
+            [path, *args],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+            cwd=REPO,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return path, ""
+    text = proc.stdout.strip() or proc.stderr.strip()
+    if not text:
+        return path, ""
+    match = VERSION_RE.search(text)
+    if match:
+        return path, match.group(1)
+    return path, text.splitlines()[0]
+
+
+def index_by_binary(entries):
+    out = {}
+    for entry in entries or []:
+        out[entry.get("binary")] = entry
+    return out
+
+
+def _const(value):
+    return lambda: value
+
+
+def build_registry(cfg: dict) -> list:
+    cargo_idx = index_by_binary(dig(cfg, "tools", "cargo_tools"))
+    py_idx = index_by_binary(dig(cfg, "tools", "python_tools"))
+    agent_idx = index_by_binary(dig(cfg, "tools", "agent_clis"))
+
+    def cargo_ver(binary):
+        return (cargo_idx.get(binary) or {}).get("version")
+
+    reg = []
+
+    # base OS tools (no version pin tracked). Most accept --version; unzip
+    # uses -v (its --version trips a Debian getopt caution to stderr).
+    base_version_args = {"unzip": ["-v"]}
+    for name in ["bash", "git", "curl", "unzip", "zip", "tar", "gzip",
+                 "jq", "python3"]:
+        reg.append({
+            "name": name, "binary": name, "family": "base",
+            "version_args": base_version_args.get(name, ["--version"]),
+            "expected_fn": _const(None),
+            "hint": f"install {name} via your OS package manager",
+        })
+
+    # rust toolchain ------------------------------------------------------
+    rust_ver = dig(cfg, "tools", "rust", "version")
+    reg.append({"name": "rustup", "binary": "rustup", "family": "rust",
+                "expected_fn": _const(None),
+                "hint": "install Rust: https://rustup.rs"})
+    reg.append({"name": "rustc", "binary": "rustc", "family": "rust",
+                "expected_fn": _const(rust_ver),
+                "hint": "install Rust toolchain (rust-toolchain.toml channel=stable; "
+                        "tool-versions.json records the OBSERVED resolved version)"})
+    reg.append({"name": "cargo", "binary": "cargo", "family": "rust",
+                "expected_fn": _const(rust_ver),
+                "hint": "install Rust: https://rustup.rs"})
+    reg.append({"name": "rustfmt", "binary": "cargo",
+                "version_args": ["fmt", "--version"], "family": "rust",
+                "expected_fn": _const(None),
+                "hint": "rustup component add rustfmt"})
+    reg.append({"name": "clippy", "binary": "cargo",
+                "version_args": ["clippy", "--version"], "family": "rust",
+                "expected_fn": _const(None),
+                "hint": "rustup component add clippy"})
+
+    # cargo tools ---------------------------------------------------------
+    reg.append({"name": "just", "binary": "just", "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("just")),
+                "hint": "cargo install --locked just"})
+    reg.append({"name": "bacon", "binary": "bacon", "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("bacon")),
+                "hint": "cargo install --locked bacon"})
+    reg.append({"name": "bacon-ls", "binary": "bacon-ls", "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("bacon-ls")),
+                "hint": "cargo install --locked bacon-ls"})
+    reg.append({"name": "cargo-nextest", "binary": "cargo",
+                "version_args": ["nextest", "--version"], "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("cargo-nextest")),
+                "hint": "cargo install --locked cargo-nextest"})
+    reg.append({"name": "cargo-llvm-cov", "binary": "cargo",
+                "version_args": ["llvm-cov", "--version"], "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("cargo-llvm-cov")),
+                "hint": "cargo install --locked cargo-llvm-cov"})
+    reg.append({"name": "cargo-deny", "binary": "cargo",
+                "version_args": ["deny", "--version"], "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("cargo-deny")),
+                "hint": "cargo install --locked cargo-deny"})
+    reg.append({"name": "watchexec", "binary": "watchexec", "family": "cargo_tools",
+                "expected_fn": _const(cargo_ver("watchexec")),
+                "hint": "cargo install --locked watchexec-cli"})
+
+    # devinfra ------------------------------------------------------------
+    reg.append({"name": "cli-checker", "binary": "cli-checker",
+                "version_args": ["version"], "family": "devinfra",
+                "expected_fn": _const(dig(cfg, "tools", "cli_checker", "version")),
+                "hint": ("manual install required: archive_url/archive_sha256 "
+                         "are empty in tool-versions.json (P0); install "
+                         "cli-checker out of band, then re-run")})
+    reg.append({"name": "process-compose", "binary": "process-compose",
+                "version_args": ["version"], "family": "devinfra",
+                "expected_fn": _const(dig(cfg, "tools", "process_compose", "version")),
+                "hint": "tools/bootstrap-full --profile dev (downloads + sha-verifies)"})
+    reg.append({"name": "semgrep", "binary": "semgrep", "family": "devinfra",
+                "expected_fn": _const((py_idx.get("semgrep") or {}).get("version")),
+                "hint": "pipx install semgrep==<pinned>"})
+
+    # node/npm ------------------------------------------------------------
+    reg.append({"name": "node", "binary": "node", "family": "node",
+                "expected_fn": _const(None),
+                "hint": "install Node (nvm/fnm/volta/mise)"})
+    reg.append({"name": "npm", "binary": "npm", "family": "node",
+                "expected_fn": _const(dig(cfg, "tools", "npm", "version")),
+                "hint": "npm install -g npm@<pinned>"})
+
+    # optional agent CLIs (never required) — driven entirely by config so the
+    # tool names are never hardcoded here. Each entry contributes one probe
+    # keyed on its binary/package/version from tool-versions.json.
+    for binary, entry in sorted(agent_idx.items()):
+        if not binary:
+            continue
+        pkg = entry.get("package") or binary
+        reg.append({
+            "name": binary, "binary": binary, "family": "agent_clis",
+            "expected_fn": _const(entry.get("version")),
+            "hint": f"npm install -g {pkg}@<pinned> (optional)",
+        })
+
+    return reg
+
+
+# Which families count as REQUIRED for each profile.
+PROFILE_FAMILIES = {
+    "base":   ["base"],
+    "dev":    ["base", "rust", "cargo_tools", "devinfra", "node"],
+    "formal": ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+    "ci":     ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+    "proof":  ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+    "all":    ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+}
+
+# Families that are probed/reported for a profile (superset of required);
+# anything probed-but-not-required becomes optional => warn when missing.
+PROFILE_PROBED = {
+    "base":   ["base", "rust", "cargo_tools", "devinfra", "node"],
+    "dev":    ["base", "rust", "cargo_tools", "devinfra", "node"],
+    "formal": ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+    "ci":     ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+    "proof":  ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base"],
+    "all":    ["base", "rust", "cargo_tools", "devinfra", "node", "formal_base",
+               "agent_clis"],
+}
+
+# Java/javac/dotnet ride with the formal-capable profiles as "formal_base".
+FORMAL_DELEGATE = {
+    "base":   None,
+    "dev":    None,
+    "formal": "all",
+    "ci":     "all",
+    "proof":  "all",
+    "all":    "all",
+}
+
+FORMAL_TOOL_NAMES = ["alloy", "z3", "p", "cargo-kani", "verus", "elan", "lean", "lake"]
+
+
+def add_formal_base(reg: list) -> None:
+    reg.append({"name": "java", "binary": "java", "version_args": ["-version"],
+                "family": "formal_base", "expected_fn": _const(None),
+                "hint": "install Java >= 17 (Temurin/OpenJDK)"})
+    reg.append({"name": "javac", "binary": "javac", "version_args": ["-version"],
+                "family": "formal_base", "expected_fn": _const(None),
+                "hint": "install a JDK (javac) for the Alloy runner"})
+    reg.append({"name": "dotnet", "binary": "dotnet", "family": "formal_base",
+                "expected_fn": _const(None),
+                "hint": "install dotnet SDK 8 for P"})
+
+
+def evaluate_tool(spec: dict, required: bool) -> dict:
+    expected = spec["expected_fn"]()
+    args = spec.get("version_args", ["--version"])
+    path, actual = run_version(spec["binary"], args)
+    found = path is not None
+    if not found:
+        status = "fail" if required else "warn"
+    elif expected and actual and expected not in actual:
+        status = "warn"  # version drift is never a hard fail by itself
+    else:
+        status = "pass"
+    return {
+        "name": spec["name"],
+        "required": bool(required),
+        "expected_version": expected,
+        "actual_version": actual if found else None,
+        "path": path,
+        "status": status,
+        "hint": spec.get("hint"),
+    }
+
+
+def normalize_formal_status(state: str, found: bool) -> str:
+    if state in ("ok", "disabled"):
+        return "pass"
+    if state == "missing":
+        return "fail"
+    if state in ("version_mismatch", "sha_mismatch"):
+        return "warn"
+    return "warn" if found else "fail"
+
+
+def run_formal_doctor(profile):
+    if profile is None:
+        return None
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(FORMAL_DOCTOR), "--json",
+             "--profile", profile, "--lane", "local_smoke"],
+            capture_output=True, text=True, timeout=120, check=False, cwd=REPO,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if not proc.stdout.strip():
+        return None
+    try:
+        return json.loads(proc.stdout)
+    except ValueError:
+        return None
+
+
+def formal_tool_required(name: str, profile: str) -> bool:
+    if name in ("elan", "lean", "lake"):
+        return profile in ("proof", "all")
+    if profile in ("formal", "ci", "proof", "all"):
+        return name in FORMAL_TOOL_NAMES
+    return False
+
+
+def formal_tool_path(name: str):
+    if name in ("elan", "lean", "lake"):
+        path = REPO / ".tools" / "elan" / "home" / "bin" / name
+        return str(path) if path.is_file() else None
+    probe = "java" if name == "alloy" else name
+    return shutil.which(probe)
+
+
+def verus_rust_toolchain_check(cfg: dict, profile: str):
+    """proof profile insists on a Rust 1.95.0 toolchain for Verus; all warns."""
+    want = dig(cfg, "tools", "formal_tools", "verus", "requires_rust_toolchain")
+    if not want:
+        return None
+    required = profile == "proof"
+    rustup = shutil.which("rustup")
+    actual = None
+    path = None
+    status = "fail" if required else "warn"
+    if rustup:
+        try:
+            proc = subprocess.run(
+                [rustup, "toolchain", "list"],
+                capture_output=True, text=True, timeout=30, check=False, cwd=REPO,
+            )
+            installed = proc.stdout
+        except (OSError, subprocess.SubprocessError):
+            installed = ""
+        if any(line.strip().startswith(want) for line in installed.splitlines()):
+            actual, path, status = want, rustup, "pass"
+    return {
+        "name": f"rust-{want}",
+        "required": required,
+        "expected_version": want,
+        "actual_version": actual,
+        "path": path,
+        "status": status,
+        "hint": f"rustup toolchain install {want} (needed by Verus)",
+    }
+
+
+def run_gates(status: str):
+    gates = []
+    gate_specs = [
+        ("rust-full-check", ["just", "rust-full-check"]),
+        ("formal-verify-all", ["just", "formal-verify-all"]),
+    ]
+    for gname, cmd in gate_specs:
+        exe = shutil.which(cmd[0])
+        if exe is None:
+            gates.append({"name": gname, "status": "skipped",
+                          "reason": f"{cmd[0]} not on PATH"})
+            continue
+        try:
+            proc = subprocess.run(cmd, cwd=REPO, check=False, timeout=3600)
+            ok = proc.returncode == 0
+            gates.append({"name": gname, "status": "pass" if ok else "fail"})
+            if not ok:
+                status = "fail"
+        except (OSError, subprocess.SubprocessError) as exc:
+            gates.append({"name": gname, "status": "error", "reason": str(exc)})
+            status = "fail"
+    return gates, status
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="causlane full toolchain doctor")
+    parser.add_argument("--json", action="store_true", help="emit JSON")
+    parser.add_argument(
+        "--profile",
+        choices=["base", "dev", "formal", "ci", "proof", "all"],
+        default="all",
+    )
+    parser.add_argument(
+        "--require-optional", action="store_true",
+        help="treat optional tools (drifted versions / missing optionals) as required",
+    )
+    parser.add_argument(
+        "--with-gates", action="store_true",
+        help="ALSO run heavy repo gates (rust-full-check/formal-verify-all); "
+             "off by default — doctor-full is a fast presence gate",
+    )
+    args = parser.parse_args()
+
+    cfg = load_config()
+    profile = args.profile
+    required_families = set(PROFILE_FAMILIES.get(profile, []))
+    probed_families = set(PROFILE_PROBED.get(profile, []))
+
+    reg = build_registry(cfg)
+    if "formal_base" in probed_families:
+        add_formal_base(reg)
+
+    tools: list = []
+    remediation: list = []
+
+    for spec in reg:
+        fam = spec["family"]
+        if fam not in probed_families:
+            continue
+        # agent CLIs are NEVER required (policy), even under --require-optional.
+        is_required = fam in required_families and fam != "agent_clis"
+        report = evaluate_tool(spec, is_required)
+        # --require-optional promotes drifted/missing optionals (except agent
+        # CLIs) to required failures.
+        if (args.require_optional and not is_required and fam != "agent_clis"
+                and report["status"] == "warn"):
+            report["required"] = True
+            if report["actual_version"] is None:
+                report["status"] = "fail"
+        tools.append(report)
+
+    # Delegate formal-tool checks to formal-doctor and fold them in.
+    fd_profile = FORMAL_DELEGATE.get(profile)
+    if fd_profile:
+        fd = run_formal_doctor(fd_profile)
+        if fd is None:
+            remediation.append(
+                "could not run tools/formal-doctor; formal tool checks skipped"
+            )
+        else:
+            fd_tools = fd.get("tools", {})
+            for name in FORMAL_TOOL_NAMES:
+                entry = fd_tools.get(name)
+                req = formal_tool_required(name, profile)
+                if entry is None:
+                    tools.append({
+                        "name": name, "required": req,
+                        "expected_version": None, "actual_version": None,
+                        "path": None,
+                        "status": "fail" if req else "warn",
+                        "hint": f"run: tools/formal-install {name}",
+                    })
+                    continue
+                status = normalize_formal_status(entry.get("status", ""),
+                                                 entry.get("found", False))
+                tools.append({
+                    "name": name, "required": req,
+                    "expected_version": entry.get("expected_version"),
+                    "actual_version": entry.get("actual_version"),
+                    "path": formal_tool_path(name),
+                    "status": status,
+                    "hint": entry.get("hint"),
+                })
+            vt = verus_rust_toolchain_check(cfg, profile)
+            if vt is not None:
+                tools.append(vt)
+
+    # A required tool fails the gate only when it is ABSENT (status "fail").
+    # A required tool that is merely version-drifted ("warn", but present) is
+    # surfaced as a warning and does not hard-fail the presence gate.
+    overall_ok = all(t["status"] != "fail" for t in tools if t["required"])
+    status = "pass" if overall_ok else "fail"
+
+    for t in tools:
+        if t["status"] != "pass" and t.get("hint"):
+            tag = "REQUIRED" if t["required"] else "optional"
+            remediation.append(f"[{tag}] {t['name']}: {t['hint']}")
+
+    gates = []
+    if args.with_gates:
+        gates, status = run_gates(status)
+
+    result = {
+        "schema_version": 1,
+        "profile": profile,
+        "status": status,
+        "tools": tools,
+        "remediation": remediation,
+    }
+    if args.with_gates:
+        result["gates"] = gates
+
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=False))
+    else:
+        print(f"full-doctor: {status}  profile={profile}")
+        for t in tools:
+            mark = {"pass": "ok  ", "warn": "WARN", "fail": "FAIL"}.get(
+                t["status"], t["status"])
+            req = " (required)" if t["required"] else ""
+            ver = t["actual_version"] or "-"
+            line = f"  {mark} {t['name']:<16}{req}  {ver}"
+            if t["status"] != "pass" and t.get("hint"):
+                line += f"   -> {t['hint']}"
+            print(line)
+        for g in gates:
+            print(f"  gate {g['name']}: {g['status']}")
+        if remediation:
+            print("remediation:")
+            for r in remediation:
+                print(f"  - {r}")
+
+    return 0 if status == "pass" else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

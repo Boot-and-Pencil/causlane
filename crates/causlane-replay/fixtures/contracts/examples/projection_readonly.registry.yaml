@@ -1,0 +1,89 @@
+bundle_id: causlane.demo.projection_readonly
+registry_version: 0.0.0
+# Two-predicate fixture for the M04.1 "projection" and "read-only sidecar" golden
+# scenarios. A RuntimeExecution PRODUCER commits observed truth; a ProjectionRead
+# READER projects that truth (anchored) without executing or committing anything.
+# The reader resolves to its own ProjectionRead profile via the scenario's
+# per-action `actions` roster, so the mixed-predicate trace replay-validates.
+predicates:
+  - id: release.promote_candidate
+    version: 1
+    consequence_profile: RuntimeExecution
+    subject_schema_ref: schemas/release_promote_subject.schema.json
+    circumstance_schema_ref: schemas/release_promote_circumstance.schema.json
+    lifecycle_class: execution_bearing
+    route_id: route.runtime_execution
+    route_derivation: consequence_profile
+    barrier_policy: strict_write_ahead
+    projection_policy: anchored
+    authz_policy:
+      mode: disabled_for_local_dev
+      allowed_in_profiles: [RuntimeExecution]
+      rationale: demo fixture without real PDP
+    truth_commit_policy: allowed
+    schema_hashes:
+      subject: sha256:ea2c8af26bc27ef69a62d1ce9f4b144335fe82e98240cfad8594e357f193900d
+      circumstance: sha256:a55a9965b12284ca1c2692025e67deb311b965167cfe41d696eddd70e32339eb
+    constraint_policy:
+      claim_coverage: required
+      lease_conflicts: required
+    formal_obligations:
+      - I-001
+      - I-002
+      - I-003
+      - I-006
+      - I-008
+    required_witnesses:
+      - id: readiness_before_promotion
+        target_stage: execution_barrier_logged
+        selector:
+          event_kind: gate.approved
+          predicate: readiness.check
+          fact_kind: readiness_ok
+          scope_expr: release_candidate:${subject.release_candidate_id}
+    claims:
+      - resource: environment_write
+        scope_expr: environment:${subject.target_environment}
+        mode: exclusive
+      - resource: release_candidate_write
+        scope_expr: release_candidate:${subject.release_candidate_id}
+        mode: exclusive
+    effect_templates:
+      - op_kind: promote_release
+        reads:
+          - release_candidate:${subject.release_candidate_id}
+        writes:
+          - environment:${subject.target_environment}
+        produces:
+          - release.promoted
+        requires:
+          - release.readiness_ok
+        conflict_domains:
+          - environment:${subject.target_environment}
+          - release_candidate:${subject.release_candidate_id}
+        hardness: hard
+        idempotency_domain: release_promote:${subject.release_candidate_id}:${subject.target_environment}
+  - id: projection.read_release
+    version: 1
+    consequence_profile: ProjectionRead
+    subject_schema_ref: schemas/release_promote_subject.schema.json
+    circumstance_schema_ref: schemas/release_promote_circumstance.schema.json
+    lifecycle_class: projection_only
+    route_id: route.projection_read
+    route_derivation: consequence_profile
+    barrier_policy: none
+    projection_policy: anchored
+    authz_policy:
+      mode: disabled_for_local_dev
+      allowed_in_profiles: [ProjectionRead]
+      rationale: read-only projection sidecar fixture without real PDP
+    truth_commit_policy: disallowed
+    schema_hashes:
+      subject: sha256:ea2c8af26bc27ef69a62d1ce9f4b144335fe82e98240cfad8594e357f193900d
+      circumstance: sha256:a55a9965b12284ca1c2692025e67deb311b965167cfe41d696eddd70e32339eb
+    constraint_policy:
+      claim_coverage: disabled
+      lease_conflicts: disabled
+    formal_obligations:
+      - I-003
+      - I-008

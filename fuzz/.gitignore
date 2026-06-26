@@ -1,0 +1,10 @@
+target/
+artifacts/
+coverage/
+
+# Keep generated corpus growth local, but track curated seed entries.
+corpus/*
+!corpus/*/
+corpus/*/*
+!corpus/*/minimal.*
+!corpus/*/numeric_extremes.*

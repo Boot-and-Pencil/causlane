@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Provision formal-toolchain artifacts into .tools/ (T-002), driven by
+# .devinfra/tool-versions.json. Downloads are SHA-verified against the pinned
+# value. Binary artifacts live under .tools/ (git-ignored) and are never
+# committed. System tools (z3) and toolchain tools (p/kani) are best-effort and
+# depend on brew/dotnet/cargo being present.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+CONFIG=".devinfra/tool-versions.json"
+
+cfg() { jq -r "$1 // empty" "$CONFIG" 2>/dev/null; }
+
+verify_sha() {
+  local file="$1" expected="$2"
+  if [ -z "$expected" ]; then
+    echo "  (no pinned sha256 in $CONFIG; skipping verification)"
+    return 0
+  fi
+  local got
+  got="$(sha256sum "$file" | cut -d' ' -f1)"
+  if [ "$got" = "$expected" ]; then
+    echo "  sha256 OK ($got)"
+  else
+    echo "  sha256 MISMATCH: got $got, expected $expected" >&2
+    return 1
+  fi
+}
+
+install_alloy() {
+  local url sha
+  url="$(cfg '.tools.formal_tools.alloy.jar_url')"
+  sha="$(cfg '.tools.formal_tools.alloy.jar_sha256')"
+  [ -n "$url" ] || { echo "alloy: jar_url not set in $CONFIG" >&2; return 1; }
+  mkdir -p .tools/alloy
+  echo "alloy: downloading $url"
+  curl -fsSL "$url" -o .tools/alloy/alloy.jar
+  verify_sha .tools/alloy/alloy.jar "$sha"
+  echo "alloy: installed .tools/alloy/alloy.jar"
+}
+
+install_verus() {
+  local url sha
+  url="$(cfg '.tools.formal_tools.verus.archive_url')"
+  sha="$(cfg '.tools.formal_tools.verus.archive_sha256')"
+  [ -n "$url" ] || { echo "verus: archive_url not set in $CONFIG" >&2; return 1; }
+  mkdir -p .tools
+  echo "verus: downloading $url"
+  curl -fsSL "$url" -o .tools/verus.zip
+  verify_sha .tools/verus.zip "$sha"
+  rm -rf .tools/verus_dist && mkdir -p .tools/verus_dist
+  unzip -oq .tools/verus.zip -d .tools/verus_dist
+  echo "verus: extracted to .tools/verus_dist (needs Rust $(cfg '.tools.formal_tools.verus.requires_rust_toolchain') toolchain to run)"
+}
+
+install_lean4() {
+  local url sha toolchain
+  url="$(cfg '.tools.formal_tools.lean4.elan_asset_url')"
+  sha="$(cfg '.tools.formal_tools.lean4.elan_asset_sha256')"
+  toolchain="$(cfg '.tools.formal_tools.lean4.toolchain')"
+  [ -n "$url" ] || { echo "lean4: elan_asset_url not set in $CONFIG" >&2; return 1; }
+  [ -n "$toolchain" ] || { echo "lean4: toolchain not set in $CONFIG" >&2; return 1; }
+  mkdir -p .tools/elan
+  echo "lean4: downloading $url"
+  curl -fsSL "$url" -o .tools/elan/elan.tar.gz
+  verify_sha .tools/elan/elan.tar.gz "$sha"
+  tar -xzf .tools/elan/elan.tar.gz -C .tools/elan
+  chmod +x .tools/elan/elan-init
+  echo "lean4: installing toolchain $toolchain under .tools/elan/home"
+  ELAN_HOME="$PWD/.tools/elan/home" .tools/elan/elan-init -y --no-modify-path --default-toolchain "$toolchain"
+  ELAN_HOME="$PWD/.tools/elan/home" .tools/elan/home/bin/lean --version
+  ELAN_HOME="$PWD/.tools/elan/home" .tools/elan/home/bin/lake --version
+}
+
+install_z3() {
+  local binary
+  binary="$(cfg '.tools.formal_tools.z3.binary')"
+  if [ -n "$binary" ] && [[ "$binary" == */* ]]; then
+    if [ ! -x "$binary" ] && [[ "$binary" == .tools/verus_dist/* ]]; then
+      echo "z3: installing Verus distribution to provide bundled z3"
+      install_verus
+    fi
+    [ -x "$binary" ] || { echo "z3: configured binary $binary not found" >&2; return 1; }
+    "$binary" --version
+    echo "z3: using configured binary $binary"
+    return 0
+  fi
+  if command -v brew >/dev/null 2>&1; then
+    NONINTERACTIVE=1 HOMEBREW_NO_AUTO_UPDATE=1 brew install z3
+  elif command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get install -y z3
+  else
+    echo "z3: no brew/apt available; install z3 manually" >&2
+    return 1
+  fi
+}
+
+install_p() {
+  command -v dotnet >/dev/null 2>&1 || { echo "p: dotnet not found" >&2; return 1; }
+  local ver
+  ver="$(cfg '.tools.formal_tools.p.version')"
+  dotnet tool install --global P --version "$ver" 2>/dev/null \
+    || dotnet tool update --global P --version "$ver"
+}
+
+install_kani() {
+  command -v cargo >/dev/null 2>&1 || { echo "kani: cargo not found" >&2; return 1; }
+  local ver
+  ver="$(cfg '.tools.formal_tools.kani.version')"
+  cargo install --locked kani-verifier --version "$ver" || true
+  cargo-kani setup
+}
+
+case "${1:-}" in
+  alloy) install_alloy ;;
+  verus) install_verus ;;
+  lean4) install_lean4 ;;
+  z3) install_z3 ;;
+  p) install_p ;;
+  kani) install_kani ;;
+  all) install_alloy; install_z3 || true; install_p || true; install_kani || true; install_verus; install_lean4 ;;
+  *)
+    echo "usage: tools/formal-install <alloy|verus|lean4|z3|p|kani|all>" >&2
+    exit 2
+    ;;
+esac

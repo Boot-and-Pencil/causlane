@@ -1,0 +1,23 @@
+name: publication-gate
+
+# Deliberate pre-publication check. It runs the fail-closed review gate on
+# manual dispatch and when publication-relevant files change, keeping routine PR
+# checks focused while preserving the release-specific gate.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'PUBLISHING.md'
+      - 'docs/release/**'
+      - 'docs/refactor/**'
+      - 'tools/pre-publication-review-gate'
+
+jobs:
+  pre-publication-review-gate:
+    name: pre-publication review gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Review-finding publication gate
+        run: python3 tools/pre-publication-review-gate --json

@@ -1,0 +1,19 @@
+flowchart LR
+  Surface[UI / API / CLI / Worker ingress]
+  Call[ActionCall]
+  Plan[Pure ActionPlan]
+  Dispatch[Dispatch Kernel]
+  Constraints[Constraint Plane]
+  Barrier[Execution Barrier]
+  Exec[Execution Adapter]
+  Audit[(Audit / Event Journal)]
+  Projection[Projection / UI / Dashboard]
+  Replay[Replay / Formal Checks]
+
+  Surface --> Call --> Plan --> Dispatch
+  Constraints --> Dispatch
+  Dispatch --> Barrier --> Exec --> Audit
+  Dispatch --> Audit
+  Audit --> Projection
+  Audit --> Replay
+  Plan --> Replay

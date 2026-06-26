@@ -1,0 +1,265 @@
+baseline_mode = "suppress"
+forbidden_write_roots = []
+generated_paths = []
+editable_generated_paths = []
+control_file_paths = []
+editable_control_file_paths = [
+  ".github/workflows/ci.yml",
+  ".github/workflows/publication-gate.yml",
+]
+policy_file_paths = []
+model_engines = []
+waivers = [
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".cli-checker.toml", reason = "devinfra managed checker policy compatibility metadata", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".devinfra/tool-versions.json", reason = "devinfra managed agent compatibility metadata", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".gitignore", reason = "devinfra managed hook log ignore paths", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/config.toml", reason = "devinfra managed Codex hook configuration", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/hooks/pre_tool_use.sh", reason = "devinfra managed Codex hook wrapper", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/.gitignore", reason = "devinfra managed Codex hook log ignore path", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = "tools/lib/devinfra_common.py", reason = "devinfra managed snapshot ignore paths", owner = "devinfra" },
+]
+
+[file_length]
+path_class_limits = []
+
+[modes]
+
+[toolchains]
+
+[doc_model]
+roots = []
+canonical_roots = []
+derived_roots = []
+archive_roots = []
+generated_patterns = []
+
+[scopes]
+
+[coverage_thresholds]
+
+[rules]
+
+# BEGIN devinfra managed Rust full rule set
+# Generated from cli-checker 0.1.7:
+#   cli-checker list-code-rules --language rust --format json
+# cli-checker does not support rule-id wildcards in config, so every Rust rule
+# is listed explicitly. Keep this block in sync with checker upgrades.
+[rules.RUST-ANTI-API-001]
+severity = "block"
+
+[rules.RUST-ANTI-API-002]
+severity = "block"
+
+[rules.RUST-ANTI-ARC-LOCK-001]
+severity = "block"
+
+[rules.RUST-ANTI-ASYNC-001]
+severity = "block"
+
+[rules.RUST-ANTI-ASYNC-002]
+severity = "block"
+
+[rules.RUST-ANTI-ASYNC-003]
+severity = "block"
+
+[rules.RUST-ANTI-ASYNC-004]
+severity = "block"
+
+[rules.RUST-ANTI-ASYNC-005]
+severity = "block"
+
+[rules.RUST-ANTI-BLOB-001]
+severity = "block"
+
+[rules.RUST-ANTI-BOUNDARY-001]
+severity = "block"
+
+[rules.RUST-ANTI-BOUNDARY-002]
+severity = "block"
+
+[rules.RUST-ANTI-BOUNDARY-003]
+severity = "block"
+
+[rules.RUST-ANTI-CONFIG-001]
+severity = "block"
+
+[rules.RUST-ANTI-DBG-001]
+severity = "block"
+
+[rules.RUST-ANTI-DOWNCAST-001]
+severity = "block"
+
+[rules.RUST-ANTI-DYN-ANY-001]
+severity = "block"
+
+[rules.RUST-ANTI-DYN-JSON-001]
+severity = "block"
+
+[rules.RUST-ANTI-DYN-STRING-DISPATCH-001]
+severity = "block"
+
+[rules.RUST-ANTI-DYN-STRING-DISPATCH-002]
+severity = "block"
+
+[rules.RUST-ANTI-DYN-STRINGLY-MATCH-001]
+severity = "block"
+
+[rules.RUST-ANTI-DYN-WIDE-MAP-001]
+severity = "block"
+
+[rules.RUST-ANTI-ERRDROP-001]
+severity = "block"
+
+[rules.RUST-ANTI-INCLUDE-001]
+severity = "block"
+
+[rules.RUST-ANTI-INSTANT-NOW-001]
+severity = "block"
+
+[rules.RUST-ANTI-INTERIOR-MUT-001]
+severity = "block"
+
+[rules.RUST-ANTI-LOG-001]
+severity = "block"
+
+[rules.RUST-ANTI-MOCK-001]
+severity = "block"
+
+[rules.RUST-ANTI-PANIC-001]
+severity = "block"
+
+[rules.RUST-ANTI-PANIC-003]
+severity = "block"
+
+[rules.RUST-ANTI-PANIC-004]
+severity = "block"
+
+[rules.RUST-ANTI-PANIC-005]
+severity = "block"
+
+[rules.RUST-ANTI-POLICY-IN-CODE-001]
+severity = "block"
+
+[rules.RUST-ANTI-PROC-001]
+severity = "block"
+
+[rules.RUST-ANTI-PROC-002]
+severity = "block"
+
+[rules.RUST-ANTI-PROC-003]
+severity = "block"
+
+[rules.RUST-ANTI-PROC-004]
+severity = "block"
+
+[rules.RUST-ANTI-RAND-001]
+severity = "block"
+
+[rules.RUST-ANTI-SNAPSHOT-001]
+severity = "block"
+
+[rules.RUST-ANTI-STRING-ERR-001]
+severity = "block"
+
+[rules.RUST-ANTI-SUBPROCESS-RUN-REPORT-V1-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTCFG-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTENV-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTIGN-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTPATH-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTRAND-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTSERIAL-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTSLEEP-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTTIME-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTTIME-002]
+severity = "block"
+
+[rules.RUST-ANTI-TESTTODO-001]
+severity = "block"
+
+[rules.RUST-ANTI-TESTUNWRAP-001]
+severity = "block"
+
+[rules.RUST-ANTI-TIME-001]
+severity = "block"
+
+[rules.RUST-ANTI-TODO-001]
+severity = "block"
+
+[rules.RUST-ANTI-TODO-COMMENT-001]
+severity = "block"
+
+[rules.RUST-ANTI-UNBOUNDED-CHANNEL-001]
+severity = "block"
+
+[rules.RUST-ANTI-UNSAFE-001]
+severity = "block"
+
+[rules.RUST-ANTI-UNSAFE-002]
+severity = "block"
+
+[rules.RUST-ANTI-UNSAFE-003]
+severity = "block"
+
+[rules.RUST-PAT-CRATE-001]
+severity = "block"
+
+[rules.RUST-PAT-CRATE-002]
+severity = "block"
+
+[rules.RUST-PAT-MUSTUSE-001]
+severity = "block"
+
+[rules.RUST-PAT-SERDE-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-MUSHA-SCHEMA-LITERALS-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-MUSHA-SURFACE-BARE-OP-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-OPENAI-ENV-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-OPENAI-ENV-002]
+severity = "block"
+
+[rules.RUST-SEMGREP-RANDOMNESS-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-REEXPORT-WILDCARD-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-REEXPORT-WILDCARD-FACADE-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-STD-ENV-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-STD-PROCESS-COMMAND-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-TSQOBA-TOML-DIRECT-ACCESS-001]
+severity = "block"
+
+[rules.RUST-SEMGREP-WALL-CLOCK-001]
+severity = "block"
+# END devinfra managed Rust full rule set

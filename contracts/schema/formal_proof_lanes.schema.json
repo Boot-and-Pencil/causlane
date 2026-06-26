@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/formal_proof_lanes.schema.json",
+  "title": "Causlane Formal Proof Lanes",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "lanes"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "lanes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verus", "lean4"],
+      "properties": {
+        "verus": { "$ref": "#/$defs/lane" },
+        "lean4": { "$ref": "#/$defs/lane" }
+      }
+    }
+  },
+  "$defs": {
+    "lane": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blocking",
+        "coverage_from_receipts",
+        "exception_allowed",
+        "required_in_formal_verify_all"
+      ],
+      "properties": {
+        "blocking": { "const": true },
+        "coverage_from_receipts": { "const": true },
+        "exception_allowed": { "const": false },
+        "required_in_formal_verify_all": { "const": true }
+      }
+    }
+  }
+}

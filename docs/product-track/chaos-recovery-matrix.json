@@ -1,0 +1,58 @@
+{
+  "artifact": "causlane.chaos-recovery.v1",
+  "milestone": "M09.7",
+  "updated_at": "2026-06-24",
+  "scope": "bounded in-process runtime chaos and recovery evidence",
+  "scenarios": [
+    {
+      "id": "slow_handler_overload_visible",
+      "status": "covered",
+      "surface": "causlane-runtime/in_process",
+      "evidence": [
+        "in_process::tests::recovery::slow_handler_keeps_fail_fast_overload_visible"
+      ],
+      "claim": "A slow host handler does not hide overload; fail-fast submit reports a stable runtime overload diagnostic while queued work later executes once capacity is released.",
+      "residual_risk": "This is not a durable audit-store slowdown model; it covers the in-process worker/admission surface."
+    },
+    {
+      "id": "provider_unavailable_fails_closed",
+      "status": "covered",
+      "surface": "causlane-runtime/in_process",
+      "evidence": [
+        "in_process::tests::recovery::provider_unavailable_fails_closed_without_execution"
+      ],
+      "claim": "Provider failure is emitted as Failed and never as Executed.",
+      "residual_risk": "Provider retry policy remains host-owned."
+    },
+    {
+      "id": "retry_host_owned_idempotency_safe",
+      "status": "covered",
+      "surface": "causlane-runtime/in_process",
+      "evidence": [
+        "in_process::tests::recovery::retry_after_failure_is_host_owned_and_idempotency_safe"
+      ],
+      "claim": "Retry after failure is explicit host work: duplicate idempotency keys are suppressed, while a new host-owned attempt can execute.",
+      "residual_risk": "First-class worker retry and hard-effect retry interleavings remain M10.2 formal-depth work."
+    },
+    {
+      "id": "drain_under_load_route_contention",
+      "status": "covered",
+      "surface": "causlane-runtime/in_process",
+      "evidence": [
+        "in_process::tests::recovery::routed_drain_under_load_reports_busy_without_deadlock"
+      ],
+      "claim": "The in-process runtime advertises no linear drain authority and reports routed contention under load without deadlock.",
+      "residual_risk": "No durable drain/fence API is added in M09.7."
+    },
+    {
+      "id": "partition_restart_ephemeral_rejoin",
+      "status": "covered",
+      "surface": "causlane-runtime/in_process",
+      "evidence": [
+        "in_process::tests::recovery::partition_restart_is_ephemeral_rejoin_not_durable_recovery"
+      ],
+      "claim": "A fresh in-process runtime can rejoin a partition and accept new work after the old runtime is dropped.",
+      "residual_risk": "This does not claim durable recovery of in-flight or persisted work."
+    }
+  ]
+}

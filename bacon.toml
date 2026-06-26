@@ -1,0 +1,36 @@
+[jobs.dev-check]
+command = [
+  "./tools/cargo-bg", "check",
+  "--workspace",
+  "--all-targets",
+  "--all-features",
+  "--locked",
+  "--keep-going",
+  "--message-format=json-diagnostic-rendered-ansi",
+]
+analyzer = "cargo_json"
+need_stdout = true
+
+[jobs.dev-clippy]
+command = [
+  "./tools/cargo-bg", "clippy",
+  "--workspace",
+  "--all-targets",
+  "--all-features",
+  "--locked",
+  "--message-format=json-diagnostic-rendered-ansi",
+  "--",
+  "-D", "warnings",
+]
+analyzer = "cargo_json"
+need_stdout = true
+
+[exports.cargo-json-spans]
+auto = true
+exporter = "analyzer"
+line_format = """\
+{diagnostic.level}|:|{span.file_name}|:|{span.line_start}|:|{span.line_end}|:|\
+{span.column_start}|:|{span.column_end}|:|{diagnostic.message}|:|{diagnostic.rendered}|:|\
+{span.suggested_replacement}\
+"""
+path = ".bacon-locations"

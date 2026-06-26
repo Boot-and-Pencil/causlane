@@ -1,0 +1,232 @@
+{
+  "schema_version": 2,
+  "authority": "compiled_bundle_plus_scenario_plus_formal_ir",
+  "gate": "just formal-verify-all",
+  "derived_from": "target/causlane/formal-coverage-report.json (P0-006: per-lane status is machine-derived, never hand-asserted)",
+  "note": "Each lane cell is the reconciled status from the coverage report; `tools/coverage-matrix --check` fails if this file drifts from a fresh report. A lane is 'passed' only when a concrete check_id backs it; 'not_applicable' means that lane does not model the invariant (other lanes cover it).",
+  "invariants": [
+    {
+      "id": "I-001",
+      "statement": "Execution requires a prior write-ahead barrier.",
+      "owner": "causlane-runtime",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:execution_without_barrier_invalid",
+        "alloy:GeneratedTraceSatisfiesCore",
+        "p:NoExecutionBeforeBarrier",
+        "kani:execution_requires_prior_barrier_nondet",
+        "verus:execution_started_requires_prior_barrier",
+        "lean4:valid_trace_execution_started_has_prior_barrier"
+      ]
+    },
+    {
+      "id": "I-002",
+      "statement": "Observed truth requires prior execution.",
+      "owner": "causlane-replay",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:observed_without_execution_invalid",
+        "alloy:GeneratedTraceSatisfiesCore",
+        "p:NoObservedWithoutExecution",
+        "kani:observed_truth_requires_prior_execution_nondet",
+        "verus:observed_truth_requires_prior_execution",
+        "lean4:valid_trace_observed_truth_has_prior_execution"
+      ]
+    },
+    {
+      "id": "I-003",
+      "statement": "Projection requires an observed-truth anchor.",
+      "owner": "causlane-replay",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:projection_without_anchor_invalid",
+        "replay:projection_anchor_wrong_fact_invalid",
+        "replay:projection_anchor_wrong_scope_invalid",
+        "alloy:GeneratedTraceSatisfiesCore",
+        "alloy:GeneratedAnchorFactGrounded",
+        "p:NoProjectionWithoutAnchor",
+        "p:AnchorFactGrounded",
+        "kani:projection_anchor_source_kind_is_observed_truth_only",
+        "verus:projection_requires_prior_observed_truth",
+        "lean4:projection_anchor_soundness"
+      ]
+    },
+    {
+      "id": "I-004",
+      "statement": "Overlay obligations may only strengthen the kernel contract.",
+      "owner": "causlane-contracts",
+      "lanes": {
+        "replay": "not_applicable",
+        "alloy": "not_applicable",
+        "p": "not_applicable",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "kani:overlay_never_weakens_obligations_nondet",
+        "verus:overlay_accepted_never_weakens_obligations",
+        "lean4:overlay_monotonicity"
+      ]
+    },
+    {
+      "id": "I-005",
+      "statement": "Routes and profiles cannot drift from the compiled bundle.",
+      "owner": "causlane-contracts",
+      "lanes": {
+        "replay": "not_applicable",
+        "alloy": "not_applicable",
+        "p": "not_applicable",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "kani:route_is_allowed_only_for_matching_profile_nondet",
+        "verus:route_profile_compatibility",
+        "lean4:route_profile_compatibility"
+      ]
+    },
+    {
+      "id": "I-006",
+      "statement": "Mutable lease conflicts require a verified merge protocol.",
+      "owner": "causlane-runtime",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:conflicting_leases_invalid",
+        "alloy:GeneratedTraceSatisfiesCore",
+        "p:NoConflictingActiveLeases",
+        "kani:lease_conflict_rule_is_fail_closed_without_verified_merge",
+        "verus:lease_conflict_is_fail_closed_without_merge",
+        "lean4:lease_conflict_fail_closed",
+        "lean4:verified_merge_algebra"
+      ]
+    },
+    {
+      "id": "I-007",
+      "statement": "Drain fences require prior overlapping leases to clear.",
+      "owner": "causlane-runtime",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:drain_with_active_lease_invalid",
+        "alloy:GeneratedDrainFenceClear",
+        "p:DrainBlocksNewMutableAdmission",
+        "kani:drain_fence_acquirable_only_without_active_overlap_nondet",
+        "verus:drain_after_overlap_clear",
+        "lean4:drain_after_overlap_clear"
+      ]
+    },
+    {
+      "id": "I-008",
+      "statement": "No event may mutate lifecycle after terminal close.",
+      "owner": "causlane-replay",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:event_after_closed_invalid",
+        "alloy:GeneratedTraceSatisfiesCore",
+        "p:NoEventsAfterClosed",
+        "kani:closed_stage_is_terminal_nondet",
+        "verus:closed_persists_across_step",
+        "lean4:closed_is_terminal"
+      ]
+    },
+    {
+      "id": "I-009",
+      "statement": "Witness/authz evidence must bind exact action, plan and scope.",
+      "owner": "causlane-replay",
+      "lanes": {
+        "replay": "passed",
+        "alloy": "passed",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "replay:approval_wrong_plan_invalid",
+        "replay:approval_wrong_impact_invalid",
+        "replay:witness_wrong_scope_invalid",
+        "alloy:GeneratedApprovalBindingHolds",
+        "alloy:GeneratedWitnessFactGrounded",
+        "alloy:GeneratedAnchorFactGrounded",
+        "p:WitnessFactGrounded",
+        "p:AnchorFactGrounded",
+        "p:AuthzDecisionGroundsBarrier",
+        "kani:witness_binding_is_exact_for_action_plan_and_impact",
+        "verus:approval_binding_is_exact",
+        "lean4:witness_exact_binding"
+      ]
+    },
+    {
+      "id": "I-010",
+      "statement": "Constraint updates affect future frontier only.",
+      "owner": "causlane-runtime",
+      "lanes": {
+        "replay": "not_applicable",
+        "alloy": "not_applicable",
+        "p": "passed",
+        "kani": "passed",
+        "verus": "passed",
+        "lean4": "passed"
+      },
+      "status": "covered",
+      "check_ids": [
+        "p:ConstraintUpdateDoesNotRewriteTruth",
+        "kani:constraint_update_cannot_rewrite_committed_truth_nondet",
+        "verus:constraint_update_preserves_committed_truth",
+        "lean4:constraint_update_future_only"
+      ]
+    }
+  ]
+}

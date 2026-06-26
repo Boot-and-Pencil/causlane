@@ -1,0 +1,25 @@
+[package]
+name = "causlane-replay"
+description = "Replay verifier for causlane protocol traces."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+causlane-core = { path = "../causlane-core", version = "0.0.1" }
+causlane-contracts = { path = "../causlane-contracts", version = "0.0.1" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+
+[dev-dependencies]
+proptest = "1"
+
+[lints]
+workspace = true

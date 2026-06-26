@@ -1,0 +1,501 @@
+#!/usr/bin/env bash
+# Idempotent full-toolchain installer for causlane (spec section 9.15 / 11.4).
+#
+# Drives installation from .devinfra/tool-versions.json. Anything already
+# present (command -v / version match) is detected and skipped, so re-running
+# is a no-op. Binary downloads are SHA-256 verified against the pinned value;
+# if a pin is empty/unknown we refuse to fabricate a URL or hash and instead
+# emit an honest "manual install required" remediation.
+#
+# Formal tools (alloy/z3/p/kani/verus/lean4) are delegated to tools/formal-install
+# rather than reimplemented here.
+#
+# Usage:
+#   tools/bootstrap-full --profile base|dev|formal|ci|proof|all
+#                        [--require-optional] [--dry-run]
+#
+# Profiles:
+#   base   OS basics + jq + python3 (NO Rust)
+#   dev    base + Rust toolchain + cargo tools + devinfra
+#          (cli-checker/process-compose/semgrep) + node/npm
+#   formal dev + Java/dotnet + formal smoke tools (alloy/z3/p/kani/verus)
+#   ci     dev + formal smoke, but NO optional agent CLIs
+#   proof  formal + Verus + Rust 1.95.0 + Z3
+#   all    everything + optional agent CLIs
+#
+# Behaviour:
+#   - idempotent (skip installed tools)
+#   - verifies sha256 for binary downloads
+#   - never installs agent CLIs in the `ci` profile
+#   - prints actionable remediation hints
+#   - writes target/causlane/bootstrap-full-report.json
+#   - base profile does NOT require Rust
+#   - does NOT hard-fail on optional tools unless --require-optional
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+CONFIG=".devinfra/tool-versions.json"
+REPORT_DIR="target/causlane"
+REPORT="$REPORT_DIR/bootstrap-full-report.json"
+
+PROFILE="base"
+REQUIRE_OPTIONAL=0
+DRY_RUN=0
+
+# Accumulators for the JSON report. Each parallel array index is one action.
+declare -a R_NAME R_STATUS R_DETAIL
+FAILED=0
+
+cfg() { jq -r "$1 // empty" "$CONFIG" 2>/dev/null; }
+
+log()  { printf '%s\n' "$*" >&2; }
+note() { printf '  %s\n' "$*" >&2; }
+
+record() {
+  # record <name> <status> <detail>
+  R_NAME+=("$1")
+  R_STATUS+=("$2")
+  R_DETAIL+=("$3")
+}
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+verify_sha() {
+  # verify_sha <file> <expected_sha>; empty expected => caller decides.
+  local file="$1" expected="$2" got
+  got="$(sha256sum "$file" | cut -d' ' -f1)"
+  [ "$got" = "$expected" ]
+}
+
+usage() {
+  sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+  exit "${1:-0}"
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --profile) PROFILE="${2:-}"; shift 2 ;;
+    --profile=*) PROFILE="${1#*=}"; shift ;;
+    --require-optional) REQUIRE_OPTIONAL=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -h|--help) usage 0 ;;
+    *) log "unknown argument: $1"; usage 2 ;;
+  esac
+done
+
+case "$PROFILE" in
+  base|dev|formal|ci|proof|all) ;;
+  *) log "invalid --profile: $PROFILE"; usage 2 ;;
+esac
+
+mkdir -p "$REPORT_DIR"
+
+# --- profile capability flags --------------------------------------------
+WANT_RUST=0; WANT_CARGO_TOOLS=0; WANT_DEVINFRA=0; WANT_NODE=0
+WANT_FORMAL=0; WANT_PROOF=0; WANT_AGENT=0
+case "$PROFILE" in
+  base) ;;
+  dev)    WANT_RUST=1; WANT_CARGO_TOOLS=1; WANT_DEVINFRA=1; WANT_NODE=1 ;;
+  formal) WANT_RUST=1; WANT_CARGO_TOOLS=1; WANT_DEVINFRA=1; WANT_NODE=1; WANT_FORMAL=1 ;;
+  ci)     WANT_RUST=1; WANT_CARGO_TOOLS=1; WANT_DEVINFRA=1; WANT_NODE=1; WANT_FORMAL=1 ;;
+  proof)  WANT_RUST=1; WANT_CARGO_TOOLS=1; WANT_DEVINFRA=1; WANT_NODE=1; WANT_FORMAL=1; WANT_PROOF=1 ;;
+  all)    WANT_RUST=1; WANT_CARGO_TOOLS=1; WANT_DEVINFRA=1; WANT_NODE=1; WANT_FORMAL=1; WANT_PROOF=1; WANT_AGENT=1 ;;
+esac
+
+run() {
+  # run <human description> -- <command...>
+  local desc="$1"; shift
+  [ "$1" = "--" ] && shift
+  if [ "$DRY_RUN" -eq 1 ]; then
+    note "[dry-run] $desc: would run: $*"
+    return 0
+  fi
+  note "$desc: $*"
+  "$@"
+}
+
+# --- base OS tools --------------------------------------------------------
+check_base() {
+  log "== base OS tools =="
+  local missing=()
+  for t in bash git curl unzip zip tar gzip jq python3 sha256sum; do
+    if have "$t"; then
+      record "$t" "ok" "present: $(command -v "$t")"
+    else
+      missing+=("$t")
+      record "$t" "missing" "install via OS package manager (apt/brew)"
+    fi
+  done
+  if [ "${#missing[@]}" -gt 0 ]; then
+    note "MISSING base tools: ${missing[*]}"
+    note "  Ubuntu/Debian: sudo apt-get install -y ${missing[*]}"
+    note "  macOS:         brew install ${missing[*]}"
+    FAILED=1
+  else
+    note "all base OS tools present"
+  fi
+}
+
+# --- rust toolchain -------------------------------------------------------
+install_rust() {
+  log "== rust toolchain =="
+  if have rustc && have cargo; then
+    record "rustc" "ok" "present: $(rustc --version 2>/dev/null)"
+    record "cargo" "ok" "present: $(cargo --version 2>/dev/null)"
+    note "rust present ($(rustc --version 2>/dev/null))"
+  else
+    record "rustc" "missing" "install rustup: https://rustup.rs"
+    note "rust not found"
+    if [ "$DRY_RUN" -eq 0 ] && have curl; then
+      note "install with: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+    fi
+    note "  then: rustup show (rust-toolchain.toml pins channel=stable + components)"
+    FAILED=1
+    return
+  fi
+  # ensure rust-1.95.0 for proof/verus is recorded as an action target later
+}
+
+ensure_rust_component() {
+  local comp="$1" base installed
+  # Installed component names carry a target triple and drop the "-preview"
+  # suffix (e.g. config "llvm-tools-preview" installs as "llvm-tools-<triple>",
+  # config "rust-src" stays "rust-src"). Match on the base name as a prefix.
+  base="${comp%-preview}"
+  installed="$(rustup component list --installed 2>/dev/null)"
+  if printf '%s\n' "$installed" | grep -Eq "^${base}(-|$)"; then
+    record "rust:$comp" "ok" "component installed"
+  else
+    record "rust:$comp" "missing" "rustup component add $comp"
+    note "rust component missing: $comp -> rustup component add $comp"
+    run "add component $comp" -- rustup component add "$comp" || FAILED=1
+  fi
+}
+
+# --- cargo tools ----------------------------------------------------------
+install_cargo_tool() {
+  # install_cargo_tool <binary> <package> <version>
+  local binary="$1" package="$2" version="$3"
+  if have "$binary"; then
+    record "$binary" "ok" "present: $(command -v "$binary")"
+    note "$binary present (skip)"
+    return
+  fi
+  record "$binary" "missing" "cargo install --locked $package --version $version"
+  note "$binary missing -> cargo install --locked $package --version $version"
+  if [ "$DRY_RUN" -eq 0 ]; then
+    if have cargo; then
+      run "install $package" -- cargo install --locked "$package" --version "$version" \
+        || { note "cargo install $package failed"; FAILED=1; }
+    else
+      note "cannot install $binary: cargo not present"
+      FAILED=1
+    fi
+  fi
+}
+
+install_cargo_tools() {
+  log "== cargo tools =="
+  local count binary package version i
+  count="$(jq -r '.tools.cargo_tools | length' "$CONFIG" 2>/dev/null || echo 0)"
+  for ((i = 0; i < count; i++)); do
+    binary="$(cfg ".tools.cargo_tools[$i].binary")"
+    package="$(cfg ".tools.cargo_tools[$i].package")"
+    version="$(cfg ".tools.cargo_tools[$i].version")"
+    [ -n "$binary" ] || continue
+    install_cargo_tool "$binary" "$package" "$version"
+  done
+  # cargo-nextest / cargo-llvm-cov / cargo-deny expose `cargo <sub>`; the
+  # binaries above (cargo-nextest, ...) are what `cargo install` provides.
+}
+
+# --- devinfra tools -------------------------------------------------------
+install_cli_checker() {
+  log "== devinfra: cli-checker =="
+  local version url sha
+  version="$(cfg '.tools.cli_checker.version')"
+  url="$(cfg '.tools.cli_checker.archive_url')"
+  sha="$(cfg '.tools.cli_checker.archive_sha256')"
+  if have cli-checker; then
+    record "cli-checker" "ok" "present: $(cli-checker version 2>/dev/null | head -1)"
+    note "cli-checker present (skip)"
+    return
+  fi
+  if [ -z "$url" ] || [ -z "$sha" ]; then
+    # HONEST behaviour: archive metadata not yet populated. Do NOT fabricate.
+    record "cli-checker" "manual" \
+      "manual install required: archive_url/archive_sha256 are empty in $CONFIG (P0); install cli-checker $version out of band"
+    note "cli-checker NOT installable automatically:"
+    note "  archive_url/archive_sha256 are empty in $CONFIG (P0 gap)."
+    note "  install cli-checker $version manually, then re-run."
+    [ "$REQUIRE_OPTIONAL" -eq 1 ] && FAILED=1
+    return
+  fi
+  # If metadata is later populated, install reproducibly with sha verification.
+  record "cli-checker" "missing" "download $url (sha-verified)"
+  note "cli-checker missing -> downloading $url"
+  if [ "$DRY_RUN" -eq 0 ]; then
+    local tmp; tmp="$(mktemp)"
+    if run "download cli-checker" -- curl -fsSL "$url" -o "$tmp"; then
+      if verify_sha "$tmp" "$sha"; then
+        note "cli-checker sha256 OK"
+        note "  (extraction/placement is install-method specific; see $CONFIG)"
+      else
+        note "cli-checker sha256 MISMATCH; refusing to install"
+        FAILED=1
+      fi
+    fi
+    rm -f "$tmp"
+  fi
+}
+
+install_process_compose() {
+  log "== devinfra: process-compose =="
+  local version sha url
+  version="$(cfg '.tools.process_compose.version')"
+  sha="$(cfg '.tools.process_compose.sha256')"
+  if have process-compose; then
+    record "process-compose" "ok" "present: $(process-compose version 2>/dev/null | grep -i version | head -1)"
+    note "process-compose present (skip)"
+    return
+  fi
+  if [ -z "$sha" ]; then
+    record "process-compose" "manual" "no pinned sha256 in $CONFIG; install manually"
+    note "process-compose has no pinned sha256; install manually"
+    [ "$REQUIRE_OPTIONAL" -eq 1 ] && FAILED=1
+    return
+  fi
+  # Canonical GitHub release asset for linux/amd64; pinned sha makes it safe.
+  url="$(cfg '.tools.process_compose.url')"
+  if [ -z "$url" ]; then
+    local osname arch asset
+    osname="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    case "$(uname -m)" in
+      x86_64|amd64) arch="amd64" ;;
+      aarch64|arm64) arch="arm64" ;;
+      *) arch="$(uname -m)" ;;
+    esac
+    asset="process-compose_${osname}_${arch}.tar.gz"
+    url="https://github.com/F1bonacc1/process-compose/releases/download/v${version}/${asset}"
+  fi
+  record "process-compose" "missing" "download $url (sha-verified)"
+  note "process-compose missing -> downloading $url"
+  if [ "$DRY_RUN" -eq 0 ]; then
+    local tmp dst; tmp="$(mktemp)"; dst="$HOME/.local/bin"
+    if run "download process-compose" -- curl -fsSL "$url" -o "$tmp"; then
+      if verify_sha "$tmp" "$sha"; then
+        note "process-compose archive sha256 OK"
+        mkdir -p "$dst"
+        if tar -xzf "$tmp" -C "$dst" process-compose 2>/dev/null; then
+          chmod +x "$dst/process-compose" 2>/dev/null || true
+          note "process-compose installed to $dst (ensure it is on PATH)"
+        else
+          note "could not extract process-compose binary from archive"
+          FAILED=1
+        fi
+      else
+        note "process-compose sha256 MISMATCH; refusing to install"
+        FAILED=1
+      fi
+    fi
+    rm -f "$tmp"
+  fi
+}
+
+install_semgrep() {
+  log "== devinfra: semgrep =="
+  local version
+  version="$(cfg '.tools.python_tools[] | select(.binary=="semgrep") | .version')"
+  if have semgrep; then
+    record "semgrep" "ok" "present: $(semgrep --version 2>/dev/null | head -1)"
+    note "semgrep present (skip)"
+    return
+  fi
+  record "semgrep" "missing" "pipx install semgrep==$version"
+  note "semgrep missing -> pipx install semgrep==$version (or python3 -m pip install)"
+  if [ "$DRY_RUN" -eq 0 ]; then
+    if have pipx; then
+      run "install semgrep" -- pipx install "semgrep==$version" || FAILED=1
+    elif have python3; then
+      run "install semgrep" -- python3 -m pip install --user "semgrep==$version" || FAILED=1
+    else
+      note "cannot install semgrep: no pipx/python3"
+      FAILED=1
+    fi
+  fi
+}
+
+install_devinfra() {
+  install_cli_checker
+  install_process_compose
+  install_semgrep
+}
+
+# --- node / npm -----------------------------------------------------------
+install_node() {
+  log "== node / npm =="
+  if have node && have npm; then
+    record "node" "ok" "present: $(node --version 2>/dev/null)"
+    record "npm" "ok" "present: $(npm --version 2>/dev/null)"
+    note "node/npm present ($(node --version 2>/dev/null))"
+    local want got
+    want="$(cfg '.tools.npm.version')"
+    got="$(npm --version 2>/dev/null)"
+    if [ -n "$want" ] && [ "$got" != "$want" ]; then
+      note "npm version drift: have $got, pinned $want (optional) -> npm install -g npm@$want"
+    fi
+  else
+    record "node" "missing" "install Node via nvm/fnm/volta/mise"
+    note "node/npm missing -> install Node (nvm/fnm/volta/mise), then npm install -g npm@$(cfg '.tools.npm.version')"
+    [ "$REQUIRE_OPTIONAL" -eq 1 ] && FAILED=1
+  fi
+}
+
+# --- agent CLIs (optional; NEVER in ci) -----------------------------------
+install_agent_clis() {
+  log "== optional agent CLIs =="
+  local count i binary package version
+  count="$(jq -r '.tools.agent_clis | length' "$CONFIG" 2>/dev/null || echo 0)"
+  for ((i = 0; i < count; i++)); do
+    binary="$(cfg ".tools.agent_clis[$i].binary")"
+    package="$(cfg ".tools.agent_clis[$i].package")"
+    version="$(cfg ".tools.agent_clis[$i].version")"
+    [ -n "$binary" ] || continue
+    if have "$binary"; then
+      record "$binary" "ok" "present (optional)"
+      note "$binary present (optional, skip)"
+      continue
+    fi
+    record "$binary" "optional-missing" "npm install -g ${package}@${version} (optional)"
+    note "$binary missing (optional) -> npm install -g ${package}@${version}"
+    if [ "$DRY_RUN" -eq 0 ] && [ "$REQUIRE_OPTIONAL" -eq 1 ] && have npm; then
+      run "install $binary" -- npm install -g "${package}@${version}" || FAILED=1
+    fi
+  done
+}
+
+# --- formal tools (delegate to tools/formal-install) ----------------------
+install_formal() {
+  log "== formal tools (via tools/formal-install) =="
+  for tool in alloy z3 p kani verus; do
+    if formal_present "$tool"; then
+      record "formal:$tool" "ok" "present (skip)"
+      note "$tool present (skip)"
+      continue
+    fi
+    record "formal:$tool" "missing" "tools/formal-install $tool"
+    note "$tool missing -> tools/formal-install $tool"
+    if [ "$DRY_RUN" -eq 0 ]; then
+      run "install $tool" -- tools/formal-install "$tool" \
+        || { note "tools/formal-install $tool failed"; FAILED=1; }
+    fi
+  done
+}
+
+formal_present() {
+  case "$1" in
+    alloy) [ -f .tools/alloy/alloy.jar ] ;;
+    z3)    formal_config_binary_present '.tools.formal_tools.z3.binary' || have z3 ;;
+    p)     have p ;;
+    kani)  have cargo-kani ;;
+    verus) formal_config_binary_present '.tools.formal_tools.verus.archive_path' || have verus ;;
+    lean4) [ -x .tools/elan/home/bin/lean ] && [ -x .tools/elan/home/bin/lake ] ;;
+    *) return 1 ;;
+  esac
+}
+
+formal_config_binary_present() {
+  local query="$1"
+  local path
+  path="$(cfg "$query")"
+  [ -n "$path" ] || return 1
+  [ -x "$path" ]
+}
+
+# --- proof extras: Rust 1.95.0 toolchain for Verus + Lean4 ----------------
+install_proof_extras() {
+  log "== proof extras: Rust 1.95.0 for Verus + Lean4 =="
+  local want
+  want="$(cfg '.tools.formal_tools.verus.requires_rust_toolchain')"
+  [ -n "$want" ] || return 0
+  if ! have rustup; then
+    record "rust-$want" "missing" "rustup not present; install rustup first"
+    note "cannot ensure Rust $want: rustup not present"
+    FAILED=1
+    return
+  fi
+  if rustup toolchain list 2>/dev/null | grep -q "^${want}"; then
+    record "rust-$want" "ok" "toolchain $want installed"
+    note "Rust $want toolchain present (skip)"
+  else
+    record "rust-$want" "missing" "rustup toolchain install $want"
+    note "Rust $want missing -> rustup toolchain install $want"
+    if [ "$DRY_RUN" -eq 0 ]; then
+      run "install rust $want" -- rustup toolchain install "$want" || FAILED=1
+      run "rust-src $want" -- rustup component add rust-src --toolchain "$want" || true
+    fi
+  fi
+  if formal_present lean4; then
+    record "formal:lean4" "ok" "present (skip)"
+    note "lean4 present (skip)"
+  else
+    record "formal:lean4" "missing" "tools/formal-install lean4"
+    note "lean4 missing -> tools/formal-install lean4"
+    if [ "$DRY_RUN" -eq 0 ]; then
+      run "install lean4" -- tools/formal-install lean4 || FAILED=1
+    fi
+  fi
+}
+
+# --- main ----------------------------------------------------------------
+log "bootstrap-full: profile=$PROFILE (dry-run=$DRY_RUN, require-optional=$REQUIRE_OPTIONAL)"
+
+check_base
+
+if [ "$WANT_RUST" -eq 1 ]; then
+  install_rust
+  if have rustup; then
+    for comp in $(cfg '.tools.rust.components[]'); do
+      ensure_rust_component "$comp"
+    done
+  fi
+fi
+
+[ "$WANT_CARGO_TOOLS" -eq 1 ] && install_cargo_tools
+[ "$WANT_DEVINFRA" -eq 1 ]    && install_devinfra
+[ "$WANT_NODE" -eq 1 ]        && install_node
+[ "$WANT_FORMAL" -eq 1 ]      && install_formal
+[ "$WANT_PROOF" -eq 1 ]       && install_proof_extras
+[ "$WANT_AGENT" -eq 1 ]       && install_agent_clis
+
+# --- write JSON report ----------------------------------------------------
+{
+  printf '{\n'
+  printf '  "schema_version": 1,\n'
+  printf '  "profile": "%s",\n' "$PROFILE"
+  printf '  "dry_run": %s,\n' "$([ "$DRY_RUN" -eq 1 ] && echo true || echo false)"
+  printf '  "require_optional": %s,\n' "$([ "$REQUIRE_OPTIONAL" -eq 1 ] && echo true || echo false)"
+  printf '  "generated_at": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf '  "status": "%s",\n' "$([ "$FAILED" -eq 0 ] && echo ok || echo incomplete)"
+  printf '  "actions": [\n'
+  for i in "${!R_NAME[@]}"; do
+    sep=","; [ "$i" -eq $((${#R_NAME[@]} - 1)) ] && sep=""
+    name_esc="$(printf '%s' "${R_NAME[$i]}" | jq -Rs .)"
+    status_esc="$(printf '%s' "${R_STATUS[$i]}" | jq -Rs .)"
+    detail_esc="$(printf '%s' "${R_DETAIL[$i]}" | jq -Rs .)"
+    printf '    {"name": %s, "status": %s, "detail": %s}%s\n' \
+      "$name_esc" "$status_esc" "$detail_esc" "$sep"
+  done
+  printf '  ]\n'
+  printf '}\n'
+} > "$REPORT"
+
+log ""
+if [ "$FAILED" -eq 0 ]; then
+  log "bootstrap-full: OK (profile=$PROFILE)"
+else
+  log "bootstrap-full: INCOMPLETE (profile=$PROFILE) — see remediation hints above"
+fi
+log "report: $REPORT"
+
+exit "$FAILED"

@@ -1,0 +1,42 @@
+version: "0.5"
+is_strict: true
+ordered_shutdown: true
+
+environment:
+  - DEVINFRA_ROOT=${PWD}
+  - CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-12}
+  - NEXTEST_TEST_THREADS=${NEXTEST_TEST_THREADS:-8}
+
+processes:
+  prewarmd:
+    command: "./tools/prewarmd run --config .devinfra/commands.toml"
+    working_dir: "."
+    availability:
+      restart: "on_failure"
+      backoff_seconds: 3
+    readiness_probe:
+      exec:
+        command: "test -f .agent-state/prewarm-state.json"
+      initial_delay_seconds: 2
+      period_seconds: 2
+      timeout_seconds: 1
+
+  bacon:
+    command: "bacon --headless -j dev-clippy"
+    working_dir: "."
+    availability:
+      restart: "on_failure"
+      backoff_seconds: 3
+    depends_on:
+      prewarmd:
+        condition: process_started
+
+  state-api:
+    command: "./tools/devctl state-api --listen 127.0.0.1:7810"
+    working_dir: "."
+    availability:
+      restart: "on_failure"
+      backoff_seconds: 3
+    depends_on:
+      prewarmd:
+        condition: process_started

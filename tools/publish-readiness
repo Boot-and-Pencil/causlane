@@ -1,0 +1,1034 @@
+#!/usr/bin/env python3
+"""Generate and check the publication readiness report."""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+from doc_projection import markdown_list, report_projection_drift, write_text
+
+ROOT = Path(__file__).resolve().parents[1]
+DOC = "docs/release/publish-readiness.json"
+DOC_MD = "docs/release/publish-readiness.md"
+FACADE_CRATE = "causlane"
+PUBLICATION_STRATEGY = "publication_prep_no_upload"
+CRATES_IO_API = f"https://crates.io/api/v1/crates/{FACADE_CRATE}"
+ONLINE_USER_AGENT = "causlane-publish-readiness/0.1 (https://github.com/Boot-and-Pencil/causlane)"
+FIRST_PUBLIC_VERSION = "0.0.1"
+FEATURE_SURFACE_POLICY = "m11_2_default_minimal_optional_integrations"
+FULL_PUBLISH_SEQUENCE = [
+    "causlane-core",
+    "causlane-formal",
+    "causlane-contracts",
+    "causlane-runtime",
+    "causlane-replay",
+    "causlane-codegen",
+    "causlane",
+    "causlane-cli",
+]
+REQUIRED_ROOT_DOCS = [
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+    "AI_USAGE.md",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "PUBLISHING.md",
+    "RELEASE.md",
+]
+
+
+def run_json(args: list[str]) -> dict:
+    proc = subprocess.run(
+        args,
+        cwd=ROOT,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    return json.loads(proc.stdout)
+
+
+def run_lines(args: list[str]) -> list[str]:
+    proc = subprocess.run(
+        args,
+        cwd=ROOT,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    return [line for line in proc.stdout.splitlines() if line]
+
+
+def rel(path: str | Path) -> str:
+    return str(Path(path).resolve().relative_to(ROOT))
+
+
+def workspace_packages(metadata: dict) -> list[dict]:
+    packages_by_id = {package["id"]: package for package in metadata["packages"]}
+    packages = []
+    missing = []
+    for member_id in metadata.get("workspace_members", []):
+        package = packages_by_id.get(member_id)
+        if package is None:
+            missing.append(member_id)
+        else:
+            packages.append(package)
+    if missing:
+        raise RuntimeError(f"cargo metadata omitted workspace members: {markdown_list(missing)}")
+    return packages
+
+
+def package_by_name(packages: list[dict]) -> dict[str, dict]:
+    by_name = {package["name"]: package for package in packages}
+    if len(by_name) != len(packages):
+        raise RuntimeError("workspace contains duplicate package names")
+    return by_name
+
+
+def facade_package(packages: list[dict]) -> dict:
+    by_name = package_by_name(packages)
+    if FACADE_CRATE in by_name:
+        return by_name[FACADE_CRATE]
+    raise RuntimeError(f"cargo metadata did not include {FACADE_CRATE}")
+
+
+def package_root(package: dict) -> Path:
+    return Path(package["manifest_path"]).parent
+
+
+def package_file_list(package_name: str) -> list[str]:
+    return run_lines(["./tools/cargo-dev", "package", "-p", package_name, "--allow-dirty", "--list"])
+
+
+def normal_workspace_dependencies(package: dict, workspace_names: set[str]) -> list[dict]:
+    dependencies = []
+    for dep in package.get("dependencies", []):
+        if dep.get("kind") is not None:
+            continue
+        if dep.get("source") is not None or not dep.get("path"):
+            continue
+        if dep["name"] not in workspace_names:
+            continue
+        dependencies.append(
+            {
+                "name": dep["name"],
+                "requirement": dep["req"],
+                "path": rel(dep["path"]),
+            }
+        )
+    return dependencies
+
+
+def format_dependency(dep: dict) -> str:
+    return f"{dep['name']} {dep['requirement']} via {dep['path']}"
+
+
+def format_dependencies(dependencies: list[dict]) -> list[str]:
+    return [format_dependency(dep) for dep in dependencies]
+
+
+def code_list(items: list[str]) -> str:
+    return markdown_list([f"`{item}`" for item in items])
+
+
+def package_record(package: dict, files: list[str], dependencies: list[dict]) -> dict:
+    return {
+        "name": package["name"],
+        "version": package["version"],
+        "manifest_path": rel(package["manifest_path"]),
+        "package_root": rel(package_root(package)),
+        "package_files": files,
+        "normal_workspace_dependencies": dependencies,
+    }
+
+
+def package_docsrs_all_features(package: dict) -> bool:
+    metadata = package.get("metadata") or {}
+    docs = metadata.get("docs") or {}
+    docsrs = docs.get("rs") or {}
+    return docsrs.get("all-features") is True
+
+
+def optional_dependency_names(package: dict) -> list[str]:
+    names = [
+        dep["name"]
+        for dep in package.get("dependencies", [])
+        if dep.get("optional") is True
+    ]
+    return sorted(names)
+
+
+def feature_names_for_dependency(features: dict, dependency_name: str) -> list[str]:
+    members = {dependency_name, f"dep:{dependency_name}"}
+    names = [
+        name
+        for name, values in features.items()
+        if name != "default" and any(value in members for value in values)
+    ]
+    return sorted(names)
+
+
+def package_feature_record(package: dict) -> dict:
+    features = package.get("features") or {}
+    optional_dependencies = [
+        {
+            "name": name,
+            "feature_flags": feature_names_for_dependency(features, name),
+        }
+        for name in optional_dependency_names(package)
+    ]
+    return {
+        "name": package["name"],
+        "manifest_path": rel(package["manifest_path"]),
+        "default_features": sorted(features.get("default", [])),
+        "declared_features": sorted(features.keys()),
+        "optional_dependencies": optional_dependencies,
+        "docsrs_all_features": package_docsrs_all_features(package),
+    }
+
+
+def build_feature_surface(packages: list[dict]) -> dict:
+    records = [package_feature_record(package) for package in packages]
+    blockers: list[str] = []
+    for record in records:
+        if record["default_features"]:
+            blockers.append(
+                f"{record['name']} default enables {markdown_list(record['default_features'])}"
+            )
+        if record["name"] == FACADE_CRATE:
+            if record["declared_features"]:
+                blockers.append(
+                    f"{FACADE_CRATE} declares facade features {markdown_list(record['declared_features'])}"
+                )
+            if record["optional_dependencies"]:
+                names = [dep["name"] for dep in record["optional_dependencies"]]
+                blockers.append(
+                    f"{FACADE_CRATE} has optional dependencies {markdown_list(names)}"
+                )
+        for dependency in record["optional_dependencies"]:
+            if not dependency["feature_flags"]:
+                blockers.append(
+                    f"{record['name']} optional dependency {dependency['name']} is not reachable from an explicit non-default feature"
+                )
+        has_optional_surface = bool(record["declared_features"] or record["optional_dependencies"])
+        if has_optional_surface and not record["docsrs_all_features"]:
+            blockers.append(
+                f"{record['name']} has optional/features surface but docs.rs all-features metadata is absent"
+            )
+    return {
+        "status": "blocked" if blockers else "pass",
+        "policy": FEATURE_SURFACE_POLICY,
+        "packages": records,
+        "blockers": blockers,
+    }
+
+
+def full_publish_sequence(package_names: list[str]) -> list[str]:
+    known = [name for name in FULL_PUBLISH_SEQUENCE if name in package_names]
+    extras = [name for name in package_names if name not in FULL_PUBLISH_SEQUENCE]
+    return known + extras
+
+
+def dependency_tiers(
+    package_names: list[str],
+    dependencies_by_name: dict[str, list[str]],
+    workspace_index: dict[str, int],
+) -> tuple[list[dict], list[str]]:
+    dependents_by_dep = {name: [] for name in package_names}
+    remaining_dependencies = {
+        name: set(dependencies_by_name.get(name, [])) for name in package_names
+    }
+    for package_name, dependencies in dependencies_by_name.items():
+        for dependency in dependencies:
+            dependents_by_dep[dependency].append(package_name)
+
+    processed: set[str] = set()
+    tiers = []
+    available = [name for name in package_names if not remaining_dependencies[name]]
+    available.sort(key=workspace_index.__getitem__)
+
+    while available:
+        tier_packages = available
+        tiers.append({"tier": len(tiers), "packages": tier_packages})
+        for package_name in tier_packages:
+            processed.add(package_name)
+        for package_name in tier_packages:
+            for dependent in dependents_by_dep[package_name]:
+                remaining_dependencies[dependent].discard(package_name)
+        available = [
+            name
+            for name in package_names
+            if name not in processed and not remaining_dependencies[name]
+        ]
+        available.sort(key=workspace_index.__getitem__)
+
+    cycle_packages = [name for name in package_names if name not in processed]
+    cycle_packages.sort(key=workspace_index.__getitem__)
+    return tiers, cycle_packages
+
+
+def dependency_closure(
+    root: str,
+    dependencies_by_name: dict[str, list[str]],
+    workspace_index: dict[str, int],
+) -> list[str]:
+    seen: set[str] = set()
+
+    def visit(package_name: str) -> None:
+        dependencies = dependencies_by_name.get(package_name, [])
+        for dependency in sorted(dependencies, key=workspace_index.__getitem__):
+            if dependency in seen:
+                continue
+            seen.add(dependency)
+            visit(dependency)
+
+    visit(root)
+    return sorted(seen, key=workspace_index.__getitem__)
+
+
+def build_workspace_publication(
+    packages: list[dict],
+    package_files_by_name: dict[str, list[str]],
+) -> dict:
+    names = [package["name"] for package in packages]
+    workspace_index = {name: index for index, name in enumerate(names)}
+    workspace_names = set(names)
+    dependency_records_by_name = {
+        package["name"]: normal_workspace_dependencies(package, workspace_names)
+        for package in packages
+    }
+    dependencies_by_name = {
+        package_name: [dep["name"] for dep in dependencies]
+        for package_name, dependencies in dependency_records_by_name.items()
+    }
+    tiers, cycle_packages = dependency_tiers(names, dependencies_by_name, workspace_index)
+    facade_closure = dependency_closure(FACADE_CRATE, dependencies_by_name, workspace_index)
+    facade_sequence_names = set(facade_closure)
+    facade_sequence_names.add(FACADE_CRATE)
+    facade_sequence = [
+        package_name
+        for tier in tiers
+        for package_name in tier["packages"]
+        if package_name in facade_sequence_names
+    ]
+    return {
+        "status": "blocked" if cycle_packages else "pass",
+        "dependency_tiers": tiers,
+        "facade_dependency_closure": facade_closure,
+        "facade_publish_sequence": facade_sequence,
+        "full_publish_sequence": full_publish_sequence(names),
+        "cycle_packages": cycle_packages,
+        "packages": [
+            package_record(
+                package,
+                package_files_by_name[package["name"]],
+                dependency_records_by_name[package["name"]],
+            )
+            for package in packages
+        ],
+    }
+
+
+def check(
+    checks: list[dict],
+    check_id: str,
+    status: str,
+    summary: str,
+    evidence: list[str],
+    remediation: str,
+) -> None:
+    checks.append(
+        {
+            "id": check_id,
+            "status": status,
+            "summary": summary,
+            "evidence": evidence,
+            "remediation": remediation,
+        }
+    )
+
+
+def metadata_check(package: dict, checks: list[dict]) -> None:
+    fields = {
+        "description": package.get("description"),
+        "license": package.get("license"),
+        "authors": package.get("authors"),
+        "repository": package.get("repository"),
+        "homepage": package.get("homepage"),
+        "documentation": package.get("documentation"),
+        "keywords": package.get("keywords"),
+        "categories": package.get("categories"),
+        "rust_version": package.get("rust_version"),
+    }
+    missing = [name for name, value in fields.items() if not value]
+    status = "blocked" if missing else "pass"
+    evidence = (
+        [f"missing metadata fields: {markdown_list(missing)}"]
+        if missing
+        else [
+            "description/license/authors/repository/homepage/documentation/keywords/categories/rust-version are present"
+        ]
+    )
+    check(
+        checks,
+        "facade-metadata",
+        status,
+        "Facade crate metadata is complete enough for a readiness report.",
+        evidence,
+        "Fill required package metadata in Cargo.toml before publication.",
+    )
+
+
+def license_check(checks: list[dict]) -> None:
+    required = ["LICENSE-MIT", "LICENSE-APACHE"]
+    missing = [path for path in required if not (ROOT / path).is_file()]
+    check(
+        checks,
+        "license-files",
+        "blocked" if missing else "pass",
+        "Dual-license files match the workspace license expression.",
+        [f"missing: {markdown_list(missing)}"] if missing else [f"present: {markdown_list(required)}"],
+        "Add both license files or update the workspace license expression and release docs.",
+    )
+
+
+def root_docs_check(checks: list[dict]) -> None:
+    missing = [path for path in REQUIRED_ROOT_DOCS if not (ROOT / path).is_file()]
+    check(
+        checks,
+        "root-publication-docs",
+        "blocked" if missing else "pass",
+        "Root publication, contribution, security and AI-policy docs are present.",
+        [f"missing root docs: {markdown_list(missing)}"]
+        if missing
+        else [f"present root docs: {markdown_list(REQUIRED_ROOT_DOCS)}"],
+        "Add the missing root publication documents before publication.",
+    )
+
+
+def readme_candidates(package: dict) -> list[Path]:
+    root = package_root(package)
+    readme = package.get("readme")
+    candidates = []
+    if readme:
+        candidates.append(root / readme)
+    candidates.append(root / "README.md")
+    return list(dict.fromkeys(candidates))
+
+
+def readme_check(package: dict, checks: list[dict]) -> None:
+    root = package_root(package)
+    candidates = readme_candidates(package)
+    existing = [rel(path) for path in candidates if path.is_file()]
+    check(
+        checks,
+        "crate-readme",
+        "pass" if existing else "blocked",
+        "The facade package has a crate-local README for crates.io.",
+        [f"crate README candidates present: {markdown_list(existing)}"]
+        if existing
+        else [f"no README.md under {rel(root)} and package.readme is unset"],
+        "Add a crate-local README or package.readme before publication.",
+    )
+
+
+def workspace_readme_check(packages: list[dict], checks: list[dict]) -> None:
+    missing = []
+    present = []
+    for package in packages:
+        existing = [path for path in readme_candidates(package) if path.is_file()]
+        if existing:
+            present.append(f"{package['name']}: {rel(existing[0])}")
+        else:
+            missing.append(package["name"])
+    check(
+        checks,
+        "workspace-crate-readmes",
+        "blocked" if missing else "pass",
+        "Every workspace crate has a crate-local README for crates.io.",
+        [f"missing crate README: {markdown_list(missing)}"]
+        if missing
+        else [f"crate READMEs: {markdown_list(present)}"],
+        "Add crate-local README files or explicit package.readme entries.",
+    )
+
+
+def package_file_check(workspace_publication: dict, checks: list[dict]) -> None:
+    missing = []
+    for item in workspace_publication["packages"]:
+        package_files = item["package_files"]
+        entrypoints = ["src/lib.rs", "src/main.rs"]
+        required = ["Cargo.toml", "README.md"]
+        missing_required = [path for path in required if path not in package_files]
+        if not any(path in package_files for path in entrypoints):
+            missing_required.append("src/lib.rs or src/main.rs")
+        if missing_required:
+            missing.append(f"{item['name']}: {markdown_list(missing_required)}")
+    check(
+        checks,
+        "workspace-package-file-lists",
+        "blocked" if missing else "pass",
+        "Workspace package file lists include manifests, READMEs and Rust entrypoints.",
+        [f"missing package files: {markdown_list(missing)}"]
+        if missing
+        else [
+            f"package file lists captured for {len(workspace_publication['packages'])} workspace crates"
+        ],
+        "Adjust package include/exclude metadata if required files are absent.",
+    )
+
+
+def workspace_publication_check(workspace_publication: dict, checks: list[dict]) -> None:
+    cycle_packages = workspace_publication["cycle_packages"]
+    tiers = [
+        f"tier {tier['tier']}: {markdown_list(tier['packages'])}"
+        for tier in workspace_publication["dependency_tiers"]
+    ]
+    check(
+        checks,
+        "workspace-publication-order",
+        "blocked" if cycle_packages else "pass",
+        "Workspace crate publication order is machine-derived from normal path dependencies.",
+        [f"cycle packages: {markdown_list(cycle_packages)}"]
+        if cycle_packages
+        else [
+            f"dependency tiers: {markdown_list(tiers)}",
+            f"facade publish sequence: {markdown_list(workspace_publication['facade_publish_sequence'])}",
+        ],
+        "Break workspace dependency cycles before publishing internal crates.",
+    )
+    package_names = [item["name"] for item in workspace_publication["packages"]]
+    missing = [name for name in FULL_PUBLISH_SEQUENCE if name not in package_names]
+    extras = [name for name in package_names if name not in FULL_PUBLISH_SEQUENCE]
+    sequence = workspace_publication["full_publish_sequence"]
+    check(
+        checks,
+        "full-workspace-publish-sequence",
+        "blocked" if missing or extras else "pass",
+        "Full workspace publication sequence is explicit and release-runbook aligned.",
+        [f"sequence: {markdown_list(sequence)}"]
+        if not missing and not extras
+        else [
+            f"sequence: {markdown_list(sequence)}",
+            f"missing expected packages: {markdown_list(missing)}",
+            f"unexpected packages: {markdown_list(extras)}",
+        ],
+        "Update the publish sequence or workspace package list before publication.",
+    )
+
+
+def workspace_version_check(packages: list[dict], checks: list[dict]) -> None:
+    versions = sorted({package["version"] for package in packages})
+    status = "pass" if versions == [FIRST_PUBLIC_VERSION] else "blocked"
+    check(
+        checks,
+        "workspace-version",
+        status,
+        "Workspace packages use the first public publication version.",
+        [f"workspace package versions: {markdown_list(versions)}"],
+        f"Set workspace package version and lockfile packages to {FIRST_PUBLIC_VERSION}.",
+    )
+
+
+def internal_dependency_version_check(packages: list[dict], checks: list[dict]) -> None:
+    package_names = {package["name"] for package in packages}
+    expected_versions = {package["name"]: package["version"] for package in packages}
+    mismatches = []
+    for package in packages:
+        for dependency in package.get("dependencies", []):
+            if dependency.get("source") is not None or not dependency.get("path"):
+                continue
+            name = dependency["name"]
+            if name not in package_names:
+                continue
+            expected = f"^{expected_versions[name]}"
+            if dependency["req"] != expected:
+                kind = dependency.get("kind") or "normal"
+                mismatches.append(
+                    f"{package['name']} {kind}.{name}: {dependency['req']} != {expected}"
+                )
+    check(
+        checks,
+        "internal-dependency-versions",
+        "blocked" if mismatches else "pass",
+        "Internal workspace path dependencies carry registry-compatible versions.",
+        [f"mismatches: {markdown_list(mismatches)}"]
+        if mismatches
+        else ["all internal path dependencies match their package versions"],
+        "Update internal path+version dependency requirements before publication.",
+    )
+
+
+def format_optional_dependency(dependency: dict) -> str:
+    return f"{dependency['name']} via {markdown_list(dependency['feature_flags'])}"
+
+
+def feature_surface_check(feature_surface: dict, checks: list[dict]) -> None:
+    feature_packages = [
+        record
+        for record in feature_surface["packages"]
+        if record["declared_features"] or record["optional_dependencies"]
+    ]
+    evidence = [
+        f"policy: {feature_surface['policy']}",
+        (
+            "feature-bearing packages: "
+            + markdown_list(
+                [
+                    f"{record['name']} features={markdown_list(record['declared_features'])}"
+                    for record in feature_packages
+                ]
+            )
+        ),
+    ]
+    if feature_surface["blockers"]:
+        evidence.append(f"blockers: {markdown_list(feature_surface['blockers'])}")
+    else:
+        evidence.append("all workspace crates have empty default features and explicit optional integration flags")
+    check(
+        checks,
+        "feature-surface",
+        feature_surface["status"],
+        "Workspace feature flags keep the facade minimal and optional integrations explicit.",
+        evidence,
+        "Move optional integrations behind non-default features and keep docs.rs metadata explicit.",
+    )
+
+
+def build_publication_execution(workspace_publication: dict, dependencies: list[dict]) -> dict:
+    blocking = format_dependencies(dependencies)
+    reason = (
+        "Actual upload is deferred until the explicit release runbook is invoked."
+        if blocking
+        else "Actual upload is deferred by the no-upload readiness strategy."
+    )
+    return {
+        "status": "deferred",
+        "reason": reason,
+        "deferred_dependencies": blocking,
+        "publish_sequence": workspace_publication["full_publish_sequence"],
+        "next_command": "cargo package -p causlane-core --list",
+        "dry_run_command": "cargo publish -p causlane-core --dry-run --locked",
+        "actual_publish_command": "cargo publish -p causlane-core --locked",
+        "note": (
+            "This report is a deterministic repository gate. It does not publish crates, "
+            "reserve names, verify tokens or claim that registry upload has been executed."
+        ),
+    }
+
+
+def dependency_check(dependencies: list[dict], checks: list[dict]) -> None:
+    blocking = format_dependencies(dependencies)
+    check(
+        checks,
+        "publication-dependencies",
+        "warn" if blocking else "pass",
+        "Facade normal dependencies are deferred until internal crates are published.",
+        [f"deferred unpublished path dependencies: {markdown_list(blocking)}"]
+        if blocking
+        else ["no normal workspace path dependencies block facade publication"],
+        "Publish internal crates first before attempting a real facade upload.",
+    )
+    check(
+        checks,
+        "facade-dry-run",
+        "warn" if blocking else "pass",
+        "`cargo publish --dry-run -p causlane` remains an execution probe, not a repository readiness blocker.",
+        ["actual facade dry-run is deferred until internal dependencies are available from crates.io"]
+        if blocking
+        else ["dependency graph is ready for an explicit cargo publish dry-run"],
+        "Run `./tools/cargo-dev publish -p causlane --dry-run` only after dependency blockers clear.",
+    )
+
+
+def build_doc() -> dict:
+    metadata = run_json(["./tools/cargo-dev", "metadata", "--no-deps", "--format-version", "1"])
+    packages = workspace_packages(metadata)
+    package = facade_package(packages)
+    package_files_by_name = {
+        workspace_package["name"]: package_file_list(workspace_package["name"])
+        for workspace_package in packages
+    }
+    workspace_publication = build_workspace_publication(packages, package_files_by_name)
+    feature_surface = build_feature_surface(packages)
+    package_files = package_files_by_name[FACADE_CRATE]
+    facade_dependencies = next(
+        item["normal_workspace_dependencies"]
+        for item in workspace_publication["packages"]
+        if item["name"] == FACADE_CRATE
+    )
+    checks: list[dict] = []
+    workspace_version_check(packages, checks)
+    metadata_check(package, checks)
+    license_check(checks)
+    root_docs_check(checks)
+    readme_check(package, checks)
+    workspace_readme_check(packages, checks)
+    package_file_check(workspace_publication, checks)
+    workspace_publication_check(workspace_publication, checks)
+    internal_dependency_version_check(packages, checks)
+    feature_surface_check(feature_surface, checks)
+    publication_execution = build_publication_execution(workspace_publication, facade_dependencies)
+    dependency_check(facade_dependencies, checks)
+    readiness_status = "blocked" if any(item["status"] == "blocked" for item in checks) else "pass"
+    return {
+        "schema_version": 6,
+        "authority": "machine_checked_publish_readiness",
+        "generated_markdown": DOC_MD,
+        "publication_strategy": PUBLICATION_STRATEGY,
+        "facade_crate": FACADE_CRATE,
+        "readiness_status": readiness_status,
+        "note": (
+            "This artifact is a deterministic publication-prep report. It does not publish crates, "
+            "reserve names, verify cargo tokens or turn network availability into a blocking repo gate."
+        ),
+        "package": {
+            "name": package["name"],
+            "version": package["version"],
+            "manifest_path": rel(package["manifest_path"]),
+            "package_root": rel(package_root(package)),
+            "description": package.get("description") or "",
+            "license": package.get("license") or "",
+            "authors": package.get("authors") or [],
+            "repository": package.get("repository") or "",
+            "homepage": package.get("homepage") or "",
+            "documentation": package.get("documentation") or "",
+            "keywords": package.get("keywords") or [],
+            "categories": package.get("categories") or [],
+            "rust_version": package.get("rust_version") or "",
+        },
+        "package_files": package_files,
+        "name_availability": {
+            "crate": FACADE_CRATE,
+            "deterministic_gate": "not_run",
+            "advisory_command": "tools/publish-readiness --online",
+            "note": "Crates.io availability is intentionally advisory because it is network-dependent and can change at any time.",
+        },
+        "repository_visibility": {
+            "repository": package.get("repository") or "",
+            "deterministic_gate": "not_run",
+            "advisory_command": "tools/publish-readiness --online",
+            "note": "Public repository resolution is intentionally advisory because it is network-dependent and can change at any time.",
+        },
+        "workspace_publication": workspace_publication,
+        "feature_surface": feature_surface,
+        "publication_execution": publication_execution,
+        "checks": checks,
+    }
+
+
+def validate_doc(doc: dict) -> list[str]:
+    errors: list[str] = []
+    if doc.get("schema_version") != 6:
+        errors.append("schema_version must be 6")
+    if doc.get("generated_markdown") != DOC_MD:
+        errors.append(f"generated_markdown must be {DOC_MD}")
+    seen = set()
+    for item in doc.get("checks", []):
+        check_id = item.get("id")
+        if check_id in seen:
+            errors.append(f"duplicate check id {check_id}")
+        seen.add(check_id)
+        if item.get("status") not in ("pass", "blocked", "warn"):
+            errors.append(f"{check_id}: invalid status {item.get('status')}")
+    has_blocker = any(item.get("status") == "blocked" for item in doc.get("checks", []))
+    expected_status = "blocked" if has_blocker else "pass"
+    if doc.get("readiness_status") != expected_status:
+        errors.append(f"readiness_status must be {expected_status}")
+    workspace = doc.get("workspace_publication", {})
+    package_names = [item.get("name") for item in workspace.get("packages", [])]
+    if len(package_names) != len(set(package_names)):
+        errors.append("workspace_publication packages must have unique names")
+    if workspace.get("cycle_packages") and workspace.get("status") != "blocked":
+        errors.append("workspace_publication status must be blocked when cycles exist")
+    if not workspace.get("cycle_packages") and workspace.get("status") != "pass":
+        errors.append("workspace_publication status must be pass when no cycles exist")
+    sequence = workspace.get("facade_publish_sequence", [])
+    if not workspace.get("cycle_packages") and not sequence:
+        errors.append("facade_publish_sequence must be present when no cycles exist")
+    if sequence and sequence[-1] != FACADE_CRATE:
+        errors.append(f"facade_publish_sequence must end with {FACADE_CRATE}")
+    for package_name in sequence:
+        if package_name not in package_names:
+            errors.append(f"facade_publish_sequence contains unknown package {package_name}")
+    full_sequence = workspace.get("full_publish_sequence", [])
+    if sorted(full_sequence) != sorted(package_names):
+        errors.append("full_publish_sequence must contain every workspace package exactly once")
+    if full_sequence and full_sequence != full_publish_sequence(package_names):
+        errors.append("full_publish_sequence must match the publication runbook order")
+    execution = doc.get("publication_execution", {})
+    if execution.get("status") != "deferred":
+        errors.append("publication_execution status must be deferred")
+    if not execution.get("reason"):
+        errors.append("publication_execution reason must be present")
+    if execution.get("publish_sequence") != full_sequence:
+        errors.append("publication_execution publish_sequence must match workspace full_publish_sequence")
+    feature_surface = doc.get("feature_surface", {})
+    if feature_surface.get("policy") != FEATURE_SURFACE_POLICY:
+        errors.append(f"feature_surface policy must be {FEATURE_SURFACE_POLICY}")
+    feature_blockers = feature_surface.get("blockers", [])
+    expected_feature_status = "blocked" if feature_blockers else "pass"
+    if feature_surface.get("status") != expected_feature_status:
+        errors.append(f"feature_surface status must be {expected_feature_status}")
+    feature_package_names = [
+        item.get("name") for item in feature_surface.get("packages", [])
+    ]
+    if sorted(feature_package_names) != sorted(package_names):
+        errors.append("feature_surface packages must match workspace_publication packages")
+    repository_visibility = doc.get("repository_visibility", {})
+    if repository_visibility.get("repository") != doc.get("package", {}).get("repository"):
+        errors.append("repository_visibility repository must match package repository")
+    if repository_visibility.get("deterministic_gate") != "not_run":
+        errors.append("repository_visibility deterministic_gate must be not_run")
+    if repository_visibility.get("advisory_command") != "tools/publish-readiness --online":
+        errors.append("repository_visibility advisory_command must be tools/publish-readiness --online")
+    return errors
+
+
+def markdown(doc: dict) -> str:
+    status = doc["readiness_status"]
+    package = doc["package"]
+    workspace = doc["workspace_publication"]
+    execution = doc["publication_execution"]
+    lines = [
+        "# Publish readiness",
+        "",
+        "This file is generated from",
+        "[`publish-readiness.json`](publish-readiness.json) by",
+        "`tools/publish-readiness --write`. Do not hand-edit this Markdown;",
+        "edit the readiness logic or package metadata and regenerate it.",
+        "",
+        doc["note"],
+        "",
+        "## Summary",
+        "",
+        f"- Strategy: `{doc['publication_strategy']}`",
+        f"- Facade crate: `{doc['facade_crate']}`",
+        f"- Readiness status: `{status}`",
+        f"- Version: `{package['version']}`",
+        f"- Manifest: `{package['manifest_path']}`",
+        f"- Package root: `{package['package_root']}`",
+        "",
+        "## Feature Surface",
+        "",
+        f"- Status: `{doc['feature_surface']['status']}`",
+        f"- Policy: `{doc['feature_surface']['policy']}`",
+        f"- Blockers: {code_list(doc['feature_surface']['blockers'])}",
+        "",
+        "### Feature Packages",
+        "",
+    ]
+    for item in doc["feature_surface"]["packages"]:
+        optional = [
+            format_optional_dependency(dep)
+            for dep in item["optional_dependencies"]
+        ]
+        lines.extend(
+            [
+                f"#### {item['name']}",
+                "",
+                f"- Manifest: `{item['manifest_path']}`",
+                f"- Default features: {code_list(item['default_features'])}",
+                f"- Declared features: {code_list(item['declared_features'])}",
+                f"- Optional dependencies: {code_list(optional)}",
+                f"- docs.rs all-features: `{str(item['docsrs_all_features']).lower()}`",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Crates.io Name Availability",
+            "",
+            f"- Deterministic gate: `{doc['name_availability']['deterministic_gate']}`",
+            f"- Advisory command: `{doc['name_availability']['advisory_command']}`",
+            f"- Note: {doc['name_availability']['note']}",
+            "",
+            "## Repository Visibility",
+            "",
+            f"- Repository: `{doc['repository_visibility']['repository']}`",
+            f"- Deterministic gate: `{doc['repository_visibility']['deterministic_gate']}`",
+            f"- Advisory command: `{doc['repository_visibility']['advisory_command']}`",
+            f"- Note: {doc['repository_visibility']['note']}",
+            "",
+            "## Workspace Publication Order",
+            "",
+            f"- Status: `{workspace['status']}`",
+            f"- Facade dependency closure: {code_list(workspace['facade_dependency_closure'])}",
+            f"- Facade publish sequence: {code_list(workspace['facade_publish_sequence'])}",
+            f"- Full publish sequence: {code_list(workspace['full_publish_sequence'])}",
+            f"- Cycle packages: {code_list(workspace['cycle_packages'])}",
+            "",
+            "### Dependency Tiers",
+            "",
+        ]
+    )
+    for tier in workspace["dependency_tiers"]:
+        lines.append(f"- Tier {tier['tier']}: {code_list(tier['packages'])}")
+    lines.extend(
+        [
+            "",
+            "### Workspace Packages",
+            "",
+        ]
+    )
+    for item in workspace["packages"]:
+        dependencies = [
+            format_dependency(dep)
+            for dep in item["normal_workspace_dependencies"]
+        ]
+        lines.extend(
+            [
+                f"#### {item['name']}",
+                "",
+                f"- Manifest: `{item['manifest_path']}`",
+                f"- Package root: `{item['package_root']}`",
+                f"- Normal workspace dependencies: {code_list(dependencies)}",
+                f"- Package files: {len(item['package_files'])}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Publication Execution",
+            "",
+            f"- Status: `{execution['status']}`",
+            f"- Reason: {execution['reason']}",
+            f"- Deferred dependencies: {code_list(execution['deferred_dependencies'])}",
+            f"- Publish sequence: {code_list(execution['publish_sequence'])}",
+            f"- Next command: `{execution['next_command']}`",
+            f"- Dry-run command: `{execution['dry_run_command']}`",
+            f"- Actual publish command: `{execution['actual_publish_command']}`",
+            f"- Note: {execution['note']}",
+            "",
+            "## Checks",
+            "",
+        ]
+    )
+    for item in doc["checks"]:
+        lines.extend(
+            [
+                f"### {item['id']}",
+                "",
+                f"- Status: `{item['status']}`",
+                f"- Summary: {item['summary']}",
+                f"- Evidence: {markdown_list(item['evidence'])}",
+                f"- Remediation: {item['remediation']}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Package Files",
+            "",
+            markdown_list([f"`{path}`" for path in doc["package_files"]]),
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def crates_io_name_probe() -> dict:
+    request = urllib.request.Request(CRATES_IO_API, headers={"User-Agent": ONLINE_USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            status_code = response.getcode()
+    except urllib.error.HTTPError as err:
+        status_code = err.code
+    except OSError as err:
+        return {"crate": FACADE_CRATE, "availability": "unknown", "error": str(err)}
+    if status_code == 404:
+        availability = "available"
+    elif status_code == 200:
+        availability = "taken"
+    else:
+        availability = "unknown"
+    return {"crate": FACADE_CRATE, "availability": availability, "http_status": status_code}
+
+
+def repository_visibility_probe(repository: str) -> dict:
+    if not repository:
+        return {
+            "repository": repository,
+            "visibility": "unknown",
+            "error": "missing repository metadata",
+        }
+    request = urllib.request.Request(repository, headers={"User-Agent": ONLINE_USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            status_code = response.getcode()
+    except urllib.error.HTTPError as err:
+        status_code = err.code
+    except OSError as err:
+        return {"repository": repository, "visibility": "unknown", "error": str(err)}
+
+    if 200 <= status_code < 300:
+        visibility = "public"
+    elif status_code in (401, 403, 404):
+        visibility = "private_or_missing"
+    else:
+        visibility = "unknown"
+    return {
+        "repository": repository,
+        "visibility": visibility,
+        "http_status": status_code,
+        "probe": "unauthenticated_http_get",
+    }
+
+
+def online_probe() -> int:
+    expected = build_doc()
+    name_result = crates_io_name_probe()
+    repository_result = repository_visibility_probe(expected["package"]["repository"])
+    print(
+        json.dumps(
+            {
+                "crate": FACADE_CRATE,
+                "availability": name_result["availability"],
+                "name_availability": name_result,
+                "repository_visibility": repository_result,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) != 2 or argv[1] not in ("--write", "--check", "--online"):
+        sys.stderr.write("usage: publish-readiness --write|--check|--online\n")
+        return 2
+    if argv[1] == "--online":
+        return online_probe()
+    expected = build_doc()
+    errors = validate_doc(expected)
+    if errors:
+        for error in errors:
+            sys.stderr.write(f"{error}\n")
+        return 1
+    expected_json = json.dumps(expected, indent=2) + "\n"
+    expected_markdown = markdown(expected)
+    if argv[1] == "--write":
+        write_text(DOC, expected_json)
+        write_text(DOC_MD, expected_markdown)
+        print(f"wrote {DOC} and {DOC_MD}")
+        return 0
+    if not report_projection_drift(DOC, expected_json, "current cargo metadata", "tools/publish-readiness --write"):
+        return 1
+    if not report_projection_drift(DOC_MD, expected_markdown, DOC, "tools/publish-readiness --write"):
+        return 1
+    print(f"{DOC} and {DOC_MD} match current publish readiness inputs")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

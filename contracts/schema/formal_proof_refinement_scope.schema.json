@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/formal_proof_refinement_scope.schema.json",
+  "title": "Causlane Formal Proof Refinement Scope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "authority", "generated_markdown", "note", "entries"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "authority": { "const": "machine_checked_proof_refinement_scope" },
+    "generated_markdown": { "const": "docs/formal/08-proof-refinement-scope.md" },
+    "note": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "lane": {
+      "type": "string",
+      "enum": ["replay", "alloy", "p", "kani", "verus", "lean4", "tooling"]
+    },
+    "evidence_class": {
+      "type": "string",
+      "enum": ["proved", "assumed", "bounded", "simulated", "tested", "out_of_scope"]
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "evidence_class",
+        "responsible_lanes",
+        "claim",
+        "authority_surface",
+        "scope",
+        "limits",
+        "verification",
+        "source_links"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "title": { "type": "string", "minLength": 1 },
+        "evidence_class": { "$ref": "#/$defs/evidence_class" },
+        "responsible_lanes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/lane" }
+        },
+        "claim": { "type": "string", "minLength": 1 },
+        "authority_surface": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "limits": { "type": "string", "minLength": 1 },
+        "verification": { "type": "string", "minLength": 1 },
+        "source_links": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

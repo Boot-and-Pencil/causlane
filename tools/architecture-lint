@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+"""Lightweight architecture-quality gate for Causlane.
+
+This script is intentionally dependency-free: it runs before Rust tooling exists.
+It checks repository shape and emits either human text or JSON.
+
+Checks:
+  ARCH-001 declared Cargo binaries have tracked source files;
+  ARCH-002 causlane-core stays free of runtime/adapter dependencies;
+  ARCH-003 source files over the line budget are surfaced;
+  ARCH-004 public glob re-exports are reported for API-boundary cleanup;
+  ARCH-005 JSON schemas have no duplicate keys.
+
+By default only hard errors fail. `--strict` also fails on warnings.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any
+
+
+FORBIDDEN_CORE_DEPENDENCIES = {
+    "tokio",
+    "async-std",
+    "sqlx",
+    "rusqlite",
+    "reqwest",
+    "axum",
+    "hyper",
+    "tonic",
+    "tracing",
+    "opentelemetry",
+    "apalis",
+    "restate-sdk",
+    "temporalio-sdk",
+}
+
+DEFAULT_LINE_LIMIT = 800
+
+
+@dataclass
+class Finding:
+    check_id: str
+    severity: str
+    path: str
+    message: str
+    remediation: str
+
+    def is_error(self) -> bool:
+        return self.severity == "error"
+
+    def is_warning(self) -> bool:
+        return self.severity == "warning"
+
+
+class DuplicateKeyError(ValueError):
+    pass
+
+
+def repo_root(start: Path) -> Path:
+    cur = start.resolve()
+    for candidate in [cur, *cur.parents]:
+        if (candidate / "Cargo.toml").exists() and (candidate / "crates").exists():
+            return candidate
+    raise SystemExit("architecture-lint: could not find repository root")
+
+
+def rel(root: Path, path: Path) -> str:
+    return path.relative_to(root).as_posix()
+
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def cargo_bin_paths(cargo_toml: Path) -> list[tuple[str, str]]:
+    text = read_text(cargo_toml)
+    entries: list[tuple[str, str]] = []
+    chunks = re.split(r"(?m)^\[\[bin\]\]\s*$", text)
+    for chunk in chunks[1:]:
+        name = re.search(r'(?m)^name\s*=\s*"([^"]+)"\s*$', chunk)
+        path = re.search(r'(?m)^path\s*=\s*"([^"]+)"\s*$', chunk)
+        if name and path:
+            entries.append((name.group(1), path.group(1)))
+    return entries
+
+
+def check_declared_bins(root: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    for cargo_toml in sorted(root.glob("crates/*/Cargo.toml")):
+        for name, path_token in cargo_bin_paths(cargo_toml):
+            path = cargo_toml.parent / path_token
+            if not path.exists():
+                findings.append(
+                    Finding(
+                        "ARCH-001",
+                        "error",
+                        rel(root, cargo_toml),
+                        f'declared bin "{name}" points to missing file {path_token}',
+                        "add the binary source file or remove the [[bin]] entry",
+                    )
+                )
+    return findings
+
+
+def dependency_names(cargo_toml: Path) -> set[str]:
+    text = read_text(cargo_toml)
+    names: set[str] = set()
+    current_section = None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line.startswith("[") and line.endswith("]"):
+            current_section = line.strip("[]")
+            continue
+        if current_section not in {"dependencies", "dev-dependencies", "build-dependencies"}:
+            continue
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name = line.split("=", 1)[0].strip().strip('"')
+        if name:
+            names.add(name)
+    return names
+
+
+def check_core_deps(root: Path) -> list[Finding]:
+    path = root / "crates/causlane-core/Cargo.toml"
+    if not path.exists():
+        return []
+    deps = dependency_names(path)
+    findings = []
+    for dep in sorted(deps & FORBIDDEN_CORE_DEPENDENCIES):
+        findings.append(
+            Finding(
+                "ARCH-002",
+                "error",
+                rel(root, path),
+                f"causlane-core depends on runtime/adapter crate {dep}",
+                "move the dependency behind a port or into causlane-runtime / adapter crates",
+            )
+        )
+    return findings
+
+
+def check_line_budget(root: Path, limit: int) -> list[Finding]:
+    findings: list[Finding] = []
+    for path in sorted(root.glob("crates/**/*.rs")):
+        lines = read_text(path).count("\n") + 1
+        if lines > limit:
+            findings.append(
+                Finding(
+                    "ARCH-003",
+                    "warning",
+                    rel(root, path),
+                    f"file has {lines} lines; budget is {limit}",
+                    "split into cohesive modules or record a bounded exception with owner/date",
+                )
+            )
+    return findings
+
+
+def check_glob_reexports(root: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    glob_patterns = [
+        re.compile(r"pub\s+use\s+[^;]*::\*;"),
+        re.compile(r"pub\s+use\s+[a-zA-Z_][a-zA-Z0-9_]*::\*;"),
+    ]
+    for path in sorted(root.glob("crates/**/*.rs")):
+        text = read_text(path)
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            stripped = line.strip()
+            if any(pattern.fullmatch(stripped) for pattern in glob_patterns):
+                findings.append(
+                    Finding(
+                        "ARCH-004",
+                        "warning",
+                        rel(root, path),
+                        f"public glob re-export at line {line_no}: {stripped}",
+                        "replace with explicit re-exports or move to prelude/internal modules",
+                    )
+                )
+    return findings
+
+
+def no_duplicate_object_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in out:
+            raise DuplicateKeyError(key)
+        out[key] = value
+    return out
+
+
+def check_json_duplicate_keys(root: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    schema_dir = root / "contracts/schema"
+    if not schema_dir.exists():
+        return findings
+    for path in sorted(schema_dir.glob("*.json")):
+        try:
+            json.loads(read_text(path), object_pairs_hook=no_duplicate_object_pairs)
+        except DuplicateKeyError as err:
+            findings.append(
+                Finding(
+                    "ARCH-005",
+                    "error",
+                    rel(root, path),
+                    f"duplicate JSON key: {err}",
+                    "remove the duplicate key; JSON Schema tools may silently keep only one value",
+                )
+            )
+        except json.JSONDecodeError as err:
+            findings.append(
+                Finding(
+                    "ARCH-005",
+                    "error",
+                    rel(root, path),
+                    f"invalid JSON: {err}",
+                    "fix schema JSON before running generated formal/runtime gates",
+                )
+            )
+    return findings
+
+
+def run(root: Path, line_limit: int) -> list[Finding]:
+    findings: list[Finding] = []
+    findings.extend(check_declared_bins(root))
+    findings.extend(check_core_deps(root))
+    findings.extend(check_line_budget(root, line_limit))
+    findings.extend(check_glob_reexports(root))
+    findings.extend(check_json_duplicate_keys(root))
+    return findings
+
+
+def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--json", action="store_true", help="emit JSON")
+    parser.add_argument("--strict", action="store_true", help="warnings fail the gate")
+    parser.add_argument("--max-lines", type=int, default=DEFAULT_LINE_LIMIT)
+    args = parser.parse_args(argv)
+
+    root = repo_root(Path.cwd())
+    findings = run(root, args.max_lines)
+    errors = sum(finding.is_error() for finding in findings)
+    warnings = sum(finding.is_warning() for finding in findings)
+    status = "fail" if errors or (args.strict and warnings) else "pass"
+    report = {
+        "schema_version": 1,
+        "status": status,
+        "root": str(root),
+        "summary": {"errors": errors, "warnings": warnings, "findings": len(findings)},
+        "findings": [asdict(finding) for finding in findings],
+    }
+    if args.json:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    else:
+        print(f"architecture-lint: {status} ({errors} error(s), {warnings} warning(s))")
+        for finding in findings:
+            print(
+                f"{finding.severity.upper()} {finding.check_id} {finding.path}: "
+                f"{finding.message}"
+            )
+            print(f"  remediation: {finding.remediation}")
+    return 1 if status == "fail" else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

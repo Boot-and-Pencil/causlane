@@ -1,0 +1,44 @@
+[agent]
+direct_cargo = "deny"
+foreground_required_before_completion = ["fast-done", "normal-done", "coverage-done"]
+
+[agent.allowed]
+commands = [
+  "just status",
+  "just diagnostics",
+  "just checker-status",
+  "just prewarm-status",
+  "just check",
+  "just clippy",
+  "just test-build",
+  "just test",
+  "just coverage-build",
+  "just coverage",
+  "just cache-audit",
+]
+
+[agent.denied]
+commands = [
+  "cargo build",
+  "cargo check",
+  "cargo clippy",
+  "cargo test",
+  "cargo nextest run",
+  "cargo llvm-cov",
+  "cargo clean",
+  "cargo update",
+]
+
+[agent.messages]
+direct_cargo = """
+Direct cargo invocation is disabled in this repository.
+Use:
+  just check
+  just clippy
+  just test-build
+  just test
+  just coverage-build
+  just coverage
+Reason:
+  direct cargo may invalidate shared Rust cache classes.
+"""

@@ -1,0 +1,173 @@
+{
+  "artifact": "causlane.adapter-certification.v1",
+  "milestone": "M08.7/M09.3",
+  "updated_at": "2026-06-23",
+  "scope": "bounded current-adapter certification plus batched durability evidence",
+  "adapters": [
+    {
+      "id": "runtime.apalis",
+      "feature": "causlane-runtime/apalis",
+      "kind": "execution_bridge",
+      "status": "certified_bounded",
+      "evidence": [
+        {
+          "gate": "no_execution_before_barrier",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::apalis::apalis_certified_missing_authz_never_reaches_executor"
+          ]
+        },
+        {
+          "gate": "executor_requires_scoped_capability",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::apalis::apalis_certified_expired_capability_never_reaches_executor"
+          ]
+        },
+        {
+          "gate": "adapter_metadata_not_authority",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::apalis::apalis_certified_request_metadata_is_not_authority"
+          ]
+        },
+        {
+          "gate": "produced_refs_preserved",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::apalis::apalis_certified_authorized_job_reaches_executor_once"
+          ]
+        },
+        {
+          "gate": "retry_idempotency_safe_for_hard_effects",
+          "status": "deferred",
+          "deferred_to": ["M10.2"],
+          "reason": "M09.7 covers bounded in-process host-owned retry/idempotency; first-class hard-effect worker retry interleavings remain future"
+        },
+        {
+          "gate": "cancellation_supersession",
+          "status": "deferred",
+          "deferred_to": ["M10.1", "M10.2"],
+          "reason": "cancellation and supersession invariants remain future formal/runtime semantics"
+        },
+        {
+          "gate": "truth_commit_orchestration",
+          "status": "deferred",
+          "deferred_to": ["M10.2"],
+          "reason": "M09.7 records that execution bridges do not own durable recovery or observed-truth commit orchestration"
+        }
+      ]
+    },
+    {
+      "id": "runtime.restate",
+      "feature": "causlane-runtime/restate",
+      "kind": "execution_bridge",
+      "status": "certified_bounded",
+      "evidence": [
+        {
+          "gate": "no_execution_before_barrier",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::restate::restate_certified_missing_authz_never_reaches_executor"
+          ]
+        },
+        {
+          "gate": "executor_requires_scoped_capability",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::restate::restate_certified_expired_capability_never_reaches_executor"
+          ]
+        },
+        {
+          "gate": "adapter_metadata_not_authority",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::restate::restate_certified_payload_bytes_are_not_authority"
+          ]
+        },
+        {
+          "gate": "produced_refs_preserved",
+          "status": "covered",
+          "tests": [
+            "adapters::certification::restate::restate_certified_authorized_job_reaches_executor_once"
+          ]
+        },
+        {
+          "gate": "retry_idempotency_safe_for_hard_effects",
+          "status": "deferred",
+          "deferred_to": ["M10.2"],
+          "reason": "M09.7 covers bounded in-process host-owned retry/idempotency; first-class hard-effect worker retry interleavings remain future"
+        },
+        {
+          "gate": "cancellation_supersession",
+          "status": "deferred",
+          "deferred_to": ["M10.1", "M10.2"],
+          "reason": "cancellation and supersession invariants remain future formal/runtime semantics"
+        },
+        {
+          "gate": "truth_commit_orchestration",
+          "status": "deferred",
+          "deferred_to": ["M10.2"],
+          "reason": "M09.7 records that execution bridges do not own durable recovery or observed-truth commit orchestration"
+        }
+      ]
+    },
+    {
+      "id": "runtime.audit",
+      "kind": "audit_adapter",
+      "status": "covered",
+      "evidence": [
+        {
+          "gate": "append_only_monotonic_truth",
+          "status": "covered",
+          "tests": [
+            "adapters::audit::tests::in_memory_assigns_missing_indexes_monotonically",
+            "adapters::audit::tests::in_memory_rejects_duplicate_event_ids",
+            "adapters::audit::tests::in_memory_batch_is_all_or_nothing"
+          ]
+        },
+        {
+          "gate": "batched_write_ahead_order",
+          "status": "covered",
+          "tests": [
+            "adapters::audit::tests::audit_log_port_batch_preserves_barrier_write_ahead_order",
+            "adapters::audit::sqlite::tests::batch_persists_ordered_rows_transactionally"
+          ]
+        },
+        {
+          "gate": "batch_failure_atomicity",
+          "status": "covered",
+          "tests": [
+            "adapters::audit::tests::in_memory_batch_is_all_or_nothing",
+            "adapters::audit::tests::audit_log_port_batch_failure_leaves_state_unchanged",
+            "adapters::audit::tests::audit_log_port_batch_rejects_non_monotonic_without_advancing",
+            "adapters::audit::sqlite::tests::batch_rolls_back_on_duplicate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "runtime.tracing",
+      "kind": "observability_adapter",
+      "status": "covered",
+      "evidence": [
+        {
+          "gate": "observability_not_authority",
+          "status": "covered",
+          "tests": [
+            "adapters::tracing::tests::does_not_emit_span_when_audit_append_fails",
+            "adapters::tracing::tests::telemetry_failure_is_fail_open_after_audit_append"
+          ]
+        },
+        {
+          "gate": "batch_observability_after_authority",
+          "status": "covered",
+          "tests": [
+            "adapters::tracing::tests::emits_derived_spans_after_successful_batch_append",
+            "adapters::tracing::tests::does_not_emit_spans_when_batch_append_fails"
+          ]
+        }
+      ]
+    }
+  ]
+}

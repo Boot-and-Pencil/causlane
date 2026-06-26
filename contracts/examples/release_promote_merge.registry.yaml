@@ -1,0 +1,73 @@
+bundle_id: causlane.demo.release_promote_merge
+registry_version: 0.0.0
+predicates:
+  - id: release.promote_candidate
+    version: 1
+    consequence_profile: RuntimeExecution
+    subject_schema_ref: schemas/release_promote_subject.schema.json
+    circumstance_schema_ref: schemas/release_promote_circumstance.schema.json
+    lifecycle_class: execution_bearing
+    route_id: route.runtime_execution
+    route_derivation: consequence_profile
+    barrier_policy: strict_write_ahead
+    projection_policy: anchored
+    authz_policy:
+      mode: disabled_for_local_dev
+      allowed_in_profiles: [RuntimeExecution]
+      rationale: demo fixture without real PDP
+    truth_commit_policy: allowed
+    schema_hashes:
+      subject: sha256:ea2c8af26bc27ef69a62d1ce9f4b144335fe82e98240cfad8594e357f193900d
+      circumstance: sha256:a55a9965b12284ca1c2692025e67deb311b965167cfe41d696eddd70e32339eb
+    constraint_policy:
+      claim_coverage: required
+      lease_conflicts: required
+    formal_obligations:
+      - I-001
+      - I-002
+      - I-003
+      - I-006
+      - I-008
+    required_witnesses:
+      - id: readiness_before_promotion
+        target_stage: execution_barrier_logged
+        selector:
+          event_kind: gate.approved
+          predicate: readiness.check
+          fact_kind: readiness_ok
+          scope_expr: release_candidate:${subject.release_candidate_id}
+    claims:
+      - resource: environment_write
+        scope_expr: environment:${subject.target_environment}
+        mode: exclusive
+      - resource: release_candidate_write
+        scope_expr: release_candidate:${subject.release_candidate_id}
+        mode: exclusive
+    effect_templates:
+      - op_kind: promote_release
+        reads:
+          - release_candidate:${subject.release_candidate_id}
+        writes:
+          - environment:${subject.target_environment}
+        produces:
+          - release.promoted
+        requires:
+          - release.readiness_ok
+        conflict_domains:
+          - environment:${subject.target_environment}
+          - release_candidate:${subject.release_candidate_id}
+        hardness: hard
+        idempotency_domain: release_promote:${subject.release_candidate_id}:${subject.target_environment}
+    # P0-005 fixture: the verified protocol is APPLICABLE to promote_release, so its
+    # conflict domains (environment, release_candidate) become mergeable. A conflict
+    # on an UNRELATED scope must still fail (the merge must not suppress it globally).
+    merge_protocol_applicability:
+      - protocol_id: append_only_release_log_v1
+        applies_to: promote_release
+    scenario_refs:
+      - contracts/scenarios/unrelated_merge_protocol_does_not_allow_conflict_invalid.scenario.yaml
+merge_protocols:
+  - id: append_only_release_log_v1
+    version: 1
+    status: verified
+    algebra: append_only_disjoint_keys

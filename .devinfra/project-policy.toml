@@ -1,0 +1,5 @@
+[project.files]
+cargo_config_mode = "scaffold_if_absent"
+justfile_mode = "managed"
+process_compose_mode = "scaffold_if_absent"
+editor_settings_mode = "skip"

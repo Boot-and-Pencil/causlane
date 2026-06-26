@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""Generate and check the proof/refinement scope Markdown projection."""
+
+import collections
+import json
+import sys
+
+from doc_projection import markdown_list, report_projection_drift, write_text
+
+DOC = "docs/formal/proof-refinement-scope.json"
+DOC_MD = "docs/formal/08-proof-refinement-scope.md"
+CLASSES = ("proved", "bounded", "simulated", "tested", "assumed", "out_of_scope")
+LANES = ("replay", "alloy", "p", "kani", "verus", "lean4", "tooling")
+CLASS_DESCRIPTIONS = collections.OrderedDict(
+    [
+        ("proved", "A proof lane has a real, blocking proof run for the stated scope."),
+        ("bounded", "The evidence quantifies a finite or bounded input/state space."),
+        ("simulated", "A model or monitor simulates protocol behavior for generated facts."),
+        ("tested", "Executable checks or negative controls exercise concrete behavior."),
+        ("assumed", "The claim depends on trusted environment, crypto or tool assumptions."),
+        ("out_of_scope", "The repository intentionally does not claim this as current evidence."),
+    ]
+)
+
+
+def load_doc():
+    with open(DOC, encoding="utf-8") as handle:
+        return json.load(handle, object_pairs_hook=collections.OrderedDict)
+
+
+def validate_doc(doc):
+    errors = []
+    if doc.get("generated_markdown") != DOC_MD:
+        errors.append(f"generated_markdown must be {DOC_MD}")
+    seen = set()
+    for entry in doc.get("entries", []):
+        entry_id = entry.get("id")
+        if entry_id in seen:
+            errors.append(f"duplicate entry id {entry_id}")
+        seen.add(entry_id)
+        evidence_class = entry.get("evidence_class")
+        if evidence_class not in CLASSES:
+            errors.append(f"{entry_id}: unknown evidence_class {evidence_class}")
+        lanes = entry.get("responsible_lanes", [])
+        if not lanes:
+            errors.append(f"{entry_id}: responsible_lanes must not be empty")
+        if len(lanes) != len(set(lanes)):
+            errors.append(f"{entry_id}: responsible_lanes must be unique")
+        for lane in lanes:
+            if lane not in LANES:
+                errors.append(f"{entry_id}: unknown lane {lane}")
+        source_links = entry.get("source_links", [])
+        if not source_links:
+            errors.append(f"{entry_id}: source_links must not be empty")
+        if len(source_links) != len(set(source_links)):
+            errors.append(f"{entry_id}: source_links must be unique")
+    return errors
+
+
+def markdown(doc):
+    lines = [
+        "# Proof/refinement scope",
+        "",
+        "This file is generated from",
+        "[`proof-refinement-scope.json`](proof-refinement-scope.json) by",
+        "`tools/proof-refinement-scope --write`. Do not hand-edit this Markdown;",
+        "edit the JSON artifact and regenerate it. This document classifies evidence",
+        "strength only; current per-invariant coverage remains authoritative in",
+        "[`../invariants/coverage-matrix.json`](../invariants/coverage-matrix.json).",
+        "",
+        doc["note"],
+        "",
+        "## Evidence Classes",
+        "",
+    ]
+    for evidence_class, description in CLASS_DESCRIPTIONS.items():
+        lines.append(f"- `{evidence_class}`: {description}")
+    for evidence_class in CLASSES:
+        entries = [
+            entry for entry in doc["entries"] if entry["evidence_class"] == evidence_class
+        ]
+        if not entries:
+            continue
+        lines.extend(["", f"## {evidence_class}", ""])
+        for entry in entries:
+            lines.extend(
+                [
+                    f"### {entry['title']}",
+                    "",
+                    f"- ID: `{entry['id']}`",
+                    f"- Lanes: `{markdown_list(entry['responsible_lanes'])}`",
+                    f"- Claim: {entry['claim']}",
+                    f"- Authority surface: {entry['authority_surface']}",
+                    f"- Scope: {entry['scope']}",
+                    f"- Limits: {entry['limits']}",
+                    f"- Verification: {entry['verification']}",
+                    f"- Source links: {markdown_list([f'`{link}`' for link in entry['source_links']])}",
+                    "",
+                ]
+            )
+    return "\n".join(lines)
+
+
+def main(argv):
+    if len(argv) != 2 or argv[1] not in ("--write", "--check"):
+        sys.stderr.write("usage: proof-refinement-scope --write|--check\n")
+        return 2
+    doc = load_doc()
+    errors = validate_doc(doc)
+    if errors:
+        for error in errors:
+            sys.stderr.write(f"{error}\n")
+        return 1
+    expected = markdown(doc)
+    if argv[1] == "--write":
+        write_text(DOC_MD, expected)
+        print(f"wrote {DOC_MD} from {DOC}")
+        return 0
+    if not report_projection_drift(
+        DOC_MD,
+        expected,
+        DOC,
+        "tools/proof-refinement-scope --write",
+    ):
+        return 1
+    print(f"{DOC_MD} matches {DOC} (proof/refinement scope)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

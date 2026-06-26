@@ -1,0 +1,763 @@
+{
+  "schema_version": 6,
+  "authority": "machine_checked_publish_readiness",
+  "generated_markdown": "docs/release/publish-readiness.md",
+  "publication_strategy": "publication_prep_no_upload",
+  "facade_crate": "causlane",
+  "readiness_status": "pass",
+  "note": "This artifact is a deterministic publication-prep report. It does not publish crates, reserve names, verify cargo tokens or turn network availability into a blocking repo gate.",
+  "package": {
+    "name": "causlane",
+    "version": "0.0.1",
+    "manifest_path": "crates/causlane/Cargo.toml",
+    "package_root": "crates/causlane",
+    "description": "Typed, auditable, replayable, consequence-aware action dispatch.",
+    "license": "MIT OR Apache-2.0",
+    "authors": [
+      "Boot and Pencil <lobanov@bootandpencil.com>"
+    ],
+    "repository": "https://github.com/Boot-and-Pencil/causlane",
+    "homepage": "https://github.com/Boot-and-Pencil/causlane",
+    "documentation": "https://docs.rs/causlane",
+    "keywords": [
+      "dispatch",
+      "audit",
+      "replay",
+      "formal-methods",
+      "kernel"
+    ],
+    "categories": [
+      "development-tools",
+      "rust-patterns"
+    ],
+    "rust_version": "1.82"
+  },
+  "package_files": [
+    ".cargo_vcs_info.json",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Cargo.toml.orig",
+    "README.md",
+    "benches/dispatch_baseline_bench_suite.rs",
+    "fixtures/contracts/examples/release_promote.registry.yaml",
+    "fixtures/contracts/scenarios/release_promote_success.scenario.yaml",
+    "src/lib.rs",
+    "tests/public_api.rs"
+  ],
+  "name_availability": {
+    "crate": "causlane",
+    "deterministic_gate": "not_run",
+    "advisory_command": "tools/publish-readiness --online",
+    "note": "Crates.io availability is intentionally advisory because it is network-dependent and can change at any time."
+  },
+  "repository_visibility": {
+    "repository": "https://github.com/Boot-and-Pencil/causlane",
+    "deterministic_gate": "not_run",
+    "advisory_command": "tools/publish-readiness --online",
+    "note": "Public repository resolution is intentionally advisory because it is network-dependent and can change at any time."
+  },
+  "workspace_publication": {
+    "status": "pass",
+    "dependency_tiers": [
+      {
+        "tier": 0,
+        "packages": [
+          "causlane-core",
+          "causlane-formal"
+        ]
+      },
+      {
+        "tier": 1,
+        "packages": [
+          "causlane",
+          "causlane-contracts",
+          "causlane-runtime"
+        ]
+      },
+      {
+        "tier": 2,
+        "packages": [
+          "causlane-replay",
+          "causlane-codegen"
+        ]
+      },
+      {
+        "tier": 3,
+        "packages": [
+          "causlane-cli"
+        ]
+      }
+    ],
+    "facade_dependency_closure": [
+      "causlane-core"
+    ],
+    "facade_publish_sequence": [
+      "causlane-core",
+      "causlane"
+    ],
+    "full_publish_sequence": [
+      "causlane-core",
+      "causlane-formal",
+      "causlane-contracts",
+      "causlane-runtime",
+      "causlane-replay",
+      "causlane-codegen",
+      "causlane",
+      "causlane-cli"
+    ],
+    "cycle_packages": [],
+    "packages": [
+      {
+        "name": "causlane",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane/Cargo.toml",
+        "package_root": "crates/causlane",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "benches/dispatch_baseline_bench_suite.rs",
+          "fixtures/contracts/examples/release_promote.registry.yaml",
+          "fixtures/contracts/scenarios/release_promote_success.scenario.yaml",
+          "src/lib.rs",
+          "tests/public_api.rs"
+        ],
+        "normal_workspace_dependencies": [
+          {
+            "name": "causlane-core",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-core"
+          }
+        ]
+      },
+      {
+        "name": "causlane-core",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-core/Cargo.toml",
+        "package_root": "crates/causlane-core",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "src/application/mod.rs",
+          "src/application/ports.rs",
+          "src/application/use_cases.rs",
+          "src/contract.rs",
+          "src/domain/action.rs",
+          "src/domain/approval.rs",
+          "src/domain/approval_stepup.rs",
+          "src/domain/audit.rs",
+          "src/domain/authz.rs",
+          "src/domain/authz_policy.rs",
+          "src/domain/capability.rs",
+          "src/domain/constraint.rs",
+          "src/domain/constraint_runtime.rs",
+          "src/domain/constraint_spec.rs",
+          "src/domain/constraint_update.rs",
+          "src/domain/drain.rs",
+          "src/domain/drain_protocol.rs",
+          "src/domain/effect.rs",
+          "src/domain/frontier.rs",
+          "src/domain/graph_index.rs",
+          "src/domain/hashing.rs",
+          "src/domain/lane.rs",
+          "src/domain/lifecycle.rs",
+          "src/domain/mod.rs",
+          "src/domain/overlay.rs",
+          "src/domain/projection_authz.rs",
+          "src/domain/redaction.rs",
+          "src/domain/redaction_policy.rs",
+          "src/domain/routing.rs",
+          "src/domain/tier.rs",
+          "src/domain/tracing.rs",
+          "src/domain/why_not_parallel.rs",
+          "src/integration.rs",
+          "src/kernel.rs",
+          "src/lib.rs",
+          "src/ports.rs",
+          "src/prelude.rs",
+          "src/protocol.rs",
+          "src/testing.rs",
+          "tests/proptest_protocol_properties.rs"
+        ],
+        "normal_workspace_dependencies": []
+      },
+      {
+        "name": "causlane-contracts",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-contracts/Cargo.toml",
+        "package_root": "crates/causlane-contracts",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "fixtures/contracts/examples/release_promote.registry.yaml",
+          "src/attestation.rs",
+          "src/bundle.rs",
+          "src/canonical.rs",
+          "src/contract.rs",
+          "src/examples.rs",
+          "src/hmac.rs",
+          "src/invariants.rs",
+          "src/lib.rs",
+          "src/plan_hash.rs",
+          "src/plan_template_cache.rs",
+          "src/registry.rs",
+          "src/sha256.rs",
+          "src/template.rs",
+          "src/tests.rs"
+        ],
+        "normal_workspace_dependencies": [
+          {
+            "name": "causlane-core",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-core"
+          }
+        ]
+      },
+      {
+        "name": "causlane-replay",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-replay/Cargo.toml",
+        "package_root": "crates/causlane-replay",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "fixtures/contracts/examples/multi_action_reference.registry.yaml",
+          "fixtures/contracts/examples/projection_readonly.registry.yaml",
+          "fixtures/contracts/examples/release_promote.registry.yaml",
+          "fixtures/contracts/examples/release_promote.trace.json",
+          "fixtures/contracts/scenarios/approval_wrong_plan_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/conflict_free_parallelism_success.scenario.yaml",
+          "fixtures/contracts/scenarios/conflicting_leases_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/drain_with_active_lease_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/event_after_closed_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/execution_without_barrier_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/execution_without_capability_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/missing_witness_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/multi_action_reference.scenario.yaml",
+          "fixtures/contracts/scenarios/projection_anchor_wrong_fact_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/projection_success.scenario.yaml",
+          "fixtures/contracts/scenarios/projection_without_anchor_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/read_only_sidecar_success.scenario.yaml",
+          "fixtures/contracts/scenarios/release_promote_success.scenario.yaml",
+          "fixtures/contracts/scenarios/witness_event_wrong_fact_kind_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/witness_wrong_scope_invalid.scenario.yaml",
+          "src/authz.rs",
+          "src/contract.rs",
+          "src/error.rs",
+          "src/explain.rs",
+          "src/lib.rs",
+          "src/lifecycle.rs",
+          "src/outcome.rs",
+          "src/tests/attestation.rs",
+          "src/tests.rs",
+          "src/trace.rs",
+          "src/trace_lowering.rs",
+          "tests/conflict_free_parallelism.rs",
+          "tests/error_diagnostics.rs",
+          "tests/explain.rs",
+          "tests/multi_action_reference.rs",
+          "tests/mutation_fuzz.rs",
+          "tests/projection_read_sidecar.rs",
+          "tests/proptest_parse_boundaries.rs"
+        ],
+        "normal_workspace_dependencies": [
+          {
+            "name": "causlane-contracts",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-contracts"
+          },
+          {
+            "name": "causlane-core",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-core"
+          }
+        ]
+      },
+      {
+        "name": "causlane-runtime",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-runtime/Cargo.toml",
+        "package_root": "crates/causlane-runtime",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "src/adapters/apalis.rs",
+          "src/adapters/audit/postgres.rs",
+          "src/adapters/audit/sqlite.rs",
+          "src/adapters/audit.rs",
+          "src/adapters/authzen.rs",
+          "src/adapters/casbin.rs",
+          "src/adapters/cedar.rs",
+          "src/adapters/certification.rs",
+          "src/adapters/engine.rs",
+          "src/adapters/executor.rs",
+          "src/adapters/mod.rs",
+          "src/adapters/openfga.rs",
+          "src/adapters/otel.rs",
+          "src/adapters/restate.rs",
+          "src/adapters/tracing.rs",
+          "src/authz.rs",
+          "src/guarded_executor.rs",
+          "src/in_process/coordinator.rs",
+          "src/in_process/mod.rs",
+          "src/in_process/tests/backpressure.rs",
+          "src/in_process/tests/recovery.rs",
+          "src/in_process/tests/retention.rs",
+          "src/in_process/tests.rs",
+          "src/in_process/worker.rs",
+          "src/lib.rs",
+          "src/linear_host.rs",
+          "src/operational_slo.rs",
+          "src/partitions.rs",
+          "src/projection_guard.rs",
+          "src/shadow.rs",
+          "src/test_support.rs"
+        ],
+        "normal_workspace_dependencies": [
+          {
+            "name": "causlane-core",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-core"
+          }
+        ]
+      },
+      {
+        "name": "causlane-codegen",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-codegen/Cargo.toml",
+        "package_root": "crates/causlane-codegen",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "fixtures/contracts/examples/release_promote.registry.yaml",
+          "src/alloy.rs",
+          "src/alloy_authz.rs",
+          "src/alloy_bindings.rs",
+          "src/alloy_bindings_tests.rs",
+          "src/alloy_drain.rs",
+          "src/alloy_events.rs",
+          "src/alloy_merge.rs",
+          "src/artifact.rs",
+          "src/contract.rs",
+          "src/coverage.rs",
+          "src/error.rs",
+          "src/identifier_check.rs",
+          "src/ir.rs",
+          "src/kani_target.rs",
+          "src/lean4_target.rs",
+          "src/lib.rs",
+          "src/obligations.rs",
+          "src/p_monitors.rs",
+          "src/receipt.rs",
+          "src/stale.rs",
+          "src/targets.rs",
+          "src/verus_target.rs",
+          "tests/multi_action_alloy.rs",
+          "tests/public_api.rs"
+        ],
+        "normal_workspace_dependencies": [
+          {
+            "name": "causlane-contracts",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-contracts"
+          }
+        ]
+      },
+      {
+        "name": "causlane-formal",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-formal/Cargo.toml",
+        "package_root": "crates/causlane-formal",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "src/lib.rs",
+          "tests/proptest_smoke.rs"
+        ],
+        "normal_workspace_dependencies": []
+      },
+      {
+        "name": "causlane-cli",
+        "version": "0.0.1",
+        "manifest_path": "crates/causlane-cli/Cargo.toml",
+        "package_root": "crates/causlane-cli",
+        "package_files": [
+          ".cargo_vcs_info.json",
+          "Cargo.lock",
+          "Cargo.toml",
+          "Cargo.toml.orig",
+          "README.md",
+          "fixtures/.devinfra/tool-versions.json",
+          "fixtures/contracts/examples/release_promote.registry.yaml",
+          "fixtures/contracts/examples/release_promote.trace.json",
+          "fixtures/contracts/scenarios/execution_without_barrier_invalid.scenario.yaml",
+          "fixtures/contracts/scenarios/release_promote_success.scenario.yaml",
+          "src/app/formal/coverage.rs",
+          "src/app/formal/error.rs",
+          "src/app/formal/io.rs",
+          "src/app/formal/mod.rs",
+          "src/app/formal/negative.rs",
+          "src/app/formal/receipt.rs",
+          "src/app/formal/tests.rs",
+          "src/app/mod.rs",
+          "src/bin/causlane-formal-discipline.rs",
+          "src/bin/causlane-formal.rs",
+          "src/bin/formal_discipline/adequacy.rs",
+          "src/bin/formal_discipline/args.rs",
+          "src/bin/formal_discipline/manifest.rs",
+          "src/bin/formal_discipline/mod.rs",
+          "src/bin/formal_discipline/paths.rs",
+          "src/bin/formal_discipline/proof.rs",
+          "src/bin/formal_runtime/io.rs",
+          "src/cli_contract.rs",
+          "src/cli_explain.rs",
+          "src/cli_graph.rs",
+          "src/cli_graph_export.rs",
+          "src/cli_parse.rs",
+          "src/cli_replay.rs",
+          "src/cli_scenario.rs",
+          "src/cli_shared.rs",
+          "src/cli_smoke_tests.rs",
+          "src/cli_support_bundle.rs",
+          "src/formal_artifacts.rs",
+          "src/formal_doctor.rs",
+          "src/formal_generate.rs",
+          "src/lib.rs",
+          "src/main.rs",
+          "src/scenario_facts.rs",
+          "src/tool_versions.rs"
+        ],
+        "normal_workspace_dependencies": [
+          {
+            "name": "causlane-codegen",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-codegen"
+          },
+          {
+            "name": "causlane-contracts",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-contracts"
+          },
+          {
+            "name": "causlane-core",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-core"
+          },
+          {
+            "name": "causlane-formal",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-formal"
+          },
+          {
+            "name": "causlane-replay",
+            "requirement": "^0.0.1",
+            "path": "crates/causlane-replay"
+          }
+        ]
+      }
+    ]
+  },
+  "feature_surface": {
+    "status": "pass",
+    "policy": "m11_2_default_minimal_optional_integrations",
+    "packages": [
+      {
+        "name": "causlane",
+        "manifest_path": "crates/causlane/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      },
+      {
+        "name": "causlane-core",
+        "manifest_path": "crates/causlane-core/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      },
+      {
+        "name": "causlane-contracts",
+        "manifest_path": "crates/causlane-contracts/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      },
+      {
+        "name": "causlane-replay",
+        "manifest_path": "crates/causlane-replay/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      },
+      {
+        "name": "causlane-runtime",
+        "manifest_path": "crates/causlane-runtime/Cargo.toml",
+        "default_features": [],
+        "declared_features": [
+          "apalis",
+          "default",
+          "otel",
+          "postgres-audit",
+          "restate",
+          "sqlite-audit",
+          "tokio-runtime"
+        ],
+        "optional_dependencies": [
+          {
+            "name": "apalis",
+            "feature_flags": [
+              "apalis"
+            ]
+          },
+          {
+            "name": "opentelemetry",
+            "feature_flags": [
+              "otel"
+            ]
+          },
+          {
+            "name": "opentelemetry-otlp",
+            "feature_flags": [
+              "otel"
+            ]
+          },
+          {
+            "name": "opentelemetry_sdk",
+            "feature_flags": [
+              "otel"
+            ]
+          },
+          {
+            "name": "postgres",
+            "feature_flags": [
+              "postgres-audit"
+            ]
+          },
+          {
+            "name": "restate-sdk",
+            "feature_flags": [
+              "restate"
+            ]
+          },
+          {
+            "name": "rusqlite",
+            "feature_flags": [
+              "sqlite-audit"
+            ]
+          },
+          {
+            "name": "serde",
+            "feature_flags": [
+              "restate"
+            ]
+          },
+          {
+            "name": "tokio",
+            "feature_flags": [
+              "tokio-runtime"
+            ]
+          },
+          {
+            "name": "tower",
+            "feature_flags": [
+              "apalis"
+            ]
+          }
+        ],
+        "docsrs_all_features": true
+      },
+      {
+        "name": "causlane-codegen",
+        "manifest_path": "crates/causlane-codegen/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      },
+      {
+        "name": "causlane-formal",
+        "manifest_path": "crates/causlane-formal/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      },
+      {
+        "name": "causlane-cli",
+        "manifest_path": "crates/causlane-cli/Cargo.toml",
+        "default_features": [],
+        "declared_features": [],
+        "optional_dependencies": [],
+        "docsrs_all_features": false
+      }
+    ],
+    "blockers": []
+  },
+  "publication_execution": {
+    "status": "deferred",
+    "reason": "Actual upload is deferred until the explicit release runbook is invoked.",
+    "deferred_dependencies": [
+      "causlane-core ^0.0.1 via crates/causlane-core"
+    ],
+    "publish_sequence": [
+      "causlane-core",
+      "causlane-formal",
+      "causlane-contracts",
+      "causlane-runtime",
+      "causlane-replay",
+      "causlane-codegen",
+      "causlane",
+      "causlane-cli"
+    ],
+    "next_command": "cargo package -p causlane-core --list",
+    "dry_run_command": "cargo publish -p causlane-core --dry-run --locked",
+    "actual_publish_command": "cargo publish -p causlane-core --locked",
+    "note": "This report is a deterministic repository gate. It does not publish crates, reserve names, verify tokens or claim that registry upload has been executed."
+  },
+  "checks": [
+    {
+      "id": "workspace-version",
+      "status": "pass",
+      "summary": "Workspace packages use the first public publication version.",
+      "evidence": [
+        "workspace package versions: 0.0.1"
+      ],
+      "remediation": "Set workspace package version and lockfile packages to 0.0.1."
+    },
+    {
+      "id": "facade-metadata",
+      "status": "pass",
+      "summary": "Facade crate metadata is complete enough for a readiness report.",
+      "evidence": [
+        "description/license/authors/repository/homepage/documentation/keywords/categories/rust-version are present"
+      ],
+      "remediation": "Fill required package metadata in Cargo.toml before publication."
+    },
+    {
+      "id": "license-files",
+      "status": "pass",
+      "summary": "Dual-license files match the workspace license expression.",
+      "evidence": [
+        "present: LICENSE-MIT, LICENSE-APACHE"
+      ],
+      "remediation": "Add both license files or update the workspace license expression and release docs."
+    },
+    {
+      "id": "root-publication-docs",
+      "status": "pass",
+      "summary": "Root publication, contribution, security and AI-policy docs are present.",
+      "evidence": [
+        "present root docs: README.md, LICENSE-MIT, LICENSE-APACHE, AI_USAGE.md, AGENTS.md, CONTRIBUTING.md, SECURITY.md, CHANGELOG.md, PUBLISHING.md, RELEASE.md"
+      ],
+      "remediation": "Add the missing root publication documents before publication."
+    },
+    {
+      "id": "crate-readme",
+      "status": "pass",
+      "summary": "The facade package has a crate-local README for crates.io.",
+      "evidence": [
+        "crate README candidates present: crates/causlane/README.md"
+      ],
+      "remediation": "Add a crate-local README or package.readme before publication."
+    },
+    {
+      "id": "workspace-crate-readmes",
+      "status": "pass",
+      "summary": "Every workspace crate has a crate-local README for crates.io.",
+      "evidence": [
+        "crate READMEs: causlane: crates/causlane/README.md, causlane-core: crates/causlane-core/README.md, causlane-contracts: crates/causlane-contracts/README.md, causlane-replay: crates/causlane-replay/README.md, causlane-runtime: crates/causlane-runtime/README.md, causlane-codegen: crates/causlane-codegen/README.md, causlane-formal: crates/causlane-formal/README.md, causlane-cli: crates/causlane-cli/README.md"
+      ],
+      "remediation": "Add crate-local README files or explicit package.readme entries."
+    },
+    {
+      "id": "workspace-package-file-lists",
+      "status": "pass",
+      "summary": "Workspace package file lists include manifests, READMEs and Rust entrypoints.",
+      "evidence": [
+        "package file lists captured for 8 workspace crates"
+      ],
+      "remediation": "Adjust package include/exclude metadata if required files are absent."
+    },
+    {
+      "id": "workspace-publication-order",
+      "status": "pass",
+      "summary": "Workspace crate publication order is machine-derived from normal path dependencies.",
+      "evidence": [
+        "dependency tiers: tier 0: causlane-core, causlane-formal, tier 1: causlane, causlane-contracts, causlane-runtime, tier 2: causlane-replay, causlane-codegen, tier 3: causlane-cli",
+        "facade publish sequence: causlane-core, causlane"
+      ],
+      "remediation": "Break workspace dependency cycles before publishing internal crates."
+    },
+    {
+      "id": "full-workspace-publish-sequence",
+      "status": "pass",
+      "summary": "Full workspace publication sequence is explicit and release-runbook aligned.",
+      "evidence": [
+        "sequence: causlane-core, causlane-formal, causlane-contracts, causlane-runtime, causlane-replay, causlane-codegen, causlane, causlane-cli"
+      ],
+      "remediation": "Update the publish sequence or workspace package list before publication."
+    },
+    {
+      "id": "internal-dependency-versions",
+      "status": "pass",
+      "summary": "Internal workspace path dependencies carry registry-compatible versions.",
+      "evidence": [
+        "all internal path dependencies match their package versions"
+      ],
+      "remediation": "Update internal path+version dependency requirements before publication."
+    },
+    {
+      "id": "feature-surface",
+      "status": "pass",
+      "summary": "Workspace feature flags keep the facade minimal and optional integrations explicit.",
+      "evidence": [
+        "policy: m11_2_default_minimal_optional_integrations",
+        "feature-bearing packages: causlane-runtime features=apalis, default, otel, postgres-audit, restate, sqlite-audit, tokio-runtime",
+        "all workspace crates have empty default features and explicit optional integration flags"
+      ],
+      "remediation": "Move optional integrations behind non-default features and keep docs.rs metadata explicit."
+    },
+    {
+      "id": "publication-dependencies",
+      "status": "warn",
+      "summary": "Facade normal dependencies are deferred until internal crates are published.",
+      "evidence": [
+        "deferred unpublished path dependencies: causlane-core ^0.0.1 via crates/causlane-core"
+      ],
+      "remediation": "Publish internal crates first before attempting a real facade upload."
+    },
+    {
+      "id": "facade-dry-run",
+      "status": "warn",
+      "summary": "`cargo publish --dry-run -p causlane` remains an execution probe, not a repository readiness blocker.",
+      "evidence": [
+        "actual facade dry-run is deferred until internal dependencies are available from crates.io"
+      ],
+      "remediation": "Run `./tools/cargo-dev publish -p causlane --dry-run` only after dependency blockers clear."
+    }
+  ]
+}

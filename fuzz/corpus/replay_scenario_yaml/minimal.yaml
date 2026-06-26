@@ -1,0 +1,7 @@
+scenario_version: "0"
+scenario_id: seed
+action_id: a
+predicate: p
+plan_hash: sha256:1111111111111111111111111111111111111111111111111111111111111111
+expected_replay_result: pass
+events: []

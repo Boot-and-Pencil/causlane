@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "fixture_stem": "release_promote_success",
+  "package_name": "causlane_kani_release_promote_success",
+  "output_format": "terse",
+  "lanes": {
+    "local_smoke": {
+      "default_unwind": 96
+    },
+    "fast_ci": {
+      "default_unwind": 96
+    },
+    "nightly": {
+      "default_unwind": 128
+    },
+    "manual_deep": {
+      "default_unwind": 192
+    }
+  }
+}

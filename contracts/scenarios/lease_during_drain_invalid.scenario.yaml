@@ -1,0 +1,44 @@
+scenario_version: 0.1.0
+scenario_id: lease_during_drain_invalid
+action_id: act_promote_123
+predicate: release.promote_candidate
+plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+subject:
+  - key: release_candidate_id
+    value: rc_123
+  - key: target_environment
+    value: staging
+circumstance:
+  - key: requested_by
+    value: alice
+  - key: reason
+    value: ship it
+# I-007 P negative control (P1-001 interleaving lane): a drain fence is REQUESTED
+# over environment:staging, and then a new exclusive lease is granted on that same
+# scope while the drain is in progress. This invalid trace is refuted in two lanes:
+#   - P: the keyed DrainBlocksNewMutableAdmission monitor fires (drain blocks new
+#     mutable admission on the SAME scope) — the direction this control exists for.
+#   - replay: the strict RuntimeExecution profile also rejects it, because a bare
+#     drain.fence_requested from the New lifecycle state is a ForbiddenTransition
+#     (the minimal trace omits the admit/plan/dispatch prefix). Hence the declared
+#     replay code is Lifecycle, not the drain-overlap code that the fuller
+#     drain_with_active_lease_invalid control (fence ACQUIRED over an active lease)
+#     produces.
+expected_replay_result: fail
+expected_error_code: Lifecycle
+formal_obligations: [I-007]
+events:
+  - event_id: evt_drain_req
+    kind: drain.fence_requested
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    scope: environment:staging
+  - event_id: evt_lease
+    kind: constraint.lease_granted
+    action_id: act_promote_123
+    plan_hash: sha256:a241276dc389e9197710cd415072e850036429799d636873f47ae8a1bc44d47b
+    leases:
+      - lease_id: lease_env
+        resource: environment_write
+        scope: environment:staging
+        mode: exclusive

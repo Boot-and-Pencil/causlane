@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/formal_coverage_report.schema.json",
+  "title": "Causlane Formal Coverage Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "checked_at",
+    "source_bundle_hash",
+    "formal_ir_hash",
+    "scenario_hash",
+    "formal_ir_path",
+    "artifacts",
+    "invariant_coverage",
+    "negative_controls"
+  ],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "status": { "type": "string", "enum": ["pass", "fail"] },
+    "checked_at": { "type": "string", "minLength": 1 },
+    "source_bundle_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "formal_ir_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "scenario_hash": {
+      "anyOf": [
+        { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        { "type": "null" }
+      ]
+    },
+    "formal_ir_path": { "type": "string", "minLength": 1 },
+    "artifacts": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/artifact" }
+    },
+    "invariant_coverage": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/invariant" }
+    },
+    "negative_controls": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/negative_control" }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "artifact_kind",
+        "path",
+        "artifact_hash",
+        "codegen_receipt",
+        "tool_run_receipt",
+        "status",
+        "exit_code",
+        "derived_from"
+      ],
+      "properties": {
+        "target": { "type": "string", "enum": ["alloy", "p", "kani", "verus", "lean4"] },
+        "artifact_kind": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "artifact_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "codegen_receipt": { "type": "string", "minLength": 1 },
+        "tool_run_receipt": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "expected_fail_refuted",
+            "expected_fail_not_refuted",
+            "stale",
+            "not_generated",
+            "not_run",
+            "non_blocking_skipped",
+            "unsupported_on_platform",
+            "invalid_receipt"
+          ]
+        },
+        "exit_code": {
+          "anyOf": [{ "type": "integer" }, { "type": "null" }]
+        },
+        "derived_from": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "invariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invariant_id", "replay", "alloy", "p", "kani", "verus", "lean4", "status", "check_ids"],
+      "properties": {
+        "invariant_id": { "$ref": "common.schema.json#/$defs/active_invariant_id" },
+        "replay": { "$ref": "#/$defs/lane_status" },
+        "alloy": { "$ref": "#/$defs/lane_status" },
+        "p": { "$ref": "#/$defs/lane_status" },
+        "kani": { "$ref": "#/$defs/lane_status" },
+        "verus": { "$ref": "#/$defs/lane_status" },
+        "lean4": { "$ref": "#/$defs/lane_status" },
+        "status": {
+          "type": "string",
+          "enum": ["covered", "covered_with_deferred_lane", "blocked", "not_applicable"]
+        },
+        "check_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "lane_status": {
+      "type": "string",
+      "enum": ["passed", "negative_control", "not_applicable", "pending_tool_run", "non_blocking_spec"]
+    },
+    "negative_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario", "expected_error_code", "status", "actual_error_code"],
+      "properties": {
+        "scenario": { "type": "string", "minLength": 1 },
+        "expected_error_code": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["refuted_by_replay", "wrong_code", "unexpected_pass", "catalogued"]
+        },
+        "actual_error_code": {
+          "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

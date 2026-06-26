@@ -1,0 +1,311 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://causlane.local/schema/publish_readiness.schema.json",
+  "title": "Causlane Publish Readiness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authority",
+    "generated_markdown",
+    "publication_strategy",
+    "facade_crate",
+    "readiness_status",
+    "note",
+    "package",
+    "package_files",
+    "name_availability",
+    "repository_visibility",
+    "workspace_publication",
+    "feature_surface",
+    "publication_execution",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": { "const": 6 },
+    "authority": { "const": "machine_checked_publish_readiness" },
+    "generated_markdown": { "const": "docs/release/publish-readiness.md" },
+    "publication_strategy": { "const": "publication_prep_no_upload" },
+    "facade_crate": { "const": "causlane" },
+    "readiness_status": { "enum": ["pass", "blocked"] },
+    "note": { "type": "string", "minLength": 1 },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "manifest_path",
+        "package_root",
+        "description",
+        "license",
+        "authors",
+        "repository",
+        "homepage",
+        "documentation",
+        "keywords",
+        "categories",
+        "rust_version"
+      ],
+      "properties": {
+        "name": { "const": "causlane" },
+        "version": { "type": "string", "minLength": 1 },
+        "manifest_path": { "type": "string", "minLength": 1 },
+        "package_root": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1 },
+        "authors": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "repository": { "type": "string", "minLength": 1 },
+        "homepage": { "type": "string", "minLength": 1 },
+        "documentation": { "type": "string", "minLength": 1 },
+        "keywords": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "rust_version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "package_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "name_availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["crate", "deterministic_gate", "advisory_command", "note"],
+      "properties": {
+        "crate": { "const": "causlane" },
+        "deterministic_gate": { "const": "not_run" },
+        "advisory_command": { "const": "tools/publish-readiness --online" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "repository_visibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "deterministic_gate", "advisory_command", "note"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "deterministic_gate": { "const": "not_run" },
+        "advisory_command": { "const": "tools/publish-readiness --online" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "workspace_publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "dependency_tiers",
+        "facade_dependency_closure",
+        "facade_publish_sequence",
+        "full_publish_sequence",
+        "cycle_packages",
+        "packages"
+      ],
+      "properties": {
+        "status": { "enum": ["pass", "blocked"] },
+        "dependency_tiers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dependency_tier" }
+        },
+        "facade_dependency_closure": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "facade_publish_sequence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "full_publish_sequence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "cycle_packages": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/workspace_package" }
+        }
+      }
+    },
+    "feature_surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "policy", "packages", "blockers"],
+      "properties": {
+        "status": { "enum": ["pass", "blocked"] },
+        "policy": { "const": "m11_2_default_minimal_optional_integrations" },
+        "packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/feature_package" }
+        },
+        "blockers": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "publication_execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason",
+        "deferred_dependencies",
+        "publish_sequence",
+        "next_command",
+        "dry_run_command",
+        "actual_publish_command",
+        "note"
+      ],
+      "properties": {
+        "status": { "const": "deferred" },
+        "reason": { "type": "string", "minLength": 1 },
+        "deferred_dependencies": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "publish_sequence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "next_command": { "type": "string", "minLength": 1 },
+        "dry_run_command": { "type": "string", "minLength": 1 },
+        "actual_publish_command": { "type": "string", "minLength": 1 },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/check" }
+    }
+  },
+  "$defs": {
+    "dependency_tier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "packages"],
+      "properties": {
+        "tier": { "type": "integer", "minimum": 0 },
+        "packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "workspace_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "requirement", "path"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "requirement": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "workspace_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "manifest_path",
+        "package_root",
+        "package_files",
+        "normal_workspace_dependencies"
+      ],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "manifest_path": { "type": "string", "minLength": 1 },
+        "package_root": { "type": "string", "minLength": 1 },
+        "package_files": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "normal_workspace_dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workspace_dependency" }
+        }
+      }
+    },
+    "feature_optional_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "feature_flags"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "feature_flags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "feature_package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "manifest_path",
+        "default_features",
+        "declared_features",
+        "optional_dependencies",
+        "docsrs_all_features"
+      ],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "manifest_path": { "type": "string", "minLength": 1 },
+        "default_features": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "declared_features": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "optional_dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/feature_optional_dependency" }
+        },
+        "docsrs_all_features": { "type": "boolean" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "summary", "evidence", "remediation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "status": { "enum": ["pass", "blocked", "warn"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "remediation": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

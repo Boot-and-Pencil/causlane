@@ -1,0 +1,32 @@
+[allowed.foreground]
+commands = [
+  "check",
+  "clippy",
+  "nextest run",
+  "test --no-run",
+  "llvm-cov nextest",
+  "llvm-cov clean",
+]
+
+[allowed.background]
+commands = [
+  "fetch",
+  "metadata",
+  "check",
+  "clippy",
+  "nextest run --no-run",
+  "coverage prebuild --no-run",
+]
+
+[denied]
+commands = [
+  "cargo clean",
+  "cargo update",
+  "rm -rf target",
+]
+env_prefixes = [
+  "RUSTFLAGS=",
+  "CARGO_ENCODED_RUSTFLAGS=",
+  "RUSTDOCFLAGS=",
+  "CARGO_TARGET_DIR=",
+]

@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+"""Derive docs/invariants/coverage-matrix.{json,md} from the formal coverage report.
+
+The per-lane status of every invariant is *machine-derived* (P0-006): it is the
+reconciled status in target/causlane/formal-coverage-report.json, never asserted
+by hand. The human statement/owner for each invariant is preserved from the
+existing doc. Two modes:
+
+  coverage-matrix --write   regenerate the committed docs from the report
+  coverage-matrix --check   fail if the committed docs have drifted from the report
+
+`--check` runs in the formal gate so the documented matrix can never overclaim a
+lane the machine report does not back.
+"""
+
+import collections
+import json
+import sys
+
+from doc_projection import markdown_list, report_projection_drift, write_text
+
+REPORT = "target/causlane/formal-coverage-report.json"
+DOC = "docs/invariants/coverage-matrix.json"
+DOC_MD = "docs/invariants/coverage-matrix.md"
+LANES = ("replay", "alloy", "p", "kani", "verus", "lean4")
+
+
+def derived(report, meta):
+    invs = []
+    for ic in report["invariant_coverage"]:
+        iid = ic["invariant_id"]
+        m = meta.get(iid, {"statement": "", "owner": ""})
+        invs.append(
+            collections.OrderedDict(
+                [
+                    ("id", iid),
+                    ("statement", m["statement"]),
+                    ("owner", m["owner"]),
+                    (
+                        "lanes",
+                        collections.OrderedDict(
+                            [
+                                ("replay", ic["replay"]),
+                                ("alloy", ic["alloy"]),
+                                ("p", ic["p"]),
+                                ("kani", ic["kani"]),
+                                ("verus", ic["verus"]),
+                                ("lean4", ic["lean4"]),
+                            ]
+                        ),
+                    ),
+                    ("status", ic["status"]),
+                    ("check_ids", ic["check_ids"]),
+                ]
+            )
+        )
+    return collections.OrderedDict(
+        [
+            ("schema_version", 2),
+            ("authority", "compiled_bundle_plus_scenario_plus_formal_ir"),
+            ("gate", "just formal-verify-all"),
+            (
+                "derived_from",
+                "target/causlane/formal-coverage-report.json (P0-006: per-lane status is machine-derived, never hand-asserted)",
+            ),
+            (
+                "note",
+                "Each lane cell is the reconciled status from the coverage report; `tools/coverage-matrix --check` fails if this file drifts from a fresh report. A lane is 'passed' only when a concrete check_id backs it; 'not_applicable' means that lane does not model the invariant (other lanes cover it).",
+            ),
+            ("invariants", invs),
+        ]
+    )
+
+
+def comparable(doc):
+    """The machine-derived part of a doc (ignores statement/owner prose)."""
+    return [
+        {
+            "id": i["id"],
+            "lanes": i["lanes"],
+            "status": i["status"],
+            "check_ids": i["check_ids"],
+        }
+        for i in doc["invariants"]
+    ]
+
+
+def lane_check_ids(invariants, lane):
+    prefix = f"{lane}:"
+    seen = set()
+    check_ids = []
+    for inv in invariants:
+        for check_id in inv["check_ids"]:
+            if check_id.startswith(prefix) and check_id not in seen:
+                seen.add(check_id)
+                check_ids.append(check_id)
+    return check_ids
+
+
+def lane_summary_rows(doc):
+    rows = []
+    for lane in LANES:
+        invariants = doc["invariants"]
+        passed = [
+            inv["id"] for inv in invariants if inv["lanes"][lane] == "passed"
+        ]
+        not_applicable = [
+            inv["id"]
+            for inv in invariants
+            if inv["lanes"][lane] == "not_applicable"
+        ]
+        pending = [
+            inv["id"]
+            for inv in invariants
+            if inv["lanes"][lane] == "pending_tool_run"
+        ]
+        cells = [
+            lane,
+            markdown_list(passed),
+            markdown_list(not_applicable),
+            markdown_list(pending),
+            markdown_list(lane_check_ids(invariants, lane)),
+        ]
+        rows.append("| " + " | ".join(cells) + " |")
+    return rows
+
+
+def markdown(doc):
+    lines = [
+        "# Invariant coverage matrix",
+        "",
+        "The authoritative, machine-derived matrix is",
+        "[`coverage-matrix.json`](coverage-matrix.json), regenerated from the formal",
+        "coverage report (`target/causlane/formal-coverage-report.json`) by",
+        "`just formal-coverage-matrix`. `just formal-verify-all` runs",
+        "`tools/coverage-matrix --check`, which **fails the gate** if this documentation",
+        "overclaims a lane the report does not back (P0-012). Do not hand-edit the lane",
+        "cells below; regenerate them.",
+        "",
+        "Per-lane status (P0-006): a lane is `passed` only when a concrete, named check",
+        "(an Alloy assertion, a P spec, a Kani harness, a Lean4 theorem application, a refuted replay control) backs",
+        "the invariant on that lane; `pending_tool_run` means the generated check exists",
+        "but the current receipt has not recorded a passing run; `not_applicable` means",
+        "that lane does not model the invariant and another lane covers it. The",
+        "always-on Verus/Lean4 proof lanes read `passed` like the other lanes (they",
+        "gate every formal-verify-all run). An invariant is `covered` when at least one lane proves it.",
+        "",
+        "| ID | Invariant | replay | alloy | p | kani | verus | lean4 | Status |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for inv in doc["invariants"]:
+        lanes = inv["lanes"]
+        lines.append(
+            f"| {inv['id']} | {inv['statement']} | {lanes['replay']} | {lanes['alloy']} | {lanes['p']} | {lanes['kani']} | {lanes['verus']} | {lanes['lean4']} | {inv['status']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Derived lane summary",
+            "",
+            "This section is generated from the same report as the table. It is kept in",
+            "Markdown for reader convenience, but `tools/coverage-matrix --check` compares",
+            "the whole file against the freshly generated body, so these summaries cannot",
+            "drift independently from the coverage report.",
+            "",
+            "| Lane | Passed invariants | Not applicable | Pending tool run | Backing check_ids |",
+            "|---|---|---|---|---|",
+            *lane_summary_rows(doc),
+            "",
+            "## How to read this honestly",
+            "",
+            "- The replay oracle is the executable authority for trace semantics. Each",
+            "  `passed` replay cell is grounded in a refuted invalid scenario or authz",
+            "  control, not a hand assertion.",
+            "- Alloy and P model structural/protocol relations where those lanes have",
+            "  generated facts or monitors. A `not_applicable` cell means the lane does",
+            "  not model that invariant; it is not hidden evidence.",
+            "- Kani, Verus and Lean4 cover only the cells backed by the generated",
+            "  `check_ids` above. The always-on proof lanes read `passed` only where their",
+            "  tool-run receipts carry the named obligation.",
+            "",
+            "The full per-cell `check_ids` (which named check backs each `passed` lane) are in",
+            "[`coverage-matrix.json`](coverage-matrix.json) and the coverage report.",
+            "",
+            "## Row template (for new invariants)",
+            "",
+            "```text",
+            "ID:",
+            "Statement:",
+            "Authority surface:",
+            "Generated input:",
+            "Formal lanes (and the concrete check_id per lane):",
+            "Code-facing confirmation:",
+            "Runtime modules:",
+            "Readiness blocker:",
+            "Fresh receipt required:",
+            "Known gaps:",
+            "```",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def main(argv):
+    if len(argv) != 2 or argv[1] not in ("--write", "--check"):
+        sys.stderr.write("usage: coverage-matrix --write|--check\n")
+        return 2
+    try:
+        report = json.load(open(REPORT))
+    except FileNotFoundError:
+        sys.stderr.write(
+            f"{REPORT} not found; run `just formal-verify-all` first\n"
+        )
+        return 1
+    existing = json.load(open(DOC))
+    meta = {
+        i["id"]: {"statement": i.get("statement", ""), "owner": i.get("owner", "")}
+        for i in existing["invariants"]
+    }
+    fresh = derived(report, meta)
+
+    if argv[1] == "--write":
+        with open(DOC, "w") as handle:
+            json.dump(fresh, handle, indent=2)
+            handle.write("\n")
+        write_text(DOC_MD, markdown(fresh))
+        print(f"wrote {DOC} and {DOC_MD} from {REPORT}")
+        return 0
+
+    if comparable(existing) != comparable(fresh):
+        sys.stderr.write(
+            f"{DOC} drifted from {REPORT}: regenerate with `tools/coverage-matrix --write`\n"
+        )
+        for got, want in zip(comparable(existing), comparable(fresh)):
+            if got != want:
+                sys.stderr.write(f"  {got['id']}: committed={got['lanes']} report={want['lanes']}\n")
+        return 1
+
+    if not report_projection_drift(
+        DOC_MD,
+        markdown(fresh),
+        REPORT,
+        "tools/coverage-matrix --write",
+    ):
+        return 1
+
+    print(f"{DOC} and {DOC_MD} match {REPORT} (no overclaim)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

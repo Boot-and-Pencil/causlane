@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Scan production files for historical milestone/snapshot vocabulary."""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SCAN_ROOTS = [
+    ROOT / "crates",
+    ROOT / "tools",
+    ROOT / "Cargo.toml",
+    ROOT / "justfile",
+]
+SKIP = {
+    "tools/semantic-naming-scan",
+}
+SUFFIXES = {".rs", ".toml", ".py", ".sh", ""}
+PATTERNS = [
+    re.compile(r"\bM(?:09|10|11)(?:[._-]\d+)?\b"),
+    re.compile(r"\bm(?:09|10|11)[._-]\d+\b"),
+    re.compile(r"\bWP[-_]?\d+\b", re.I),
+    re.compile(r"\bR\d\b"),
+    re.compile(r"dispatcher[_-]?\d+", re.I),
+    re.compile(r"patch[_-]?pack", re.I),
+]
+
+
+def iter_files() -> list[Path]:
+    files: list[Path] = []
+    for root in SCAN_ROOTS:
+        if root.is_file():
+            files.append(root)
+            continue
+        if not root.exists():
+            continue
+        for path in root.rglob("*"):
+            if path.is_file():
+                files.append(path)
+    return sorted(files)
+
+
+def should_scan(path: Path) -> bool:
+    rel = path.relative_to(ROOT).as_posix()
+    if rel in SKIP:
+        return False
+    if "/target/" in rel or rel.startswith("target/"):
+        return False
+    return path.suffix in SUFFIXES
+
+
+def main() -> int:
+    findings = []
+    for path in iter_files():
+        if not should_scan(path):
+            continue
+        rel = path.relative_to(ROOT).as_posix()
+        for pattern in PATTERNS:
+            if pattern.search(rel):
+                findings.append((rel, 0, "path contains historical vocabulary"))
+                break
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for lineno, line in enumerate(text.splitlines(), 1):
+            for pattern in PATTERNS:
+                if pattern.search(line):
+                    findings.append((rel, lineno, line.strip()))
+                    break
+
+    if findings:
+        print("semantic naming scan: fail")
+        for path, lineno, line in findings:
+            location = path if lineno == 0 else f"{path}:{lineno}"
+            print(f"{location}: {line}")
+        return 1
+
+    print("semantic naming scan: pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
