@@ -349,7 +349,7 @@ stages:
     status: planned
   - id: M11.5
     title: Security/release hygiene
-    status: planned
+    status: exists_harden
   - id: M11.6
     title: Contributor guide
     status: planned
@@ -881,7 +881,7 @@ milestones:
     title: Security/release hygiene
     description: licenses, dependency audit, context-pack scan, secret rules,
       vulnerability policy.
-    status: planned
+    status: exists_harden
     stage: S11
   M11.6:
     title: Contributor guide

@@ -69,12 +69,16 @@ PUB6 post-publication stabilization
 
 ### M11.5 — Security/release hygiene
 
-- **Status:** `planned`
+- **Status:** `exists_harden`
 - **Outcome:** licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - **Definition of done:**
   - root security and AI/provenance docs are present;
+  - `cargo-deny` advisory/license/source policy passes without unreviewed
+    suppressions;
   - package file-list review is recorded for the selected baseline;
-  - secret/context scan is recorded before publication.
+  - secret/context scan is recorded before publication;
+  - deprecated parser boundaries and duplicate dependency warnings are either
+    resolved or explicitly tracked before full workspace publication.
 
 ### M11.6 — Contributor guide
 

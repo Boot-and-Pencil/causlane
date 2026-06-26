@@ -206,7 +206,7 @@
 - `M11.2` — **Feature flags** (`done_or_near_done`): default minimal; existing optional runtime integrations are explicit and non-default.
 - `M11.3` — **Public API review** (`done_or_near_done`): Rust API guidelines, builders, newtypes, no raw Strings on critical fields.
 - `M11.4` — **Examples** (`planned`): simple-local, approval-gate, consequence-parallelism, why-not-parallel.
-- `M11.5` — **Security/release hygiene** (`planned`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
+- `M11.5` — **Security/release hygiene** (`exists_harden`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - `M11.6` — **Contributor guide** (`planned`): ADR process, new predicate checklist, formal obligation template, adapter certification.
 - `M11.7` — **Release notes** (`planned`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
 

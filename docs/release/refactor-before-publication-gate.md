@@ -221,6 +221,14 @@ Update 2026-06-26: the `causlane-core` dry-run passed and is recorded in
 The next irreversible PUB5 action is publishing `causlane-core`, then waiting
 for it to be indexed before any dependent crate dry-run.
 
+Update 2026-06-26: a hostile-audience publication review is recorded in
+`docs/release/adversarial-audience-publication-review-2026-06-26.md`.
+Immediate hygiene fixes were folded into M11.5 and the release plan:
+`cargo-deny` is now an explicit hard blocker, the Restate RSA advisory regression
+is documented as fixed by the `aws_lc_rs` backend, and the remaining
+`serde_yaml`/`unsafe-libyaml` and duplicate dependency warnings are tracked
+before YAML-facing crates or the full workspace publication proceed.
+
 ## Non-negotiable rule
 
 If a refactor/readability/API/doc/history gate is still open, publication remains
@@ -230,8 +238,9 @@ blocked even when `publish-readiness` reports repo-local deterministic readiness
 
 The 2026-06-25 skeptical review is folded into PUB0/PUB1/PUB2. Before PUB5,
 every row in `docs/refactor/code-review-finding-resolution-matrix-2026-06-25.md`
-must be `fixed`, `mitigated`, explicitly `deferred` with an owner, or
-`not_applicable`.
+and every confirmed finding in
+`docs/release/adversarial-audience-publication-review-2026-06-26.md` must be
+`fixed`, `mitigated`, explicitly `deferred` with an owner, or `not_applicable`.
 
 Run:
 
@@ -239,7 +248,10 @@ Run:
 python3 tools/pre-publication-review-gate --json | jq -e '.status == "pass"'
 ```
 
-This gate is fail-closed: it intentionally fails while publication-blocking
-review findings remain visible. As of 2026-06-25 the M8 workspace-root fixture
-issue is fixed, and this gate reports `pass`; future fixture drift or new
-publication-blocking findings should make it fail closed again.
+The automated matrix gate is fail-closed for the findings it owns: it
+intentionally fails while publication-blocking review findings remain visible.
+The 2026-06-26 adversarial-audience review is release evidence and release-plan
+backlog until it is wired into a machine-readable gate. As of 2026-06-25 the M8
+workspace-root fixture issue is fixed, and this gate reports `pass`; future
+fixture drift or new publication-blocking findings should make it fail closed
+again.

@@ -28,6 +28,8 @@ secrets, broken package declarations or misleading formal/protocol claims.
 The publication plan is not ready to execute while any of these are true:
 
 - `tools/architecture-lint --json` reports errors;
+- `./tools/cargo-dev deny check` has advisory, license, ban or source errors,
+  or warnings that have not been accepted or tracked in release evidence;
 - any declared Cargo binary points to a missing source file;
 - `cargo package -p <crate> --list` contains private context, temporary patches,
   local checkpoints, generated scratch output or secrets;
@@ -50,6 +52,8 @@ Required work:
 - keep `causlane-core` pure and runtime-free;
 - keep generated truth chain intact: registry/contracts -> compiled bundle ->
   replay/formal/codegen inputs -> receipts;
+- keep dependency hygiene explicit: advisory/license/source gates pass, and
+  duplicate-version warnings are reviewed rather than hidden;
 - remove milestone/stage/patch-pack vocabulary from production identifiers;
 - split or document large modules by authority boundary;
 - confirm the facade has no accidental broad public re-export.
@@ -100,6 +104,9 @@ Required work:
 - make `causlane` facade intentionally small;
 - keep `causlane-core` as pure kernel API;
 - keep optional runtime integrations out of default features;
+- do not publish YAML-facing crates with the current deprecated `serde_yaml`
+  boundary unless the release notes and M11.5 backlog explicitly accept that
+  pre-alpha debt;
 - document unstable and internal surfaces;
 - make examples compile against intended imports.
 
@@ -173,6 +180,14 @@ Important: do not dry-run all crates as one pre-publish batch. Dependent crates
 cannot complete registry dry-run until their internal dependencies have actually
 been published and indexed.
 
+Before publishing crates beyond the `causlane-core` bootstrap upload, rerun the
+dependency hygiene gate and review the accepted debt:
+
+- `serde_yaml 0.9.34+deprecated` remains a YAML parser boundary in contracts,
+  replay and CLI tooling, and reaches `unsafe-libyaml`;
+- `cargo-deny` duplicate-version warnings are currently treated as convergence
+  backlog, not as hidden success.
+
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.
 
@@ -196,5 +211,7 @@ Publication preparation is complete when:
 - the public API review is recorded;
 - the repository history is curated or explicitly accepted;
 - package file lists are inspected;
+- dependency/advisory/license/source policy is checked and residual warnings
+  are recorded;
 - the staged publish runbook is followed crate-by-crate;
 - generated readiness docs are regenerated, not hand-edited.

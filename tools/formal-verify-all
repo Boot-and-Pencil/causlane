@@ -158,6 +158,7 @@ echo "== attestation gate (P1-006): kernel-secret-attested verify accepts valid,
 # A minted capability attestation passes attested verify; a missing one (no secret
 # at emit time) and a wrong one (minted under a different secret) must refute with
 # CapabilityMismatch. Proves the attested path is non-vacuous and the CLI flag works.
+# Synthetic fixed test material only; this is not an environment credential.
 ATTESTATION_TEST_KEY_MATERIAL="causlane-test-kernel-secret"
 ATTEST_OK="$TARGET_DIR/attested_ok.trace.json"
 ATTEST_MISSING="$TARGET_DIR/attested_missing.trace.json"
