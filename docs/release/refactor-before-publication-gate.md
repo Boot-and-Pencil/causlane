@@ -209,6 +209,11 @@ Required outcomes:
 - no upload uses `--allow-dirty`;
 - downstream smoke project can depend on `causlane@0.0.1`.
 
+Update 2026-06-26: package file lists were inspected for every workspace crate
+and recorded in `docs/release/pub5-package-file-list-review.md`. No dry-run or
+upload was performed as part of that review. The next PUB5 action is the staged
+one-crate dry-run/publish sequence, starting with `causlane-core`.
+
 ## Non-negotiable rule
 
 If a refactor/readability/API/doc/history gate is still open, publication remains

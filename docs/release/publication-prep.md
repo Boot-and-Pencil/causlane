@@ -1,9 +1,9 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** inspect package file lists and follow the staged PUB5
-publication runbook; crates.io upload remains blocked until those checks are
-complete.
+**Current next action:** follow the staged PUB5 publication runbook, beginning
+with `cargo publish -p causlane-core --dry-run --locked`; dependent crates must
+wait until their internal dependencies are published and indexed.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
