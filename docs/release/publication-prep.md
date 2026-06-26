@@ -1,11 +1,11 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** decide whether to continue after `causlane-core 0.0.1`
-was published and indexed. The next reversible PUB5 command would be
-`cargo publish -p causlane-formal --dry-run --locked`; do not publish
-YAML-facing crates until the M11.5 dependency-hygiene debt is resolved or
-explicitly accepted for the pre-alpha release.
+**Current next action:** resolve or explicitly accept the M11.5
+dependency-hygiene debt before continuing past `causlane-formal 0.0.1`, which
+has been published and indexed. The next runbook crate is `causlane-contracts`,
+but it is YAML-facing and must not be published until the `serde_yaml` /
+`unsafe-libyaml` decision is recorded for the pre-alpha release.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.

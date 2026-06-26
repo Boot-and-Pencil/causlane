@@ -229,6 +229,14 @@ one-crate dry-run for `causlane-formal`. YAML-facing crates remain blocked by
 the M11.5 dependency-hygiene decision until that debt is resolved or explicitly
 accepted.
 
+Update 2026-06-27: `causlane-formal 0.0.1` was published and indexed on
+crates.io. Evidence is recorded in
+`docs/release/pub5-causlane-formal-publication.md`. The publication state is now
+`Indexed(causlane-formal)`. The next runbook crate is `causlane-contracts`, but
+that crate is YAML-facing and remains blocked until the M11.5
+`serde_yaml`/`unsafe-libyaml` dependency-hygiene decision is resolved or
+explicitly accepted.
+
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.
 Immediate hygiene fixes were folded into M11.5 and the release plan:

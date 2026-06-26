@@ -5,9 +5,11 @@ publication.
 
 ## Current Recorded State
 
-As of 2026-06-26, `causlane-core 0.0.1` is `Published` and `Indexed` on
-crates.io. Continue only through the staged order below; do not skip ahead to
-dependent crates.
+As of 2026-06-27, `causlane-core 0.0.1` and `causlane-formal 0.0.1` are
+`Published` and `Indexed` on crates.io. Continue only through the staged order
+below; do not skip ahead to dependent crates. The next runbook crate is
+`causlane-contracts`, which is blocked until the M11.5 YAML parser dependency
+decision is resolved or explicitly accepted for the pre-alpha release.
 
 ## States
 
