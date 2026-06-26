@@ -11,7 +11,7 @@ generated readiness report remains `docs/release/publish-readiness.md`.
 Reviewed source baseline:
 
 ```text
-main_commit: 2decd4dc308ceb3c0a92c563b3c779d320ba5bde
+main_commit: 60a8a8607e8afa5a83efab35c6b441256fc871c2
 operator: Vitalii Lobanov / vitalii-lobanov
 date: 2026-06-26
 host: dispatcher
