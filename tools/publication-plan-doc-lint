@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import pathlib
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 
@@ -35,6 +36,65 @@ def exists(path: str) -> bool:
 
 def add(findings: list[Finding], check_id: str, severity: str, path: str, message: str, remediation: str) -> None:
     findings.append(Finding(check_id, severity, path, message, remediation))
+
+
+def git(args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", *args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+
+def release_evidence_commit(path: str) -> str | None:
+    match = re.search(r"(?m)^main_commit:\s*([0-9a-f]{40})\s*$", read(path))
+    return match.group(1) if match else None
+
+
+def check_release_evidence_baseline(
+    findings: list[Finding],
+    path: str,
+    check_id: str,
+    relevant_paths: list[str],
+) -> None:
+    if not exists(path):
+        return
+    commit = release_evidence_commit(path)
+    if commit is None:
+        add(
+            findings,
+            check_id,
+            "error",
+            path,
+            "release evidence does not record a full main_commit",
+            "rerun the evidence command and record the 40-character baseline commit",
+        )
+        return
+    if git(["cat-file", "-e", f"{commit}^{{commit}}"]).returncode != 0:
+        add(
+            findings,
+            check_id,
+            "error",
+            path,
+            "release evidence baseline commit is not available in this checkout",
+            "fetch enough history for publication lint or refresh the evidence on the current branch",
+        )
+        return
+    diff = git(["diff", "--name-only", f"{commit}..HEAD", "--", *relevant_paths])
+    changed = [line for line in diff.stdout.splitlines() if line.strip()]
+    if changed:
+        preview = ", ".join(changed[:5])
+        if len(changed) > 5:
+            preview += ", ..."
+        add(
+            findings,
+            check_id,
+            "error",
+            path,
+            f"release evidence is stale for package-affecting paths: {preview}",
+            "rerun the package/dry-run evidence after package-affecting changes",
+        )
 
 
 def main(argv: list[str]) -> int:
@@ -114,6 +174,19 @@ def main(argv: list[str]) -> int:
             add(findings, "PUBDOC-015", "warning", "docs/product-track/11-implementation-start-gate.md", "current focus does not name the refactor-first publication sub-track", "make PUB0 the current action before publication")
         if "only after that" not in start_gate or "S11/PUB5 staged crates.io publication" not in start_gate:
             add(findings, "PUBDOC-016", "error", "docs/product-track/11-implementation-start-gate.md", "implementation gate does not order refactor/readability/API/docs/history before publication", "state the PUB0-PUB5 ordering explicitly")
+
+    check_release_evidence_baseline(
+        findings,
+        "docs/release/pub5-package-file-list-review.md",
+        "PUBDOC-017",
+        ["Cargo.toml", "Cargo.lock", "LICENSE-MIT", "LICENSE-APACHE", "crates"],
+    )
+    check_release_evidence_baseline(
+        findings,
+        "docs/release/pub5-causlane-core-dry-run.md",
+        "PUBDOC-018",
+        ["Cargo.toml", "Cargo.lock", "LICENSE-MIT", "LICENSE-APACHE", "crates/causlane-core"],
+    )
 
     status = "pass" if not any(f.severity == "error" for f in findings) else "fail"
     payload = {

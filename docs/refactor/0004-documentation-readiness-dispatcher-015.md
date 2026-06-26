@@ -55,9 +55,9 @@ the patch-pack's `causlane-formal-discipline` scaffold because it would replace
 the current stricter implementation with a weaker presence-only checker.
 
 Do not hand-edit `docs/product-track/causlane_product_track_full_ru.md`; the
-README identifies atomic product-track files as primary sources, and no
-supported generator for the concatenated reference bundle is present in the
-repository.
+README identifies atomic product-track files as primary sources, and
+`tools/product-track-bundle` is the supported generator/checker for the
+concatenated reference bundle.
 
 ## Acceptance
 

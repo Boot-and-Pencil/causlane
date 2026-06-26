@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -183,6 +184,18 @@ def compare(
             )
 
 
+def bundle(errors: list[str]) -> None:
+    result = subprocess.run(
+        [str(ROOT / "tools" / "product-track-bundle"), "--check"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip().splitlines()[0] if result.stderr.strip() else "bundle drift"
+        errors.append(f"product-track bundle: {detail}")
+
+
 def main() -> int:
     errors: list[str] = []
 
@@ -220,6 +233,7 @@ def main() -> int:
     compare(errors, json_stages, file_stages, "stage files")
     compare(errors, json_embedded_milestones, file_milestones, "stage file milestones")
     compare(errors, json_embedded_milestones, milestone_files(), "milestone files")
+    bundle(errors)
 
     if errors:
         print("product-track-status-check: FAILED", file=sys.stderr)

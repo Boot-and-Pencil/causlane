@@ -1,0 +1,47 @@
+# cargo-deny policy for pre-publication review.
+#
+# Keep this file explicit rather than relying on cargo-deny's defaults: a missing
+# policy previously made `cargo deny check` reject even the workspace's own
+# dual MIT/Apache-2.0 license expression.
+
+[graph]
+all-features = true
+
+[advisories]
+ignore = []
+
+[licenses]
+confidence-threshold = 0.8
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "ISC",
+    "MIT",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+exceptions = [
+    # Target-specific transitive dependencies reached through dev/test tooling
+    # and optional runtime-adapter paths. They are not part of the
+    # causlane-core runtime dependency surface reviewed for the first upload.
+    { crate = "r-efi@5.3.0", allow = ["LGPL-2.1-or-later"] },
+    { crate = "r-efi@6.0.0", allow = ["LGPL-2.1-or-later"] },
+]
+
+[licenses.private]
+ignore = false
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-workspace = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

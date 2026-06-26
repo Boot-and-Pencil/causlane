@@ -22,8 +22,10 @@ pub const POLICY: AuthzPolicy<'static> = AuthzPolicy {
 };
 
 /// Executor that marks successful entry with op/capability indexes.
+#[cfg(feature = "apalis")]
 pub struct MarkerExecutor;
 
+#[cfg(feature = "apalis")]
 impl ExecutorPort for MarkerExecutor {
     type Error = core::convert::Infallible;
 

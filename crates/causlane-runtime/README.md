@@ -47,7 +47,9 @@ long-lived dependency history remain host responsibilities.
 - `otel`: enables the optional OpenTelemetry export adapter.
 - `apalis`: enables the Apalis guarded execution bridge.
 - `restate`: enables the Restate guarded execution bridge and its serde-backed
-  payload wrapper.
+  payload wrapper. The adapter uses Restate's `aws_lc_rs` crypto backend to
+  avoid the `rust_crypto`/`rsa` advisory path in all-features publication
+  audits.
 
 Default features are empty. Enabling a runtime adapter does not create semantic
 authority; hard effects still go through the guarded executor and capability

@@ -48,9 +48,14 @@ Projections explain the truth.
 
 ## Repository integration note
 
-`causlane_product_track_full_ru.md` is a concatenated reference bundle. Edit the
-atomic files in this directory (`00-*`, `stages/*`, `milestones/*`,
-`templates/*`, `roadmap.*`) as the primary documentation sources.
+`causlane_product_track_full_ru.md` is a generated concatenated reference
+bundle. Edit the atomic files in this directory as the primary documentation
+sources. After changing `README.md` or the top-level numbered overview docs,
+run:
+
+```bash
+tools/product-track-bundle --write
+```
 
 This product track is a planning corpus. It does not replace machine-derived
 formal status, receipts, stale-check, coverage reports, or release gate outputs.
