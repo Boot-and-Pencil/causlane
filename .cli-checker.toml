@@ -12,6 +12,7 @@ model_engines = []
 waivers = [
   { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".cli-checker.toml", reason = "devinfra managed checker policy compatibility metadata", owner = "devinfra" },
   { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".devinfra/tool-versions.json", reason = "devinfra managed agent compatibility metadata", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = "crates/causlane-cli/fixtures/.devinfra/tool-versions.json", reason = "devinfra managed fixture for agent compatibility metadata parser tests", owner = "devinfra" },
   { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".gitignore", reason = "devinfra managed hook log ignore paths", owner = "devinfra" },
   { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/config.toml", reason = "devinfra managed Codex hook configuration", owner = "devinfra" },
   { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/hooks/pre_tool_use.sh", reason = "devinfra managed Codex hook wrapper", owner = "devinfra" },
@@ -40,7 +41,7 @@ generated_patterns = []
 [rules]
 
 # BEGIN devinfra managed Rust full rule set
-# Generated from cli-checker 0.1.7:
+# Generated from cli-checker 0.1.19:
 #   cli-checker list-code-rules --language rust --format json
 # cli-checker does not support rule-id wildcards in config, so every Rust rule
 # is listed explicitly. Keep this block in sync with checker upgrades.
