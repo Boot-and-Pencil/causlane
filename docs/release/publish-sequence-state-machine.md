@@ -6,10 +6,10 @@ publication.
 ## Current Recorded State
 
 As of 2026-06-27, `causlane-core 0.0.1`, `causlane-formal 0.0.1` and
-`causlane-contracts 0.0.1` are
-`Published` and `Indexed` on crates.io. Continue only through the staged order
-below; do not skip ahead to dependent crates. The next runbook crate is
-`causlane-runtime`.
+`causlane-contracts 0.0.1` are `Published` and `Indexed` on crates.io.
+`causlane-runtime` has passed its one-crate dry-run. Continue only through the
+staged order below; do not skip ahead to dependent crates. The next irreversible
+runbook action is publishing `causlane-runtime`.
 
 ## States
 
@@ -60,6 +60,7 @@ LocalReady
   -> DryRunPassed(causlane-contracts)
   -> Published(causlane-contracts)
   -> Indexed(causlane-contracts)
+  -> DryRunPassed(causlane-runtime)
   -> ...
   -> WorkspacePublished(0.0.1)
 ```

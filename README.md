@@ -71,9 +71,10 @@ Projections explain the truth.
 
 The first public crates.io release is staged as an experimental `0.0.1`
 pre-alpha bootstrap. The repository is public, PUB4 public-baseline evidence is
-recorded, PUB5 package file-list review is complete, and the `causlane-core`
-dry-run has passed. The next release action is an explicit maintainer decision
-on whether to publish `causlane-core`.
+recorded, and PUB5 package file-list review is complete. `causlane-core`,
+`causlane-formal` and `causlane-contracts` have been published and indexed;
+the `causlane-runtime` dry-run has passed. The next release action is an
+explicit maintainer decision on whether to publish `causlane-runtime`.
 
 The library facade crate is `causlane`; the command-line binary is shipped by
 the `causlane-cli` package. After crates.io publication, install the CLI with:

@@ -79,17 +79,19 @@ the fixture remains an expected crate-local test input.
 
 ## Next State
 
-The workspace may move from `LocalReady` to `PackageReviewed(all crates)` in
-`docs/release/publish-sequence-state-machine.md`.
+The workspace has moved beyond `PackageReviewed(all crates)`: `causlane-core`,
+`causlane-formal` and `causlane-contracts` have been published and indexed, and
+the `causlane-runtime` package-list was rechecked before its staged dry-run.
+Current dry-run evidence is recorded in
+`docs/release/pub5-causlane-runtime-dry-run.md`.
 
-The first one-crate dry-run has since passed for `causlane-core` and is recorded
-in `docs/release/pub5-causlane-core-dry-run.md`. The next irreversible command,
-if maintainers choose to continue, is:
+The next irreversible command, if maintainers choose to continue after CI, is:
 
 ```bash
-cargo publish -p causlane-core --locked
+./tools/cargo-dev publish -p causlane-runtime --locked
 ```
 
-Do not dry-run dependent crates until their internal registry dependencies have
-been published and indexed. Do not upload any crate without following the
-one-crate procedure in `docs/release/publish-all-crates-runbook.md`.
+Do not dry-run or publish crates that depend on `causlane-runtime` until
+`causlane-runtime` has been published and indexed. Do not upload any crate
+without following the one-crate procedure in
+`docs/release/publish-all-crates-runbook.md`.

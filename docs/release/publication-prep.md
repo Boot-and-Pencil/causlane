@@ -1,10 +1,9 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** run the staged package-list/dry-run gates for
-`causlane-runtime` if maintainers choose to continue. `causlane-core 0.0.1`,
-`causlane-formal 0.0.1` and `causlane-contracts 0.0.1` have been published and
-indexed.
+**Current next action:** decide whether to publish `causlane-runtime` after its
+passed staged dry-run. `causlane-core 0.0.1`, `causlane-formal 0.0.1` and
+`causlane-contracts 0.0.1` have been published and indexed.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
