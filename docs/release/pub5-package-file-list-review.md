@@ -11,7 +11,7 @@ generated readiness report remains `docs/release/publish-readiness.md`.
 Reviewed source baseline:
 
 ```text
-main_commit: 7bb4053cf9ffdc6774428c472441f14cf8bcaf35
+main_commit: 6913e087544ab7517052583e590ffc6716e25fa9
 operator: Vitalii Lobanov / vitalii-lobanov
 date: 2026-06-27
 host: dispatcher
@@ -73,7 +73,7 @@ Update 2026-06-27: package file-list counts were rechecked after the
 `docs/release/pub5-causlane-contracts-dry-run.md`.
 
 Update 2026-06-27: `causlane-cli` package contents were rechecked after the
-devinfra checker metadata pin was updated in
+devinfra checker metadata pin was updated to `cli-checker 0.1.20` in
 `fixtures/.devinfra/tool-versions.json`. The file list remains 44 files, and
 the fixture remains an expected crate-local test input.
 
