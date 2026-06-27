@@ -20,6 +20,8 @@ pub mod examples;
 pub mod plan_hash;
 pub mod plan_template_cache;
 pub mod registry;
+#[doc(hidden)]
+pub mod serde_numeric;
 pub mod template;
 
 #[cfg(test)]
@@ -67,7 +69,7 @@ use core::fmt;
 /// Errors raised while parsing or compiling contract documents.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ContractError {
-    /// A YAML document failed to parse (message rendered from `serde_yaml`).
+    /// A YAML document failed to parse (message rendered from the YAML parser).
     Yaml(String),
     /// A JSON document failed to (de)serialize (message from `serde_json`).
     Json(String),
@@ -90,8 +92,8 @@ impl fmt::Display for ContractError {
 
 impl std::error::Error for ContractError {}
 
-impl From<serde_yaml::Error> for ContractError {
-    fn from(err: serde_yaml::Error) -> Self {
+impl From<noyalib::compat::serde_yaml::Error> for ContractError {
+    fn from(err: noyalib::compat::serde_yaml::Error) -> Self {
         ContractError::Yaml(err.to_string())
     }
 }

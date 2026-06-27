@@ -10,6 +10,7 @@
 use serde::{Deserialize, Serialize};
 
 use causlane_replay::{ExpectedReplayResult, ReplayExplain};
+use noyalib::compat::serde_yaml;
 
 use crate::cli_scenario::{compile_scenario, ScenarioExpectation};
 use crate::{compile_bundle_from_registry, read_file, CliError, RunOutput};

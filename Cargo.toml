@@ -24,11 +24,11 @@ homepage = "https://github.com/Boot-and-Pencil/causlane"
 documentation = "https://docs.rs/causlane"
 keywords = ["dispatch", "audit", "replay", "formal-methods", "kernel"]
 categories = ["development-tools", "rust-patterns"]
-# Honest MSRV floor: the kernel uses `Option::is_none_or` (stable since 1.82).
+# Honest MSRV floor: YAML-facing crates use `noyalib` 0.0.8, which requires 1.85.
 # The toolchain channel stays canonical in `rust-toolchain.toml` (rolling
 # `stable`); `.devinfra/tool-versions.json` records the observed resolved
 # version. See docs/setup.md "Rust version policy".
-rust-version = "1.82"
+rust-version = "1.85"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

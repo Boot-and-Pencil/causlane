@@ -1,7 +1,7 @@
 //! Obligation manifest validation.
 
 use causlane_contracts::{is_known_invariant_id, KNOWN_INVARIANT_RANGE};
-use serde_yaml::{Mapping, Value};
+use noyalib::compat::serde_yaml::{self, Mapping, Value};
 use std::collections::BTreeSet;
 
 struct PlannedPInvariantHook {
@@ -241,24 +241,21 @@ fn contains_string(values: &[&Value], needle: &str) -> bool {
 }
 
 fn mapping<'a>(map: &'a Mapping, key: &str) -> Option<&'a Mapping> {
-    map.get(Value::String(key.to_owned()))
-        .and_then(Value::as_mapping)
+    map.get(key).and_then(Value::as_mapping)
 }
 
 fn sequence<'a>(map: &'a Mapping, key: &str) -> Vec<&'a Value> {
-    map.get(Value::String(key.to_owned()))
+    map.get(key)
         .and_then(Value::as_sequence)
         .map_or_else(Vec::new, |values| values.iter().collect())
 }
 
 fn string<'a>(map: &'a Mapping, key: &str) -> Option<&'a str> {
-    map.get(Value::String(key.to_owned()))
-        .and_then(Value::as_str)
+    map.get(key).and_then(Value::as_str)
 }
 
 fn number(map: &Mapping, key: &str) -> Option<i64> {
-    map.get(Value::String(key.to_owned()))
-        .and_then(Value::as_i64)
+    map.get(key).and_then(Value::as_i64)
 }
 
 fn prefixed_three_digits(value: &str, prefix: &str) -> bool {

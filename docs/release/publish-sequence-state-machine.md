@@ -8,8 +8,10 @@ publication.
 As of 2026-06-27, `causlane-core 0.0.1` and `causlane-formal 0.0.1` are
 `Published` and `Indexed` on crates.io. Continue only through the staged order
 below; do not skip ahead to dependent crates. The next runbook crate is
-`causlane-contracts`, which is blocked until the M11.5 YAML parser dependency
-decision is resolved or explicitly accepted for the pre-alpha release.
+`causlane-contracts`. The M11.5 YAML parser dependency decision is resolved by
+the `noyalib 0.0.8` migration, and the `causlane-contracts` dry-run passed on
+2026-06-27. The next valid transition is `Published(causlane-contracts)` if
+maintainers choose to continue after CI.
 
 ## States
 
@@ -57,6 +59,7 @@ LocalReady
   -> DryRunPassed(causlane-formal)
   -> Published(causlane-formal)
   -> Indexed(causlane-formal)
+  -> DryRunPassed(causlane-contracts)
   -> ...
   -> WorkspacePublished(0.0.1)
 ```

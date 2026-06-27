@@ -1,11 +1,11 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** resolve or explicitly accept the M11.5
-dependency-hygiene debt before continuing past `causlane-formal 0.0.1`, which
-has been published and indexed. The next runbook crate is `causlane-contracts`,
-but it is YAML-facing and must not be published until the `serde_yaml` /
-`unsafe-libyaml` decision is recorded for the pre-alpha release.
+**Current next action:** after CI confirms the current checkpoint, publish
+`causlane-contracts 0.0.1` only through the staged runbook if maintainers choose
+to continue. `causlane-core 0.0.1` and `causlane-formal 0.0.1` have been
+published and indexed; the `causlane-contracts` package-list review and dry-run
+passed on 2026-06-27.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -105,9 +105,8 @@ Required work:
 - make `causlane` facade intentionally small;
 - keep `causlane-core` as pure kernel API;
 - keep optional runtime integrations out of default features;
-- do not publish YAML-facing crates with the current deprecated `serde_yaml`
-  boundary unless the release notes and M11.5 backlog explicitly accept that
-  pre-alpha debt;
+- keep YAML parser dependencies internal to the document-boundary crates and
+  do not expose parser error types as public Rust API;
 - document unstable and internal surfaces;
 - make examples compile against intended imports.
 
@@ -181,13 +180,16 @@ Important: do not dry-run all crates as one pre-publish batch. Dependent crates
 cannot complete registry dry-run until their internal dependencies have actually
 been published and indexed.
 
-Before publishing crates beyond the `causlane-core` bootstrap upload, rerun the
-dependency hygiene gate and review the accepted debt:
+Before publishing crates beyond the `causlane-formal` bootstrap upload, rerun
+the dependency hygiene gate and review the accepted debt:
 
-- `serde_yaml 0.9.34+deprecated` remains a YAML parser boundary in contracts,
-  replay and CLI tooling, and reaches `unsafe-libyaml`;
+- the YAML parser boundary was migrated to `noyalib 0.0.8` with
+  `compat-serde-yaml`, which raises the workspace declared MSRV to `1.85`;
 - `cargo-deny` duplicate-version warnings are currently treated as convergence
   backlog, not as hidden success.
+
+The `causlane-contracts` dry-run evidence is recorded in
+`docs/release/pub5-causlane-contracts-dry-run.md`.
 
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.

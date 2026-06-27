@@ -137,7 +137,7 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Manifest: `crates/causlane-contracts/Cargo.toml`
 - Package root: `crates/causlane-contracts`
 - Normal workspace dependencies: `causlane-core ^0.0.1 via crates/causlane-core`
-- Package files: 20
+- Package files: 21
 
 #### causlane-replay
 

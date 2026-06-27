@@ -1,7 +1,9 @@
 //! JSON trace DTOs and lowering into core audit events.
 
+use noyalib::compat::serde_yaml;
 use serde::{Deserialize, Serialize};
 
+use causlane_contracts::serde_numeric;
 use causlane_contracts::ClaimModeDto;
 use causlane_contracts::{canonical_json_hash, TemplateBindings};
 use causlane_core::{
@@ -212,7 +214,10 @@ pub struct ReplayLeaseRef {
     /// Lease mode.
     pub mode: ClaimModeDto,
     /// Amount held.
-    #[serde(default = "default_amount")]
+    #[serde(
+        default = "default_amount",
+        deserialize_with = "serde_numeric::deserialize_u64_lossless"
+    )]
     pub amount: u64,
     /// Holder action id; defaults to the event action id.
     #[serde(default)]
@@ -224,10 +229,13 @@ pub struct ReplayLeaseRef {
     #[serde(default)]
     pub holder_op_index: Option<u32>,
     /// Constraint epoch.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "serde_numeric::deserialize_u64_lossless")]
     pub epoch: u64,
     /// Expiry timestamp.
-    #[serde(default)]
+    #[serde(
+        default,
+        deserialize_with = "serde_numeric::deserialize_option_u64_lossless"
+    )]
     pub expires_at: Option<u64>,
     /// Lease grant event id; defaults to the event id.
     #[serde(default)]
@@ -290,9 +298,13 @@ pub struct ReplayAuthzDecision {
     /// Stable policy version.
     pub policy_version: String,
     /// Issue timestamp.
+    #[serde(deserialize_with = "serde_numeric::deserialize_u64_lossless")]
     pub issued_at: u64,
     /// Expiry timestamp, if any.
-    #[serde(default)]
+    #[serde(
+        default,
+        deserialize_with = "serde_numeric::deserialize_option_u64_lossless"
+    )]
     pub expires_at: Option<u64>,
     /// Optional keyed attestation (hex HMAC) minted by the PDP; verified by
     /// replay when configured with the PDP secret.
@@ -319,7 +331,10 @@ pub struct ReplayExecutionCapability {
     #[serde(default)]
     pub lease_ids: Vec<String>,
     /// Capability expiry, if any.
-    #[serde(default)]
+    #[serde(
+        default,
+        deserialize_with = "serde_numeric::deserialize_option_u64_lossless"
+    )]
     pub expires_at: Option<u64>,
     /// Optional keyed attestation (hex HMAC) minted by the kernel; verified by
     /// replay when configured with the kernel secret.
@@ -372,7 +387,10 @@ pub struct ReplayEvent {
     pub scope: Option<String>,
     /// Wall-clock time this event occurred, when recorded. On a barrier event it
     /// is the evaluation time for authz freshness (P0-010).
-    #[serde(default)]
+    #[serde(
+        default,
+        deserialize_with = "serde_numeric::deserialize_option_u64_lossless"
+    )]
     pub occurred_at: Option<u64>,
 }
 

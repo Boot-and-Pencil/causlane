@@ -30,7 +30,7 @@
       "development-tools",
       "rust-patterns"
     ],
-    "rust_version": "1.82"
+    "rust_version": "1.85"
   },
   "package_files": [
     ".cargo_vcs_info.json",
@@ -209,6 +209,7 @@
           "src/plan_hash.rs",
           "src/plan_template_cache.rs",
           "src/registry.rs",
+          "src/serde_numeric.rs",
           "src/sha256.rs",
           "src/template.rs",
           "src/tests.rs"

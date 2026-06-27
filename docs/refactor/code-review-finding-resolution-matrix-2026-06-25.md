@@ -106,7 +106,8 @@ Untriaged findings block PUB5.
 - Check each crate README against actual public API; `causlane-codegen` Alloy
   generator names are corrected.
 - Add install section for `causlane-cli`.
-- Decide whether `serde_yaml` remains public API or moves behind a feature/replacement.
+- Resolved 2026-06-27: the YAML parser boundary moved to internal `noyalib`
+  compat use; parser error types remain outside the public Rust API.
 
 ### PUB3 — Human and agent documentation
 

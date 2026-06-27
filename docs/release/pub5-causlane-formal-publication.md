@@ -86,7 +86,8 @@ The publication state machine moves to:
 Indexed(causlane-formal)
 ```
 
-The next runbook crate is `causlane-contracts`, but it is YAML-facing. Do not
-dry-run or publish it until the M11.5 `serde_yaml`/`unsafe-libyaml`
-dependency-hygiene debt is resolved or explicitly accepted for the pre-alpha
-release.
+The next runbook crate is `causlane-contracts`.
+
+Update 2026-06-27: the M11.5 YAML parser debt was resolved by the `noyalib`
+migration, and the `causlane-contracts` dry-run passed. Current evidence is in
+`docs/release/pub5-causlane-contracts-dry-run.md`.

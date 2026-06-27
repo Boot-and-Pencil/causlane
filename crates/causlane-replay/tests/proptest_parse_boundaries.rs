@@ -6,6 +6,7 @@
 
 use causlane_contracts::{CompiledDispatchBundle, RegistryManifest};
 use causlane_replay::{ReplayEvent, ReplayScenario, ReplayTrace};
+use noyalib::compat::serde_yaml;
 use proptest::prelude::*;
 use proptest::test_runner::TestCaseError;
 
@@ -14,6 +15,7 @@ const SCENARIO: &str =
     include_str!("../fixtures/contracts/scenarios/release_promote_success.scenario.yaml");
 const U32_EDGES: [u32; 3] = [0, 1, u32::MAX];
 const U64_EDGES: [u64; 4] = [0, 1, u64::MAX - 1, u64::MAX];
+const YAML_LOSSLESS_U64_EDGES: [u64; 3] = [0, 1, i64::MAX as u64];
 
 fn text_input() -> impl Strategy<Value = String> {
     proptest::collection::vec(any::<char>(), 0..1024).prop_map(|chars| chars.into_iter().collect())
@@ -25,6 +27,10 @@ fn numeric_u32_edge() -> impl Strategy<Value = u32> {
 
 fn numeric_u64_edge() -> impl Strategy<Value = u64> {
     proptest::sample::select(U64_EDGES.to_vec())
+}
+
+fn yaml_lossless_u64_edge() -> impl Strategy<Value = u64> {
+    proptest::sample::select(YAML_LOSSLESS_U64_EDGES.to_vec())
 }
 
 fn generated_error(err: impl std::fmt::Display) -> TestCaseError {
@@ -87,6 +93,36 @@ fn numeric_registry_yaml(freshness: u64, version: u32) -> Result<String, TestCas
     serde_yaml::to_string(&manifest).map_err(generated_error)
 }
 
+#[test]
+fn replay_scenario_yaml_rejects_float_backed_large_u64_literal() {
+    let yaml = SCENARIO.replacen(
+        "    kind: action.admitted\n",
+        "    kind: action.admitted\n    occurred_at: 18446744073709551614\n",
+        1,
+    );
+
+    let Err(err) = ReplayScenario::from_yaml_str(&yaml) else {
+        panic!("large YAML u64 must fail closed");
+    };
+
+    assert!(err.to_string().contains("lossless unsigned integer"));
+}
+
+#[test]
+fn registry_yaml_rejects_float_backed_large_u64_literal() {
+    let yaml = REGISTRY.replacen(
+        "      rationale: demo fixture without real PDP\n",
+        "      rationale: demo fixture without real PDP\n      freshness_max_age: 18446744073709551614\n",
+        1,
+    );
+
+    let Err(err) = RegistryManifest::from_yaml_str(&yaml) else {
+        panic!("large YAML u64 must fail closed");
+    };
+
+    assert!(err.to_string().contains("lossless unsigned integer"));
+}
+
 proptest! {
     #[test]
     fn replay_trace_json_parse_and_lowering_are_deterministic(input in text_input()) {
@@ -140,7 +176,7 @@ proptest! {
 
     #[test]
     fn replay_scenario_yaml_numeric_edges_parse_and_lower(
-        value in numeric_u64_edge(),
+        value in yaml_lossless_u64_edge(),
         op_index in numeric_u32_edge(),
     ) {
         let yaml = numeric_scenario_yaml(value, op_index)?;
@@ -156,7 +192,7 @@ proptest! {
 
     #[test]
     fn registry_yaml_numeric_edges_parse_and_compile(
-        freshness in numeric_u64_edge(),
+        freshness in yaml_lossless_u64_edge(),
         version in numeric_u32_edge(),
     ) {
         let yaml = numeric_registry_yaml(freshness, version)?;

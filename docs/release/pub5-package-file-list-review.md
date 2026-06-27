@@ -11,9 +11,9 @@ generated readiness report remains `docs/release/publish-readiness.md`.
 Reviewed source baseline:
 
 ```text
-main_commit: 60a8a8607e8afa5a83efab35c6b441256fc871c2
+main_commit: 80b4c054a256934e937ff3358d34275493a82523
 operator: Vitalii Lobanov / vitalii-lobanov
-date: 2026-06-26
+date: 2026-06-27
 host: dispatcher
 ```
 
@@ -42,7 +42,7 @@ causlane-cli
 |---|---:|---|
 | `causlane-core` | 45 | reviewed; package contents expected |
 | `causlane-formal` | 7 | reviewed; package contents expected |
-| `causlane-contracts` | 20 | reviewed; package contents expected |
+| `causlane-contracts` | 21 | reviewed; package contents expected |
 | `causlane-runtime` | 36 | reviewed; package contents expected |
 | `causlane-replay` | 43 | reviewed; package contents expected |
 | `causlane-codegen` | 30 | reviewed; package contents expected |
@@ -66,6 +66,11 @@ Accepted intentional inclusions:
   `tools/pre-publication-review-gate`;
 - `fixtures/.devinfra/tool-versions.json` in `causlane-cli`, used as a
   crate-local fixture rather than a workspace-root include.
+
+Update 2026-06-27: package file-list counts were rechecked after the
+`serde_yaml` -> `noyalib` migration. `causlane-contracts` now includes
+`src/serde_numeric.rs`; the 21-file list is recorded in
+`docs/release/pub5-causlane-contracts-dry-run.md`.
 
 ## Next State
 

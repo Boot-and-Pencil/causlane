@@ -50,7 +50,7 @@ pub mod prelude {
 ```
 
 Any broader public re-export needs an ADR or an explicit pre-alpha exception.
-`serde_yaml` is not exposed as a public Rust error type; YAML remains part of
+The YAML parser is not exposed as a public Rust error type; YAML remains part of
 the registry/scenario document boundary through string-taking parse APIs and
 schema-checked files.
 

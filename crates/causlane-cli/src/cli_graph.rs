@@ -11,6 +11,7 @@ use causlane_core::{
     GraphIndex, GraphNode, LaneCapacity, LaneId, LaneRejection, NotParallelReason, OpId, Scope,
     WhyNotParallel,
 };
+use noyalib::compat::serde_yaml;
 use serde::{Deserialize, Serialize};
 
 use crate::{read_file, CliError};

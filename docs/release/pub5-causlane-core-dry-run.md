@@ -11,8 +11,8 @@ authorize upload by itself.
 Reviewed source baseline:
 
 ```text
-main_commit: 60a8a8607e8afa5a83efab35c6b441256fc871c2
-date: 2026-06-26
+main_commit: 80b4c054a256934e937ff3358d34275493a82523
+date: 2026-06-27
 host: dispatcher
 runner: local repository workspace
 ```
@@ -37,7 +37,9 @@ exit_code: 0
 ```
 
 Cargo packaged `causlane-core`, verified it by compiling the package from the
-packaged source and aborted upload because this was a dry-run.
+packaged source and aborted upload because this was a dry-run. The 2026-06-27
+rerun emitted the expected warning that `causlane-core@0.0.1` already exists on
+the crates.io index.
 
 ## Next State
 

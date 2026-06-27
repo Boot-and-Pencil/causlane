@@ -7,6 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 use causlane_core::{ClaimMode, ConsequenceProfile, LifecycleClass};
+use noyalib::compat::serde_yaml;
 
 use crate::bundle::MergeProtocolSpec;
 use crate::ContractError;
@@ -192,7 +193,10 @@ pub struct AuthzPolicyManifest {
     /// have at the barrier's evaluation time (ADR-0011 "fresh"). A decision older
     /// than this is stale and rejected even if it has not yet expired. `None`
     /// imposes no freshness bound beyond the decision's own `expires_at`.
-    #[serde(default)]
+    #[serde(
+        default,
+        deserialize_with = "crate::serde_numeric::deserialize_option_u64_lossless"
+    )]
     pub freshness_max_age: Option<u64>,
     /// Human-readable rationale for local-dev exemptions.
     #[serde(default)]

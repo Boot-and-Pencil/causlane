@@ -90,6 +90,5 @@ The next runbook step, if maintainers choose to continue, is:
 cargo publish -p causlane-formal --dry-run --locked
 ```
 
-Do not publish YAML-facing crates until the M11.5 `serde_yaml`/`unsafe-libyaml`
-dependency-hygiene debt is resolved or explicitly accepted for the pre-alpha
-release.
+Update 2026-06-27: the M11.5 `serde_yaml`/`unsafe-libyaml` debt was resolved by
+the `noyalib` migration before the `causlane-contracts` dry-run.

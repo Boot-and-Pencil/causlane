@@ -2,8 +2,8 @@
 
 use crate::formal_discipline::args::DiffSource;
 use crate::formal_discipline::Findings;
+use noyalib::compat::serde_yaml::{self, Mapping, Value as YamlValue};
 use serde_json::Value as JsonValue;
-use serde_yaml::{Mapping, Value as YamlValue};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::path::Path;
@@ -239,10 +239,7 @@ fn required_checks(value: &YamlValue) -> Result<Vec<RequiredCheck>, Vec<String>>
         let Some(lanes) = yaml_mapping(map, "lanes") else {
             continue;
         };
-        for (lane_value, lane_body) in lanes {
-            let Some(lane) = lane_value.as_str() else {
-                continue;
-            };
+        for (lane, lane_body) in lanes {
             let Some(lane_map) = lane_body.as_mapping() else {
                 continue;
             };
@@ -417,19 +414,17 @@ fn read_yaml(path: &str) -> Result<YamlValue, AdequacyError> {
 }
 
 fn yaml_mapping<'a>(map: &'a Mapping, key: &str) -> Option<&'a Mapping> {
-    map.get(YamlValue::String(key.to_owned()))
-        .and_then(YamlValue::as_mapping)
+    map.get(key).and_then(YamlValue::as_mapping)
 }
 
 fn yaml_sequence<'a>(map: &'a Mapping, key: &str) -> Vec<&'a YamlValue> {
-    map.get(YamlValue::String(key.to_owned()))
+    map.get(key)
         .and_then(YamlValue::as_sequence)
         .map_or_else(Vec::new, |values| values.iter().collect())
 }
 
 fn yaml_string<'a>(map: &'a Mapping, key: &str) -> Option<&'a str> {
-    map.get(YamlValue::String(key.to_owned()))
-        .and_then(YamlValue::as_str)
+    map.get(key).and_then(YamlValue::as_str)
 }
 
 fn single_error(error: &AdequacyError) -> Vec<String> {

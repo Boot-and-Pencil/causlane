@@ -232,18 +232,23 @@ accepted.
 Update 2026-06-27: `causlane-formal 0.0.1` was published and indexed on
 crates.io. Evidence is recorded in
 `docs/release/pub5-causlane-formal-publication.md`. The publication state is now
-`Indexed(causlane-formal)`. The next runbook crate is `causlane-contracts`, but
-that crate is YAML-facing and remains blocked until the M11.5
-`serde_yaml`/`unsafe-libyaml` dependency-hygiene decision is resolved or
-explicitly accepted.
+`Indexed(causlane-formal)`. The next runbook crate is `causlane-contracts`.
+
+Update 2026-06-27: the M11.5 YAML parser debt was resolved by migrating
+YAML-facing crates from `serde_yaml 0.9.34+deprecated` / `unsafe-libyaml` to
+`noyalib 0.0.8` with `compat-serde-yaml`, and by raising the declared workspace
+MSRV to `1.85`. The `causlane-contracts` package-list review and dry-run passed;
+evidence is recorded in
+`docs/release/pub5-causlane-contracts-dry-run.md`. The current next irreversible
+action is publishing `causlane-contracts` after CI and maintainer confirmation.
 
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.
 Immediate hygiene fixes were folded into M11.5 and the release plan:
 `cargo-deny` is now an explicit hard blocker, the Restate RSA advisory regression
-is documented as fixed by the `aws_lc_rs` backend, and the remaining
-`serde_yaml`/`unsafe-libyaml` and duplicate dependency warnings are tracked
-before YAML-facing crates or the full workspace publication proceed.
+is documented as fixed by the `aws_lc_rs` backend, the YAML parser finding is
+resolved by the 2026-06-27 `noyalib` migration, and duplicate dependency
+warnings remain tracked before full workspace publication proceeds.
 
 ## Non-negotiable rule
 
