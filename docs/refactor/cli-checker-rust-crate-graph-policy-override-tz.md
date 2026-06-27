@@ -1,7 +1,8 @@
 # CLI Checker Rust Crate Graph Policy Override TZ
 
-**Status:** checker upstream assignment.
+**Status:** resolved upstream in `cli-checker 0.1.20`.
 **Observed in:** `cli-checker 0.1.19`, git commit `f17594c`.
+**Resolved in:** `cli-checker 0.1.20`, git commit `41f2890`.
 **Consumer:** Causlane release hygiene, M11.5.
 
 ## Problem
@@ -76,8 +77,8 @@ must point at the policy/configured graph problem deterministically.
 
 ## Causlane target policy
 
-After the checker supports this, Causlane should add exactly one repo-local graph
-policy with these layers:
+Causlane adds exactly one repo-local graph policy at
+`.devinfra/policy/rust-crate-graph.yaml` with these layers:
 
 ```text
 causlane-core      -> kernel

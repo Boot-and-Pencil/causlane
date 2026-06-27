@@ -7,7 +7,9 @@ editable_control_file_paths = [
   ".github/workflows/ci.yml",
   ".github/workflows/publication-gate.yml",
 ]
-policy_file_paths = []
+policy_file_paths = [
+  ".devinfra/policy/rust-crate-graph.yaml",
+]
 model_engines = []
 waivers = [
   { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".cli-checker.toml", reason = "devinfra managed checker policy compatibility metadata", owner = "devinfra" },
@@ -41,7 +43,7 @@ generated_patterns = []
 [rules]
 
 # BEGIN devinfra managed Rust full rule set
-# Generated from cli-checker 0.1.19:
+# Generated from cli-checker 0.1.20:
 #   cli-checker list-code-rules --language rust --format json
 # cli-checker does not support rule-id wildcards in config, so every Rust rule
 # is listed explicitly. Keep this block in sync with checker upgrades.

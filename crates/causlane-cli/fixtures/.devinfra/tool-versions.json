@@ -61,7 +61,7 @@
             "archive_url": "",
             "install_method": "script",
             "note": "archive_url/archive_sha256 are intentionally EMPTY: a reproducible download source is not yet published. tools/bootstrap-full therefore does NOT fabricate a URL/hash; it detects a pre-installed cli-checker and otherwise emits a 'manual install required' remediation. Populate both fields to enable sha-verified auto-install.",
-            "version": "0.1.19"
+            "version": "0.1.20"
         },
         "formal_tools": {
             "alloy": {
