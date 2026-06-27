@@ -93,3 +93,7 @@ The next irreversible action, if maintainers choose to continue after CI, is:
 
 Do not publish dependent crates until `causlane-contracts` has been published
 and indexed on crates.io.
+
+Update 2026-06-27: `causlane-contracts 0.0.1` was published and indexed.
+Publication evidence is recorded in
+`docs/release/pub5-causlane-contracts-publication.md`.

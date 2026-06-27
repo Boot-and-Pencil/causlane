@@ -1,11 +1,10 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** after CI confirms the current checkpoint, publish
-`causlane-contracts 0.0.1` only through the staged runbook if maintainers choose
-to continue. `causlane-core 0.0.1` and `causlane-formal 0.0.1` have been
-published and indexed; the `causlane-contracts` package-list review and dry-run
-passed on 2026-06-27.
+**Current next action:** run the staged package-list/dry-run gates for
+`causlane-runtime` if maintainers choose to continue. `causlane-core 0.0.1`,
+`causlane-formal 0.0.1` and `causlane-contracts 0.0.1` have been published and
+indexed.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -188,8 +187,9 @@ the dependency hygiene gate and review the accepted debt:
 - `cargo-deny` duplicate-version warnings are currently treated as convergence
   backlog, not as hidden success.
 
-The `causlane-contracts` dry-run evidence is recorded in
-`docs/release/pub5-causlane-contracts-dry-run.md`.
+The `causlane-contracts` dry-run and publication evidence are recorded in
+`docs/release/pub5-causlane-contracts-dry-run.md` and
+`docs/release/pub5-causlane-contracts-publication.md`.
 
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.

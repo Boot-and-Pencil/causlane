@@ -242,6 +242,12 @@ evidence is recorded in
 `docs/release/pub5-causlane-contracts-dry-run.md`. The current next irreversible
 action is publishing `causlane-contracts` after CI and maintainer confirmation.
 
+Update 2026-06-27: `causlane-contracts 0.0.1` was published and indexed on
+crates.io. Evidence is recorded in
+`docs/release/pub5-causlane-contracts-publication.md`. The publication state is
+now `Indexed(causlane-contracts)`. The next runbook crate is
+`causlane-runtime`.
+
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.
 Immediate hygiene fixes were folded into M11.5 and the release plan:
