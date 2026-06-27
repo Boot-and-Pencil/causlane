@@ -11,7 +11,7 @@ generated readiness report remains `docs/release/publish-readiness.md`.
 Reviewed source baseline:
 
 ```text
-main_commit: 759e297952b90973f25d83b267f7c4edb459bd0d
+main_commit: 7bb4053cf9ffdc6774428c472441f14cf8bcaf35
 operator: Vitalii Lobanov / vitalii-lobanov
 date: 2026-06-27
 host: dispatcher
@@ -71,6 +71,11 @@ Update 2026-06-27: package file-list counts were rechecked after the
 `serde_yaml` -> `noyalib` migration. `causlane-contracts` now includes
 `src/serde_numeric.rs`; the 21-file list is recorded in
 `docs/release/pub5-causlane-contracts-dry-run.md`.
+
+Update 2026-06-27: `causlane-cli` package contents were rechecked after the
+devinfra checker metadata pin was updated in
+`fixtures/.devinfra/tool-versions.json`. The file list remains 44 files, and
+the fixture remains an expected crate-local test input.
 
 ## Next State
 
