@@ -11,7 +11,7 @@ authorize upload by itself.
 Reviewed source baseline:
 
 ```text
-main_commit: 80b4c054a256934e937ff3358d34275493a82523
+main_commit: 759e297952b90973f25d83b267f7c4edb459bd0d
 date: 2026-06-27
 host: dispatcher
 runner: local repository workspace
