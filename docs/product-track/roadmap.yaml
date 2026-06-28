@@ -355,7 +355,7 @@ stages:
     status: planned
   - id: M11.7
     title: Release notes
-    status: planned
+    status: done_or_near_done
   gate: For 0.0.1, the refactor-before-publication gate records PUB0-PUB4 complete,
     public API review is recorded, GitHub baseline is curated/scanned, package file
     lists are reviewed, crates are dry-run/published in dependency order, and downstream
@@ -856,8 +856,8 @@ milestones:
     stage: S10
   M11.1:
     title: Crate naming/publish check
-    description: No-publish readiness clears local facade blockers while publication
-      execution remains deferred.
+    description: No-publish readiness cleared local facade blockers and handed off
+      to staged release evidence.
     status: exists_expand
     stage: S11
   M11.2:
@@ -893,7 +893,7 @@ milestones:
     title: Release notes
     description: 'Clear limitations: not workflow engine, formal lanes coverage, unstable
       APIs.'
-    status: planned
+    status: done_or_near_done
     stage: S11
   M12.1:
     title: Reference integration 1

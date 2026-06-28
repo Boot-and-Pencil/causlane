@@ -202,13 +202,13 @@
 
 **Milestones:**
 
-- `M11.1` — **Crate naming/publish check** (`exists_expand`): No-publish readiness clears deterministic local blockers while publication execution remains deferred.
+- `M11.1` — **Crate naming/publish check** (`exists_expand`): No-publish readiness cleared deterministic local blockers and handed off to staged release evidence.
 - `M11.2` — **Feature flags** (`done_or_near_done`): default minimal; existing optional runtime integrations are explicit and non-default.
 - `M11.3` — **Public API review** (`done_or_near_done`): Rust API guidelines, builders, newtypes, no raw Strings on critical fields.
 - `M11.4` — **Examples** (`planned`): simple-local, approval-gate, consequence-parallelism, why-not-parallel.
 - `M11.5` — **Security/release hygiene** (`exists_harden`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - `M11.6` — **Contributor guide** (`planned`): ADR process, new predicate checklist, formal obligation template, adapter certification.
-- `M11.7` — **Release notes** (`planned`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
+- `M11.7` — **Release notes** (`done_or_near_done`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
 
 **Exit gate:** For `0.0.1`, the refactor-before-publication gate records PUB0-PUB4 complete, public API review is recorded, GitHub baseline is curated/scanned, package file lists are reviewed, crates are dry-run/published in dependency order, and downstream smoke can depend on `causlane@0.0.1`. Public alpha `0.1.x` additionally requires runnable examples, usable cookbook/docs, honest receipt-backed formal/replay status and a shaped feature/facade surface.
 

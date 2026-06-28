@@ -7,7 +7,8 @@ Causlane must not upload any crate to crates.io unless this gate remains valid
 for the selected baseline. The current next repository action is:
 
 ```text
-begin PUB6 post-publication stabilization after signed tag v0.0.1;
+decide whether to create a GitHub Release and public follow-up issues for v0.0.1;
+return to the normal roadmap after PUB6 release-note stabilization;
 do not publish additional 0.0.1 crates outside the staged runbook.
 ```
 
@@ -306,6 +307,13 @@ Update 2026-06-29: signed tag `v0.0.1` was created and pushed to origin.
 Evidence is recorded in `docs/release/pub5-v0.0.1-tag.md`. The publication
 state is now `Tagged(v0.0.1)`. The next runbook action is PUB6
 post-publication stabilization.
+
+Update 2026-06-29: the first PUB6 release-notes stabilization slice completed.
+Evidence is recorded in
+`docs/release/pub6-v0.0.1-post-publication.md`. The release notes record
+published crate checksums, downstream smoke, known pre-alpha limitations and
+next roadmap decisions. No GitHub Release or public follow-up issues were
+created in this slice.
 
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.

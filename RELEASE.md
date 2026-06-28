@@ -37,16 +37,26 @@ sequence in `PUBLISHING.md` and `docs/release/publish-all-crates-runbook.md`.
 
 ## First Public Release
 
-The first planned public upload is `0.0.1`, not `0.1.0`. Treat it as a pre-alpha
-bootstrap release whose purpose is package availability, dependency deployment
-and public provenance — not stable API commitment.
+The first public upload is `0.0.1`, not `0.1.0`. It is a pre-alpha bootstrap
+release whose purpose is package availability, dependency deployment and public
+provenance — not stable API commitment.
 
-The public repository baseline and package file-list review are recorded.
-`causlane-core`, `causlane-formal`, `causlane-contracts`, `causlane-runtime`
-and `causlane-replay` have been published and indexed. The staged
-`causlane-codegen` dry-run has passed. The next irreversible step is publishing
-`causlane-codegen` after green CI and maintainer confirmation, then waiting for
-indexing before any dependent crate dry-run.
+The public repository baseline, package file-list review, staged publication
+evidence and signed tag evidence are recorded under `docs/release/`. All eight
+runbook crates have been published and indexed on crates.io:
+
+- `causlane-core 0.0.1`;
+- `causlane-formal 0.0.1`;
+- `causlane-contracts 0.0.1`;
+- `causlane-runtime 0.0.1`;
+- `causlane-replay 0.0.1`;
+- `causlane-codegen 0.0.1`;
+- `causlane 0.0.1`;
+- `causlane-cli 0.0.1`.
+
+Signed tag `v0.0.1` points to the final PUB5 publication evidence commit. PUB6
+post-publication evidence is recorded in
+`docs/release/pub6-v0.0.1-post-publication.md`.
 
 ## Tagging
 

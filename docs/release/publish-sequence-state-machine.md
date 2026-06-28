@@ -6,9 +6,12 @@ publication.
 ## Current Recorded State
 
 As of 2026-06-29, all `0.0.1` runbook crates are `Published` and `Indexed` on
-crates.io, and signed tag `v0.0.1` has been pushed to origin. Evidence is
-recorded in `docs/release/pub5-v0.0.1-tag.md`. The next runbook action is PUB6
-post-publication stabilization.
+crates.io, signed tag `v0.0.1` has been pushed to origin, and repository release
+notes plus downstream smoke evidence are recorded. Evidence is recorded in
+`docs/release/pub5-v0.0.1-tag.md` and
+`docs/release/pub6-v0.0.1-post-publication.md`. The next decisions are whether
+to create a GitHub Release and public follow-up issues, then return to the
+normal roadmap.
 
 ## States
 
@@ -33,6 +36,9 @@ WorkspacePublished(version)
 
 Tagged(version)
   the signed release tag was created and pushed.
+
+PUB6ReleaseNotesRecorded(version)
+  repository release notes, checksums and downstream smoke evidence are recorded.
 ```
 
 ## Invalid Transitions
@@ -79,6 +85,7 @@ LocalReady
   -> Indexed(causlane-cli)
   -> WorkspacePublished(0.0.1)
   -> Tagged(v0.0.1)
+  -> PUB6ReleaseNotesRecorded(v0.0.1)
 ```
 
 ## Publication Order

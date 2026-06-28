@@ -31,8 +31,8 @@ PUB6 post-publication stabilization
 ### M11.1 — Crate naming/publish check
 
 - **Status:** `exists_expand`
-- **Outcome:** No-publish readiness clears deterministic local blockers while
-  publication execution remains deferred.
+- **Outcome:** No-publish readiness cleared deterministic local blockers and
+  handed off to the staged release evidence.
 - **Definition of done:**
   - generated readiness report is current;
   - report clearly separates repo-local readiness from actual upload readiness;
@@ -92,12 +92,16 @@ PUB6 post-publication stabilization
 
 ### M11.7 — Release notes
 
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Outcome:** clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
 - **Definition of done:**
   - `CHANGELOG.md` includes `0.0.1` pre-alpha notes;
   - release notes list all crates published;
   - known limitations and next roadmap are explicit.
+
+Update 2026-06-29: `CHANGELOG.md`, `RELEASE.md` and
+`docs/release/pub6-v0.0.1-post-publication.md` record the published crate list,
+checksums, downstream smoke, known limitations and next PUB6 decisions.
 
 ## Exit gate for `0.0.1`
 

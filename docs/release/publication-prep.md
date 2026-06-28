@@ -1,13 +1,15 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** begin PUB6 post-publication stabilization.
+**Current next action:** decide whether to create a GitHub Release and public
+follow-up issues for `v0.0.1`, then return to the normal roadmap.
 `causlane-core 0.0.1`,
 `causlane-formal 0.0.1`,
 `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`, `causlane-replay 0.0.1`,
 `causlane-codegen 0.0.1`, `causlane 0.0.1` and `causlane-cli 0.0.1` have been
 published and indexed; signed tag `v0.0.1` has been pushed and is recorded in
-`docs/release/pub5-v0.0.1-tag.md`.
+`docs/release/pub5-v0.0.1-tag.md`. Repository release notes and PUB6 smoke
+evidence are recorded in `docs/release/pub6-v0.0.1-post-publication.md`.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -227,10 +229,12 @@ Immediately after upload:
 
 - tag `v0.0.1` (complete; evidence recorded in
   `docs/release/pub5-v0.0.1-tag.md`);
-- run a downstream smoke project with `cargo add causlane@0.0.1`;
-- record published package checksums/versions in release notes;
-- update `CHANGELOG.md`;
-- create issues for known pre-alpha limitations;
+- run a downstream smoke project with `cargo add causlane@0.0.1` (complete;
+  evidence recorded in `docs/release/pub6-v0.0.1-post-publication.md`);
+- record published package checksums/versions in release notes (complete);
+- update `CHANGELOG.md` (complete);
+- create issues for known pre-alpha limitations if maintainers choose public
+  issue tracking for this pre-alpha release;
 - return to the normal product roadmap.
 
 ## Definition Of Done

@@ -442,7 +442,7 @@
 
 - **Stage:** S11
 - **Status:** `exists_expand`
-- **Purpose:** No-publish readiness clears deterministic local blockers while publication execution remains deferred.
+- **Purpose:** No-publish readiness cleared deterministic local blockers and handed off to staged release evidence.
 
 ## M11.2 — Feature flags
 
@@ -477,7 +477,7 @@
 ## M11.7 — Release notes
 
 - **Stage:** S11
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Purpose:** Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
 
 ## M12.1 — Reference integration 1
