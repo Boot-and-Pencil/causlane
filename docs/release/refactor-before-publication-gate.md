@@ -7,8 +7,7 @@ Causlane must not upload any crate to crates.io unless this gate remains valid
 for the selected baseline. The current next repository action is:
 
 ```text
-tag v0.0.1 only after green CI on the final PUB5 evidence commit;
-begin PUB6 post-publication stabilization after the release tag;
+begin PUB6 post-publication stabilization after signed tag v0.0.1;
 do not publish additional 0.0.1 crates outside the staged runbook.
 ```
 
@@ -302,6 +301,11 @@ Evidence is recorded in
 `docs/release/pub5-causlane-cli-publication.md`. The publication state is now
 `Indexed(causlane-cli)`, completing the staged PUB5 crate upload sequence. The
 next runbook action is tagging `v0.0.1` after CI on the publication evidence.
+
+Update 2026-06-29: signed tag `v0.0.1` was created and pushed to origin.
+Evidence is recorded in `docs/release/pub5-v0.0.1-tag.md`. The publication
+state is now `Tagged(v0.0.1)`. The next runbook action is PUB6
+post-publication stabilization.
 
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.

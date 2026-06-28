@@ -1,13 +1,13 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** tag `v0.0.1` after green CI on the final PUB5
-publication evidence, then begin PUB6 stabilization. `causlane-core 0.0.1`,
+**Current next action:** begin PUB6 post-publication stabilization.
+`causlane-core 0.0.1`,
 `causlane-formal 0.0.1`,
 `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`, `causlane-replay 0.0.1`,
 `causlane-codegen 0.0.1`, `causlane 0.0.1` and `causlane-cli 0.0.1` have been
-published and indexed; the `causlane-cli` publication evidence is recorded in
-`docs/release/pub5-causlane-cli-publication.md`.
+published and indexed; signed tag `v0.0.1` has been pushed and is recorded in
+`docs/release/pub5-v0.0.1-tag.md`.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -215,6 +215,9 @@ The `causlane-cli` dry-run and publication evidence are recorded in
 `docs/release/pub5-causlane-cli-dry-run.md` and
 `docs/release/pub5-causlane-cli-publication.md`.
 
+The signed `v0.0.1` tag evidence is recorded in
+`docs/release/pub5-v0.0.1-tag.md`.
+
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.
 
@@ -222,7 +225,8 @@ Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 
 Immediately after upload:
 
-- tag `v0.0.1`;
+- tag `v0.0.1` (complete; evidence recorded in
+  `docs/release/pub5-v0.0.1-tag.md`);
 - run a downstream smoke project with `cargo add causlane@0.0.1`;
 - record published package checksums/versions in release notes;
 - update `CHANGELOG.md`;

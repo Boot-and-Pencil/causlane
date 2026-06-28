@@ -85,12 +85,12 @@ The workspace has moved beyond `PackageReviewed(all crates)`: `causlane-core`,
 published and indexed. Evidence for the final `causlane-cli` upload is recorded
 in `docs/release/pub5-causlane-cli-publication.md`.
 
-The next runbook command, after CI on the final PUB5 evidence commit, is the
-release tag:
+The signed release tag was created and pushed:
 
 ```bash
-git tag -s v0.0.1 -m "Causlane 0.0.1"
+git push origin refs/tags/v0.0.1
 ```
 
-Do not upload additional `0.0.1` crates outside the staged runbook. Do not move
-to PUB6 stabilization until the release tag is created and pushed.
+Tag evidence is recorded in `docs/release/pub5-v0.0.1-tag.md`. Do not upload
+additional `0.0.1` crates outside the staged runbook. The next runbook action
+is PUB6 post-publication stabilization.

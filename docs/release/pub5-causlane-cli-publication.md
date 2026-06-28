@@ -137,3 +137,7 @@ Indexed(causlane-cli)
 The staged PUB5 crate upload sequence for `0.0.1` is complete. The next
 runbook action, after CI on this evidence commit, is tagging `v0.0.1` and
 beginning PUB6 post-publication stabilization.
+
+Update 2026-06-29: signed tag `v0.0.1` was created and pushed. Evidence is
+recorded in `docs/release/pub5-v0.0.1-tag.md`; the next runbook action is PUB6
+post-publication stabilization.

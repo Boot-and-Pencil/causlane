@@ -5,13 +5,10 @@ publication.
 
 ## Current Recorded State
 
-As of 2026-06-28, `causlane-core 0.0.1`, `causlane-formal 0.0.1`,
-`causlane-contracts 0.0.1`, `causlane-runtime 0.0.1` and
-`causlane-replay 0.0.1` are `Published` and `Indexed` on crates.io. The staged
-dry-run for `causlane-codegen 0.0.1` has passed. Continue only through the
-staged order below; do not skip ahead to dependent crates. The next irreversible
-runbook action is publishing `causlane-codegen` after explicit maintainer
-confirmation.
+As of 2026-06-29, all `0.0.1` runbook crates are `Published` and `Indexed` on
+crates.io, and signed tag `v0.0.1` has been pushed to origin. Evidence is
+recorded in `docs/release/pub5-v0.0.1-tag.md`. The next runbook action is PUB6
+post-publication stabilization.
 
 ## States
 
@@ -33,6 +30,9 @@ Indexed(crate)
 
 WorkspacePublished(version)
   all crates in the release sequence are indexed.
+
+Tagged(version)
+  the signed release tag was created and pushed.
 ```
 
 ## Invalid Transitions
@@ -71,8 +71,14 @@ LocalReady
   -> DryRunPassed(causlane-codegen)
   -> Published(causlane-codegen)
   -> Indexed(causlane-codegen)
-  -> ...
+  -> DryRunPassed(causlane)
+  -> Published(causlane)
+  -> Indexed(causlane)
+  -> DryRunPassed(causlane-cli)
+  -> Published(causlane-cli)
+  -> Indexed(causlane-cli)
   -> WorkspacePublished(0.0.1)
+  -> Tagged(v0.0.1)
 ```
 
 ## Publication Order
