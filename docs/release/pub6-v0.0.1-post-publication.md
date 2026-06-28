@@ -1,10 +1,11 @@
 # PUB6 v0.0.1 Post-publication Evidence
 
-**Status:** first PUB6 release-notes stabilization slice complete.
+**Status:** PUB6 release-notes and GitHub Release stabilization complete.
 
 This hand-maintained evidence records the repository-local post-publication
 stabilization work for the `0.0.1` pre-alpha workspace release. It is release
-evidence only; it does not create a GitHub Release or public follow-up issues.
+evidence only; public follow-up issues were intentionally not created in this
+slice.
 
 ## Release Scope
 
@@ -67,6 +68,23 @@ this devinfra host blocks direct Cargo invocation. The wrapper emitted
 temporary-project `tools/devctl` lookup warnings before and after Cargo, but
 the wrapped `cargo check --locked` completed successfully.
 
+## GitHub Release
+
+GitHub Release metadata:
+
+```text
+release_url: https://github.com/Boot-and-Pencil/causlane/releases/tag/v0.0.1
+tag_name: v0.0.1
+name: Causlane 0.0.1
+published_at: 2026-06-28T21:25:16Z
+is_draft: false
+is_prerelease: true
+target_commitish: main
+```
+
+The release is attached to the existing signed `v0.0.1` tag. The tag target was
+verified separately as `53d927b3fd47994b9e2be2486421c689d1d4d492`.
+
 ## Release Notes
 
 Repository release notes are recorded in `CHANGELOG.md` and `RELEASE.md`.
@@ -90,15 +108,16 @@ Security and provenance notes:
   order.
 - Signed tag `v0.0.1` was created with maintainer key
   `0AC6D616765B1C729A60479090576F9A767B2AEA`.
-- No GitHub Release or public follow-up issues were created in this slice.
+- GitHub Release `v0.0.1` was created as a public pre-release.
+- No public follow-up issues were created in this selected slice.
 
 ## Next State
 
 The publication state moves to:
 
 ```text
-PUB6ReleaseNotesRecorded(v0.0.1)
+GitHubReleasePublished(v0.0.1)
 ```
 
-The next PUB6 decisions are creating a GitHub Release, opening public follow-up
-issues for known limitations if desired, and returning to the normal roadmap.
+Public follow-up issues for known limitations remain optional/deferred. The next
+product-roadmap action is M11.4 Examples.

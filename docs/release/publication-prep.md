@@ -1,15 +1,16 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** decide whether to create a GitHub Release and public
-follow-up issues for `v0.0.1`, then return to the normal roadmap.
+**Current next action:** return to the normal product roadmap with M11.4
+Examples; public follow-up issues for `v0.0.1` remain optional/deferred.
 `causlane-core 0.0.1`,
 `causlane-formal 0.0.1`,
 `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`, `causlane-replay 0.0.1`,
 `causlane-codegen 0.0.1`, `causlane 0.0.1` and `causlane-cli 0.0.1` have been
 published and indexed; signed tag `v0.0.1` has been pushed and is recorded in
-`docs/release/pub5-v0.0.1-tag.md`. Repository release notes and PUB6 smoke
-evidence are recorded in `docs/release/pub6-v0.0.1-post-publication.md`.
+`docs/release/pub5-v0.0.1-tag.md`. Repository release notes, PUB6 smoke
+evidence and the GitHub pre-release are recorded in
+`docs/release/pub6-v0.0.1-post-publication.md`.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -233,6 +234,7 @@ Immediately after upload:
   evidence recorded in `docs/release/pub6-v0.0.1-post-publication.md`);
 - record published package checksums/versions in release notes (complete);
 - update `CHANGELOG.md` (complete);
+- create GitHub Release `v0.0.1` as a pre-release (complete);
 - create issues for known pre-alpha limitations if maintainers choose public
   issue tracking for this pre-alpha release;
 - return to the normal product roadmap.

@@ -3,18 +3,16 @@
 **Status:** `active_pre_alpha_prep`
 
 **Purpose:** prepare public source/package provenance first, then mature toward
-public alpha. The current target is a full-workspace `0.0.1` pre-alpha crates.io
-bootstrap release. A later `0.1.x` release is the first public alpha.
+public alpha. The full-workspace `0.0.1` pre-alpha crates.io bootstrap release
+is published; a later `0.1.x` release is the first public alpha.
 
 ## Current sub-track: publication bootstrap
 
 The public GitHub baseline is open, PUB0-PUB4 are recorded complete, package
-file-list review is recorded for every workspace crate, and `causlane-core`,
-`causlane-formal`, `causlane-contracts`, `causlane-runtime` and
-`causlane-replay` have been published and indexed. The staged dry-run for
-`causlane-codegen` has passed. The immediate next irreversible action is
-publishing `causlane-codegen` only after green CI and explicit maintainer
-confirmation:
+file-list review is recorded for every workspace crate, all eight runbook
+crates have been published and indexed, signed tag `v0.0.1` is pushed, and the
+GitHub pre-release is public. Public follow-up issues remain optional/deferred.
+The next product-roadmap action is M11.4 Examples:
 
 ```text
 PUB0 refactor first

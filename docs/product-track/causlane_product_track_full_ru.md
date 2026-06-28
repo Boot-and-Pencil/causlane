@@ -71,9 +71,10 @@ tools/product-track-bundle --write
 This product track is a planning corpus. It does not replace machine-derived
 formal status, receipts, stale-check, coverage reports, or release gate outputs.
 
-Current publication status: the public GitHub baseline and package file-list
-review are recorded, and the `causlane-core` dry-run has passed; the active S11
-release action is the maintainer decision on whether to publish `causlane-core`.
+Current publication status: the `0.0.1` pre-alpha workspace release is
+published on crates.io, signed tag `v0.0.1` is pushed, the GitHub pre-release is
+public, and PUB6 evidence is recorded. Public follow-up issues remain
+optional/deferred; the next product-roadmap action is M11.4 Examples.
 
 ## Implementation Handoff
 
@@ -1655,10 +1656,10 @@ the later M12.3 migration/shadow docs milestone.
 - `1.0.0`: stable API and compatibility policy.
 
 The first crates.io publication target is `0.0.1`: a public pre-alpha bootstrap
-release for package availability and provenance, not a stable alpha. The
-refactor-before-publication gate, public-baseline handoff and package file-list
-review are recorded; local readiness probes still do not authorize upload by
-themselves. Upload proceeds only through the staged one-crate runbook.
+release for package availability and provenance, not a stable alpha. That
+release is published and indexed, signed tag `v0.0.1` is pushed, and the GitHub
+pre-release is public. Future uploads still proceed only through the staged
+one-crate runbook.
 
 ## Crate publication strategy
 
@@ -1669,6 +1670,7 @@ order; do not duplicate generated order by hand in product-track pages.
 
 Actual crates.io upload is executed only through `PUBLISHING.md` and
 [`../release/publish-all-crates-runbook.md`](../release/publish-all-crates-runbook.md).
+The `0.0.1` upload evidence is recorded under `docs/release/`.
 
 Important distinction:
 
@@ -1796,9 +1798,9 @@ owner and expiry, and not used to support a release/publication claim.
 
 ## Current Focus
 
-The current roadmap focus is the S11/PUB5 staged publication sub-track. Upload
-is still not a batch action; each crate must pass its own dry-run and publish
-step after internal registry dependencies are available.
+The `0.0.1` S11 publication bootstrap has completed through staged crates.io
+publication, signed tag, downstream smoke, release notes and GitHub pre-release.
+Public follow-up issues remain optional/deferred.
 
 ```text
 recorded complete:
@@ -1808,15 +1810,17 @@ recorded complete:
   S11/PUB3 Human and agent documentation
   S11/PUB4 GitHub baseline and history curation
 
-only after that:
-active_next:
+only after that (recorded complete for v0.0.1):
   S11/PUB5 staged crates.io publication
+  S11/PUB6 post-publication stabilization
+
+active_next:
+  S11/M11.4 runnable examples for public alpha preparation
 ```
 
-S08/S09/S10 remain product-roadmap workstreams, but they are not the immediate
-publication-preparation action. Do not upload crates outside `PUBLISHING.md` and
-`docs/release/publish-all-crates-runbook.md`; the next irreversible command,
-if maintainers continue, is publishing `causlane-core`.
+S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
+gap for public alpha is M11.4 Examples. Do not upload additional `0.0.1` crates
+outside `PUBLISHING.md` and `docs/release/publish-all-crates-runbook.md`.
 
 ## Entry Checklist
 

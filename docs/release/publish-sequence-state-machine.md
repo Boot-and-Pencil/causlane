@@ -7,11 +7,10 @@ publication.
 
 As of 2026-06-29, all `0.0.1` runbook crates are `Published` and `Indexed` on
 crates.io, signed tag `v0.0.1` has been pushed to origin, and repository release
-notes plus downstream smoke evidence are recorded. Evidence is recorded in
-`docs/release/pub5-v0.0.1-tag.md` and
-`docs/release/pub6-v0.0.1-post-publication.md`. The next decisions are whether
-to create a GitHub Release and public follow-up issues, then return to the
-normal roadmap.
+notes, downstream smoke evidence and the GitHub pre-release are recorded.
+Evidence is recorded in `docs/release/pub5-v0.0.1-tag.md` and
+`docs/release/pub6-v0.0.1-post-publication.md`. Public follow-up issues remain
+optional/deferred, and the next product-roadmap action is M11.4 Examples.
 
 ## States
 
@@ -39,6 +38,9 @@ Tagged(version)
 
 PUB6ReleaseNotesRecorded(version)
   repository release notes, checksums and downstream smoke evidence are recorded.
+
+GitHubReleasePublished(version)
+  the GitHub Release for the signed release tag is public.
 ```
 
 ## Invalid Transitions
@@ -86,6 +88,7 @@ LocalReady
   -> WorkspacePublished(0.0.1)
   -> Tagged(v0.0.1)
   -> PUB6ReleaseNotesRecorded(v0.0.1)
+  -> GitHubReleasePublished(v0.0.1)
 ```
 
 ## Publication Order

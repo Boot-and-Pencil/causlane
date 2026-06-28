@@ -56,7 +56,9 @@ runbook crates have been published and indexed on crates.io:
 
 Signed tag `v0.0.1` points to the final PUB5 publication evidence commit. PUB6
 post-publication evidence is recorded in
-`docs/release/pub6-v0.0.1-post-publication.md`.
+`docs/release/pub6-v0.0.1-post-publication.md`. The GitHub pre-release is
+published at
+<https://github.com/Boot-and-Pencil/causlane/releases/tag/v0.0.1>.
 
 ## Tagging
 

@@ -9,10 +9,10 @@
 - `1.0.0`: stable API and compatibility policy.
 
 The first crates.io publication target is `0.0.1`: a public pre-alpha bootstrap
-release for package availability and provenance, not a stable alpha. The
-refactor-before-publication gate, public-baseline handoff and package file-list
-review are recorded; local readiness probes still do not authorize upload by
-themselves. Upload proceeds only through the staged one-crate runbook.
+release for package availability and provenance, not a stable alpha. That
+release is published and indexed, signed tag `v0.0.1` is pushed, and the GitHub
+pre-release is public. Future uploads still proceed only through the staged
+one-crate runbook.
 
 ## Crate publication strategy
 
@@ -23,6 +23,7 @@ order; do not duplicate generated order by hand in product-track pages.
 
 Actual crates.io upload is executed only through `PUBLISHING.md` and
 [`../release/publish-all-crates-runbook.md`](../release/publish-all-crates-runbook.md).
+The `0.0.1` upload evidence is recorded under `docs/release/`.
 
 Important distinction:
 

@@ -60,9 +60,10 @@ tools/product-track-bundle --write
 This product track is a planning corpus. It does not replace machine-derived
 formal status, receipts, stale-check, coverage reports, or release gate outputs.
 
-Current publication status: the public GitHub baseline and package file-list
-review are recorded, and the `causlane-core` dry-run has passed; the active S11
-release action is the maintainer decision on whether to publish `causlane-core`.
+Current publication status: the `0.0.1` pre-alpha workspace release is
+published on crates.io, signed tag `v0.0.1` is pushed, the GitHub pre-release is
+public, and PUB6 evidence is recorded. Public follow-up issues remain
+optional/deferred; the next product-roadmap action is M11.4 Examples.
 
 ## Implementation Handoff
 

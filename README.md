@@ -69,17 +69,17 @@ Projections explain the truth.
 
 ## Publication status
 
-The first public crates.io release is staged as an experimental `0.0.1`
-pre-alpha bootstrap. The repository is public, PUB4 public-baseline evidence is
-recorded, and PUB5 package file-list review is complete. `causlane-core`,
-`causlane-formal`, `causlane-contracts`, `causlane-runtime` and
-`causlane-replay` have been published and indexed. The staged dry-run for
-`causlane-codegen` has passed; the next irreversible release action is
-publishing `causlane-codegen` only after green CI and explicit maintainer
-confirmation.
+The first public crates.io release is an experimental `0.0.1` pre-alpha
+bootstrap. All eight runbook crates have been published and indexed:
+`causlane-core`, `causlane-formal`, `causlane-contracts`, `causlane-runtime`,
+`causlane-replay`, `causlane-codegen`, `causlane` and `causlane-cli`.
+
+Signed tag `v0.0.1` and the GitHub pre-release are public:
+<https://github.com/Boot-and-Pencil/causlane/releases/tag/v0.0.1>. Release
+evidence is recorded under `docs/release/`.
 
 The library facade crate is `causlane`; the command-line binary is shipped by
-the `causlane-cli` package. After crates.io publication, install the CLI with:
+the `causlane-cli` package. Install the CLI with:
 
 ```bash
 cargo install causlane-cli

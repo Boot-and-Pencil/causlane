@@ -7,8 +7,8 @@ Causlane must not upload any crate to crates.io unless this gate remains valid
 for the selected baseline. The current next repository action is:
 
 ```text
-decide whether to create a GitHub Release and public follow-up issues for v0.0.1;
-return to the normal roadmap after PUB6 release-note stabilization;
+return to the normal product roadmap with M11.4 Examples;
+public follow-up issues for v0.0.1 remain optional/deferred;
 do not publish additional 0.0.1 crates outside the staged runbook.
 ```
 
@@ -312,8 +312,13 @@ Update 2026-06-29: the first PUB6 release-notes stabilization slice completed.
 Evidence is recorded in
 `docs/release/pub6-v0.0.1-post-publication.md`. The release notes record
 published crate checksums, downstream smoke, known pre-alpha limitations and
-next roadmap decisions. No GitHub Release or public follow-up issues were
-created in this slice.
+next roadmap decisions. At that time, GitHub Release creation and public
+follow-up issues remained pending decisions.
+
+Update 2026-06-29: GitHub Release `v0.0.1` was created as a public pre-release.
+Evidence is recorded in
+`docs/release/pub6-v0.0.1-post-publication.md`. Public follow-up issues remain
+optional/deferred, and the next product-roadmap action is M11.4 Examples.
 
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.
