@@ -43,10 +43,8 @@ and public provenance — not stable API commitment.
 
 The public repository baseline and package file-list review are recorded, and
 `causlane-core`, `causlane-formal`, `causlane-contracts` and
-`causlane-runtime` have been published and indexed. The staged
-`causlane-replay` dry-run has passed. The next irreversible step is publishing
-`causlane-replay` after green CI and maintainer confirmation, then waiting for
-indexing before any dependent crate dry-run.
+`causlane-runtime` and `causlane-replay` have been published and indexed. The
+next staged step is the one-crate dry-run for `causlane-codegen`.
 
 ## Tagging
 

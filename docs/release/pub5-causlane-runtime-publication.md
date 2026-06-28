@@ -114,7 +114,6 @@ causlane-replay
 Do not dry-run or publish crates that depend on `causlane-replay` until
 `causlane-replay` has itself been published and indexed on crates.io.
 
-Update 2026-06-28: the staged `causlane-replay` dry-run passed. Evidence is
-recorded in `docs/release/pub5-causlane-replay-dry-run.md`; the next
-irreversible action is publishing `causlane-replay` after CI and maintainer
-confirmation.
+Update 2026-06-28: `causlane-replay 0.0.1` was published and indexed. Evidence
+is recorded in `docs/release/pub5-causlane-replay-publication.md`; the next
+runbook crate is `causlane-codegen`.

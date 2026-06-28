@@ -105,3 +105,7 @@ explicit confirmation, is:
 
 Do not dry-run or publish crates that depend on `causlane-replay` until
 `causlane-replay` has been published and indexed on crates.io.
+
+Update 2026-06-28: `causlane-replay 0.0.1` was published and indexed.
+Publication evidence is recorded in
+`docs/release/pub5-causlane-replay-publication.md`.

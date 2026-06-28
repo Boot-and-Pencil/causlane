@@ -1,12 +1,10 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** publish `causlane-replay` only after green CI and
-explicit maintainer confirmation. `causlane-core 0.0.1`,
-`causlane-formal 0.0.1`, `causlane-contracts 0.0.1` and
-`causlane-runtime 0.0.1` have been published and indexed; the staged
-`causlane-replay` dry-run passed and is recorded in
-`docs/release/pub5-causlane-replay-dry-run.md`.
+**Current next action:** run the staged one-crate dry-run gate for
+`causlane-codegen` if maintainers choose to continue. `causlane-core 0.0.1`,
+`causlane-formal 0.0.1`, `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`
+and `causlane-replay 0.0.1` have been published and indexed.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -198,6 +196,9 @@ The `causlane-replay` dry-run evidence records one follow-up: the
 all-features Rust `1.85.0` compatibility is not claimable until the optional
 `causlane-runtime` Restate dependency/MSRV policy is resolved with a versioned
 follow-up.
+
+The `causlane-replay` publication evidence is recorded in
+`docs/release/pub5-causlane-replay-publication.md`.
 
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.

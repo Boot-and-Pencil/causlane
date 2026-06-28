@@ -7,8 +7,8 @@ Causlane must not upload any crate to crates.io unless this gate remains valid
 for the selected baseline. The current next repository action is:
 
 ```text
-publish causlane-replay only after green CI and maintainer confirmation;
-do not dry-run causlane-codegen until causlane-replay is published and indexed;
+run the staged one-crate dry-run for causlane-codegen;
+publish causlane-codegen only after its dry-run and maintainer confirmation;
 continue the staged PUB5 sequence one crate at a time.
 ```
 
@@ -266,6 +266,11 @@ state is now `DryRunPassed(causlane-replay)`. The next irreversible action is
 publishing `causlane-replay` after CI and maintainer confirmation. The dry-run
 evidence also records a runtime Restate dependency/MSRV follow-up before
 claiming workspace-wide Rust `1.85` all-features compatibility.
+
+Update 2026-06-28: `causlane-replay 0.0.1` was published and indexed on
+crates.io. Evidence is recorded in
+`docs/release/pub5-causlane-replay-publication.md`. The publication state is now
+`Indexed(causlane-replay)`. The next runbook crate is `causlane-codegen`.
 
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.
