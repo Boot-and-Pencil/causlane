@@ -16,6 +16,11 @@ EXAMPLES = [
         "marker": "approval-gate: approval satisfied; bundle replay verified",
     },
     {
+        "name": "consequence-parallelism",
+        "path": ROOT / "examples" / "consequence-parallelism",
+        "marker": "consequence-parallelism: frontier selected; replay verified",
+    },
+    {
         "name": "simple-local",
         "path": ROOT / "examples" / "simple-local",
         "marker": "simple-local: replay verified",

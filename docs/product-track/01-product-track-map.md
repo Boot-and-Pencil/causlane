@@ -205,7 +205,7 @@
 - `M11.1` — **Crate naming/publish check** (`exists_expand`): No-publish readiness cleared deterministic local blockers and handed off to staged release evidence.
 - `M11.2` — **Feature flags** (`done_or_near_done`): default minimal; existing optional runtime integrations are explicit and non-default.
 - `M11.3` — **Public API review** (`done_or_near_done`): Rust API guidelines, builders, newtypes, no raw Strings on critical fields.
-- `M11.4` — **Examples** (`exists`): simple-local and approval-gate are runnable and checked; consequence-parallelism and why-not-parallel remain planned.
+- `M11.4` — **Examples** (`exists`): simple-local, approval-gate and consequence-parallelism are runnable and checked; why-not-parallel remains planned.
 - `M11.5` — **Security/release hygiene** (`exists_harden`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - `M11.6` — **Contributor guide** (`planned`): ADR process, new predicate checklist, formal obligation template, adapter certification.
 - `M11.7` — **Release notes** (`done_or_near_done`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.

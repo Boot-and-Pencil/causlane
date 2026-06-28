@@ -64,8 +64,8 @@ Current publication status: the `0.0.1` pre-alpha workspace release is
 published on crates.io, signed tag `v0.0.1` is pushed, the GitHub pre-release is
 public, and PUB6 evidence is recorded. Public follow-up issues remain
 optional/deferred. The current product-roadmap action is M11.4 Examples; its
-`simple-local` and `approval-gate` runnable slices exist and the remaining
-examples are planned.
+`simple-local`, `approval-gate` and `consequence-parallelism` runnable slices
+exist and the remaining example is planned.
 
 ## Implementation Handoff
 

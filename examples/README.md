@@ -16,8 +16,8 @@ approval-gate
   impact_set_hash, with step-up, separation-of-duties and bundle replay.
 
 consequence-parallelism
-  planned:
-  safe frontier selection for independent consequences.
+  runnable: safe frontier selection for independent consequences, conflicting
+  writes and lane capacity, with conflict-free parallel replay.
 
 why-not-parallel
   planned:

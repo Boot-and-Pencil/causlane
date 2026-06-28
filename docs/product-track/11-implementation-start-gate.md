@@ -68,13 +68,14 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S11/M11.4 remaining consequence/parallelism examples for public alpha preparation
+  S11/M11.4 remaining why-not-parallel example for public alpha preparation
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is the remaining M11.4 Examples after the `simple-local`
-and `approval-gate` slices. Do not upload additional `0.0.1` crates outside
-`PUBLISHING.md` and `docs/release/publish-all-crates-runbook.md`.
+gap for public alpha is the remaining M11.4 `why-not-parallel` example after
+the `simple-local`, `approval-gate` and `consequence-parallelism` slices. Do not
+upload additional `0.0.1` crates outside `PUBLISHING.md` and
+`docs/release/publish-all-crates-runbook.md`.
 
 ## Entry Checklist
 

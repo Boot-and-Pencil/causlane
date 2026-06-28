@@ -460,7 +460,7 @@
 
 - **Stage:** S11
 - **Status:** `exists`
-- **Purpose:** simple-local and approval-gate are runnable and checked; consequence-parallelism and why-not-parallel remain planned.
+- **Purpose:** simple-local, approval-gate and consequence-parallelism are runnable and checked; why-not-parallel remains planned.
 
 ## M11.5 — Security/release hygiene
 
