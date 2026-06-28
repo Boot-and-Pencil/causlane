@@ -81,20 +81,16 @@ the fixture remains an expected crate-local test input.
 
 The workspace has moved beyond `PackageReviewed(all crates)`: `causlane-core`,
 `causlane-formal`, `causlane-contracts`, `causlane-runtime`,
-`causlane-replay`, `causlane-codegen` and `causlane` have been published and
-indexed. Evidence for the `causlane` upload is recorded in
-`docs/release/pub5-causlane-publication.md`, and the staged dry-run for
-`causlane-cli` passed with evidence recorded in
-`docs/release/pub5-causlane-cli-dry-run.md`.
+`causlane-replay`, `causlane-codegen`, `causlane` and `causlane-cli` have been
+published and indexed. Evidence for the final `causlane-cli` upload is recorded
+in `docs/release/pub5-causlane-cli-publication.md`.
 
-The next staged command, if maintainers choose to continue after CI and
-explicit confirmation, is:
+The next runbook command, after CI on the final PUB5 evidence commit, is the
+release tag:
 
 ```bash
-./tools/cargo-dev publish -p causlane-cli --locked
+git tag -s v0.0.1 -m "Causlane 0.0.1"
 ```
 
-Do not publish `causlane-cli` until maintainers have confirmed the next
-irreversible upload. Do not upload any crate without following the one-crate
-procedure in
-`docs/release/publish-all-crates-runbook.md`.
+Do not upload additional `0.0.1` crates outside the staged runbook. Do not move
+to PUB6 stabilization until the release tag is created and pushed.

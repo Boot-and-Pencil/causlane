@@ -98,3 +98,7 @@ explicit confirmation, is:
 
 Do not tag `v0.0.1`, run final downstream install evidence, or move to PUB6
 until `causlane-cli` has been published and indexed on crates.io.
+
+Update 2026-06-28: `causlane-cli 0.0.1` was published and indexed. Evidence is
+recorded in `docs/release/pub5-causlane-cli-publication.md`; the next runbook
+action is tagging `v0.0.1` after CI on the publication evidence.

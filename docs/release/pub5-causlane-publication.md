@@ -138,3 +138,7 @@ causlane-cli
 Update 2026-06-28: the staged `causlane-cli` dry-run passed. Evidence is
 recorded in `docs/release/pub5-causlane-cli-dry-run.md`. The next irreversible
 action is publishing `causlane-cli` after green CI and maintainer confirmation.
+
+Update 2026-06-28: `causlane-cli 0.0.1` was published and indexed. Evidence is
+recorded in `docs/release/pub5-causlane-cli-publication.md`; the staged PUB5
+crate upload sequence is complete.

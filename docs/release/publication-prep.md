@@ -1,12 +1,13 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** publish `causlane-cli` only after green CI and explicit
-maintainer confirmation. `causlane-core 0.0.1`, `causlane-formal 0.0.1`,
+**Current next action:** tag `v0.0.1` after green CI on the final PUB5
+publication evidence, then begin PUB6 stabilization. `causlane-core 0.0.1`,
+`causlane-formal 0.0.1`,
 `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`, `causlane-replay 0.0.1`,
-`causlane-codegen 0.0.1` and `causlane 0.0.1` have been published and indexed;
-the staged `causlane-cli` dry-run passed and is recorded in
-`docs/release/pub5-causlane-cli-dry-run.md`.
+`causlane-codegen 0.0.1`, `causlane 0.0.1` and `causlane-cli 0.0.1` have been
+published and indexed; the `causlane-cli` publication evidence is recorded in
+`docs/release/pub5-causlane-cli-publication.md`.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -210,9 +211,9 @@ The `causlane` dry-run and publication evidence are recorded in
 `docs/release/pub5-causlane-dry-run.md` and
 `docs/release/pub5-causlane-publication.md`.
 
-The `causlane-cli` dry-run evidence is recorded in
-`docs/release/pub5-causlane-cli-dry-run.md`; no crates.io upload has been
-performed for `causlane-cli`.
+The `causlane-cli` dry-run and publication evidence are recorded in
+`docs/release/pub5-causlane-cli-dry-run.md` and
+`docs/release/pub5-causlane-cli-publication.md`.
 
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.
