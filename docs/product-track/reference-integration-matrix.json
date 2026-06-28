@@ -1,0 +1,86 @@
+{
+  "artifact": "causlane.reference-integrations.v1",
+  "updated_at": "2026-06-29",
+  "scope": "bounded in-repo reference integration evidence for S12",
+  "integrations": [
+    {
+      "id": "reference-integration-1",
+      "milestone": "M12.1",
+      "status": "covered_bounded",
+      "surface": "examples/reference-integration",
+      "marker": "reference-integration: api worker audit projection verified",
+      "gates": [
+        {
+          "gate": "api_submission",
+          "status": "covered",
+          "evidence": [
+            "tests::reference_integration_runs_api_worker_audit_projection"
+          ],
+          "claim": "The example submits host tasks through the public host-dispatch v2 seam."
+        },
+        {
+          "gate": "worker_drain_dependency_order",
+          "status": "covered",
+          "evidence": [
+            "tests::worker_executes_dependency_order"
+          ],
+          "claim": "The deterministic linear worker drains the accepted API task before the dependent projection task."
+        },
+        {
+          "gate": "audit_append_indexing",
+          "status": "covered",
+          "evidence": [
+            "tests::audit_indexes_are_monotonic_and_cover_flow"
+          ],
+          "claim": "Runtime audit append evidence is indexed monotonically and covers admission, dispatch, execution, authz, projection and close events."
+        },
+        {
+          "gate": "projection_authz_redaction",
+          "status": "covered",
+          "evidence": [
+            "tests::projection_redacts_unlisted_fields"
+          ],
+          "claim": "A guarded projection read reveals only allowlisted fields and redacts the unlisted field."
+        },
+        {
+          "gate": "negative_controls",
+          "status": "covered",
+          "evidence": [
+            "tests::read_without_may_project_allow_is_denied",
+            "tests::duplicate_idempotency_key_is_suppressed"
+          ],
+          "claim": "The example includes fail-closed controls for missing projection authz and duplicate idempotency."
+        }
+      ],
+      "deferred_claims": [
+        {
+          "claim": "durable_queue_or_distributed_leases",
+          "status": "deferred",
+          "deferred_to": [
+            "M12.3",
+            "M12.4"
+          ],
+          "reason": "M12.1 validates the public API story with the deterministic in-process reference dispatcher; durable queues and distributed lease coordination remain outside this bounded slice."
+        },
+        {
+          "claim": "http_database_service_shape",
+          "status": "deferred",
+          "deferred_to": [
+            "M12.2",
+            "M12.3"
+          ],
+          "reason": "The M12.1 example is an in-repo executable integration, not an HTTP/database service template."
+        },
+        {
+          "claim": "host_retry_policy",
+          "status": "deferred",
+          "deferred_to": [
+            "M12.3",
+            "M09.7"
+          ],
+          "reason": "Retry policy remains host-owned; this slice proves duplicate suppression, not first-class worker retry orchestration."
+        }
+      ]
+    }
+  ]
+}

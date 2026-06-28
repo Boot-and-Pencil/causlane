@@ -220,7 +220,7 @@
 
 **Milestones:**
 
-- `M12.1` — **Reference integration 1** (`exists_harden`): Rust service with API+worker+audit+projection.
+- `M12.1` — **Reference integration 1** (`done_or_near_done`): Rust service with API+worker+audit+projection.
 - `M12.2` — **Reference integration 2** (`planned`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`planned`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`planned`): Document external adapter interface, compatibility/certification.

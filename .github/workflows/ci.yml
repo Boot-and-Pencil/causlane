@@ -27,6 +27,8 @@ jobs:
           python3 tools/publication-plan-doc-lint --json
           python3 tools/semantic-naming-scan --json
           tools/context-pack-scan
+          tools/product-track-status-check
+          tools/reference-integration-check
 
   rust:
     name: rust workspace

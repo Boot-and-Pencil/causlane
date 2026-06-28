@@ -544,7 +544,7 @@
         {
           "id": "M12.1",
           "title": "Reference integration 1",
-          "status": "exists_harden"
+          "status": "done_or_near_done"
         },
         {
           "id": "M12.2",
@@ -1134,7 +1134,7 @@
     "M12.1": {
       "title": "Reference integration 1",
       "description": "Rust service with API+worker+audit+projection.",
-      "status": "exists_harden",
+      "status": "done_or_near_done",
       "stage": "S12"
     },
     "M12.2": {

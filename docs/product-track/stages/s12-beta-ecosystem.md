@@ -8,9 +8,9 @@
 
 ### M12.1 — Reference integration 1
 
-- **Status:** `exists_harden`
+- **Status:** `done_or_near_done`
 - **Outcome:** Rust service with API+worker+audit+projection.
-- **Evidence:** `examples/reference-integration` runs an in-repo API+worker+audit+projection slice through public host-dispatch, runtime audit and guarded projection APIs.
+- **Evidence:** `examples/reference-integration` runs an in-repo API+worker+audit+projection slice through public host-dispatch, runtime audit and guarded projection APIs; `docs/product-track/reference-integration-matrix.json` is checked by `tools/reference-integration-check`.
 - **Definition of done:**
   - typed contract or executable check exists;
   - docs/ADR updated;

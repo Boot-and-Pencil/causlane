@@ -67,7 +67,8 @@ optional/deferred. M11.4 Examples now has `simple-local`, `approval-gate`,
 `consequence-parallelism` and `why-not-parallel` runnable slices, M11.5
 security/release hygiene is recorded, and M11.6 Contributor guide is recorded.
 M12.1 Reference integration 1 now has an in-repo API+worker+audit+projection
-slice; the current product-roadmap action is M12.1 hardening.
+slice and checked evidence matrix; the current product-roadmap action is M12.2
+Reference integration 2.
 
 ## Implementation Handoff
 

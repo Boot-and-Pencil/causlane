@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+"""Validate bounded S12 reference-integration evidence."""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+MATRIX = ROOT / "docs" / "product-track" / "reference-integration-matrix.json"
+EXAMPLES_CHECK = ROOT / "tools" / "examples-check"
+EXAMPLE = ROOT / "examples" / "reference-integration"
+EXAMPLE_LIB = EXAMPLE / "src" / "lib.rs"
+
+ARTIFACT = "causlane.reference-integrations.v1"
+REQUIRED_GATES = {
+    "api_submission",
+    "worker_drain_dependency_order",
+    "audit_append_indexing",
+    "projection_authz_redaction",
+    "negative_controls",
+}
+REQUIRED_DEFERRED = {
+    "durable_queue_or_distributed_leases",
+    "http_database_service_shape",
+    "host_retry_policy",
+}
+
+
+def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    seen: set[str] = set()
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in seen:
+            raise ValueError(f"duplicate JSON key {key!r}")
+        seen.add(key)
+        result[key] = value
+    return result
+
+
+def load_matrix(errors: list[str]) -> dict[str, Any]:
+    try:
+        return json.loads(
+            MATRIX.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        errors.append(f"{MATRIX.relative_to(ROOT)}: {error}")
+        return {}
+
+
+def expect(condition: bool, errors: list[str], message: str) -> None:
+    if not condition:
+        errors.append(message)
+
+
+def text(path: Path, errors: list[str]) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return ""
+
+
+def evidence_exists(token: str, source: str) -> bool:
+    name = token.rsplit("::", 1)[-1]
+    return re.search(rf"\bfn\s+{re.escape(name)}\b", source) is not None
+
+
+def validate_gate(gate: dict[str, Any], source: str, errors: list[str]) -> str | None:
+    gate_id = gate.get("gate")
+    if not isinstance(gate_id, str):
+        errors.append("gate entry missing string gate id")
+        return None
+
+    expect(
+        gate.get("status") == "covered",
+        errors,
+        f"{gate_id}: status must be 'covered'",
+    )
+    claim = gate.get("claim")
+    expect(
+        isinstance(claim, str) and bool(claim.strip()),
+        errors,
+        f"{gate_id}: claim must be non-empty",
+    )
+
+    evidence = gate.get("evidence")
+    if not isinstance(evidence, list) or not evidence:
+        errors.append(f"{gate_id}: evidence must be a non-empty list")
+        return gate_id
+    for token in evidence:
+        if not isinstance(token, str):
+            errors.append(f"{gate_id}: evidence entries must be strings")
+            continue
+        expect(
+            evidence_exists(token, source),
+            errors,
+            f"{gate_id}: evidence test {token!r} not found in example source",
+        )
+    return gate_id
+
+
+def validate_integration(
+    integration: dict[str, Any],
+    source: str,
+    examples_check: str,
+    errors: list[str],
+) -> None:
+    expect(
+        integration.get("id") == "reference-integration-1",
+        errors,
+        "M12.1 integration id must be reference-integration-1",
+    )
+    expect(
+        integration.get("milestone") == "M12.1",
+        errors,
+        "reference integration must be bound to M12.1",
+    )
+    expect(
+        integration.get("status") == "covered_bounded",
+        errors,
+        "M12.1 integration status must be covered_bounded",
+    )
+    surface = integration.get("surface")
+    expect(
+        surface == "examples/reference-integration",
+        errors,
+        "M12.1 surface must be examples/reference-integration",
+    )
+    expect(EXAMPLE.is_dir(), errors, "examples/reference-integration is missing")
+
+    marker = integration.get("marker")
+    expect(
+        isinstance(marker, str) and marker in examples_check,
+        errors,
+        "M12.1 marker must be registered in tools/examples-check",
+    )
+    expect(
+        "reference-integration" in examples_check,
+        errors,
+        "reference-integration must be listed in tools/examples-check",
+    )
+
+    gates = integration.get("gates")
+    if not isinstance(gates, list):
+        errors.append("M12.1 gates must be a list")
+        seen_gates: set[str] = set()
+    else:
+        seen_gates = {
+            gate_id
+            for gate in gates
+            if isinstance(gate, dict)
+            for gate_id in [validate_gate(gate, source, errors)]
+            if gate_id is not None
+        }
+    missing = REQUIRED_GATES - seen_gates
+    extra = seen_gates - REQUIRED_GATES
+    expect(not missing, errors, f"M12.1 gates missing: {sorted(missing)}")
+    expect(not extra, errors, f"M12.1 gates unknown: {sorted(extra)}")
+
+    deferred = integration.get("deferred_claims")
+    if not isinstance(deferred, list):
+        errors.append("M12.1 deferred_claims must be a list")
+        seen_deferred: set[str] = set()
+    else:
+        seen_deferred = set()
+        for claim in deferred:
+            if not isinstance(claim, dict):
+                errors.append("M12.1 deferred claim entries must be objects")
+                continue
+            claim_id = claim.get("claim")
+            if not isinstance(claim_id, str):
+                errors.append("M12.1 deferred claim missing string claim id")
+                continue
+            seen_deferred.add(claim_id)
+            expect(
+                claim.get("status") == "deferred",
+                errors,
+                f"{claim_id}: deferred claim status must be 'deferred'",
+            )
+            deferred_to = claim.get("deferred_to")
+            expect(
+                isinstance(deferred_to, list)
+                and bool(deferred_to)
+                and all(isinstance(item, str) for item in deferred_to),
+                errors,
+                f"{claim_id}: deferred_to must be a non-empty string list",
+            )
+            reason = claim.get("reason")
+            expect(
+                isinstance(reason, str) and bool(reason.strip()),
+                errors,
+                f"{claim_id}: reason must be non-empty",
+            )
+    missing_deferred = REQUIRED_DEFERRED - seen_deferred
+    extra_deferred = seen_deferred - REQUIRED_DEFERRED
+    expect(
+        not missing_deferred,
+        errors,
+        f"M12.1 deferred claims missing: {sorted(missing_deferred)}",
+    )
+    expect(
+        not extra_deferred,
+        errors,
+        f"M12.1 deferred claims unknown: {sorted(extra_deferred)}",
+    )
+
+
+def main() -> int:
+    errors: list[str] = []
+    matrix = load_matrix(errors)
+    source = text(EXAMPLE_LIB, errors)
+    examples_check = text(EXAMPLES_CHECK, errors)
+
+    expect(matrix.get("artifact") == ARTIFACT, errors, f"artifact must be {ARTIFACT}")
+    updated_at = matrix.get("updated_at")
+    expect(
+        isinstance(updated_at, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", updated_at) is not None,
+        errors,
+        "updated_at must be YYYY-MM-DD",
+    )
+    scope = matrix.get("scope")
+    expect(
+        isinstance(scope, str) and bool(scope.strip()),
+        errors,
+        "scope must be non-empty",
+    )
+
+    integrations = matrix.get("integrations")
+    if not isinstance(integrations, list):
+        errors.append("integrations must be a list")
+    else:
+        m121 = [
+            integration
+            for integration in integrations
+            if isinstance(integration, dict) and integration.get("milestone") == "M12.1"
+        ]
+        expect(len(m121) == 1, errors, "matrix must contain exactly one M12.1 integration")
+        for integration in m121:
+            validate_integration(integration, source, examples_check, errors)
+
+    if errors:
+        print("reference-integration-check: FAILED", file=sys.stderr)
+        for error in errors:
+            print(f"- {error}", file=sys.stderr)
+        return 1
+
+    print("reference-integration-check: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
