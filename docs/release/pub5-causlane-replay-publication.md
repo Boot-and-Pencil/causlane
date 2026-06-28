@@ -127,3 +127,7 @@ Update 2026-06-28: the staged `causlane-codegen` dry-run passed. Evidence is
 recorded in `docs/release/pub5-causlane-codegen-dry-run.md`; the next
 irreversible action is publishing `causlane-codegen` after CI and maintainer
 confirmation.
+
+Update 2026-06-28: `causlane-codegen 0.0.1` was published and indexed. Evidence
+is recorded in `docs/release/pub5-causlane-codegen-publication.md`; the next
+runbook crate is `causlane`.

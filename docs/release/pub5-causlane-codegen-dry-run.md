@@ -90,3 +90,7 @@ explicit confirmation, is:
 
 Do not dry-run or publish crates after `causlane-codegen` in the runbook until
 `causlane-codegen` has been published and indexed on crates.io.
+
+Update 2026-06-28: `causlane-codegen 0.0.1` was published and indexed. Evidence
+is recorded in `docs/release/pub5-causlane-codegen-publication.md`; the next
+runbook crate is `causlane`.

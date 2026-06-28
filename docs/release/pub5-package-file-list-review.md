@@ -80,19 +80,18 @@ the fixture remains an expected crate-local test input.
 ## Next State
 
 The workspace has moved beyond `PackageReviewed(all crates)`: `causlane-core`,
-`causlane-formal`, `causlane-contracts`, `causlane-runtime` and
-`causlane-replay` have been published and indexed. The staged dry-run for
-`causlane-codegen` passed; evidence is recorded in
-`docs/release/pub5-causlane-codegen-dry-run.md`.
+`causlane-formal`, `causlane-contracts`, `causlane-runtime`,
+`causlane-replay` and `causlane-codegen` have been published and indexed.
+Evidence for the `causlane-codegen` upload is recorded in
+`docs/release/pub5-causlane-codegen-publication.md`.
 
-The next irreversible command, if maintainers choose to continue after CI and
+The next staged command, if maintainers choose to continue after CI and
 explicit confirmation, is:
 
 ```bash
-./tools/cargo-dev publish -p causlane-codegen --locked
+./tools/cargo-dev publish -p causlane --dry-run --locked
 ```
 
-Do not dry-run or publish crates after `causlane-codegen` in the runbook until
-`causlane-codegen` has been published and indexed. Do not upload any crate
-without following the one-crate procedure in
+Do not dry-run or publish `causlane-cli` until `causlane` has been published
+and indexed. Do not upload any crate without following the one-crate procedure in
 `docs/release/publish-all-crates-runbook.md`.

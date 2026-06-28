@@ -1,12 +1,12 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** publish `causlane-codegen` only after green CI and
-explicit maintainer confirmation. `causlane-core 0.0.1`,
-`causlane-formal 0.0.1`, `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`
-and `causlane-replay 0.0.1` have been published and indexed; the staged
-`causlane-codegen` dry-run passed and is recorded in
-`docs/release/pub5-causlane-codegen-dry-run.md`.
+**Current next action:** dry-run `causlane` only after green CI and explicit
+maintainer confirmation. `causlane-core 0.0.1`, `causlane-formal 0.0.1`,
+`causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`, `causlane-replay 0.0.1`
+and `causlane-codegen 0.0.1` have been published and indexed; the
+`causlane-codegen` publication evidence is recorded in
+`docs/release/pub5-causlane-codegen-publication.md`.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.
@@ -201,6 +201,10 @@ follow-up.
 
 The `causlane-replay` publication evidence is recorded in
 `docs/release/pub5-causlane-replay-publication.md`.
+
+The `causlane-codegen` dry-run and publication evidence are recorded in
+`docs/release/pub5-causlane-codegen-dry-run.md` and
+`docs/release/pub5-causlane-codegen-publication.md`.
 
 Use the staged runbook in `docs/release/publish-all-crates-runbook.md` and
 `PUBLISHING.md`.
