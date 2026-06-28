@@ -4,6 +4,11 @@ This repository is AI-agent-friendly, but agents are not semantic authorities.
 The protocol, contracts, generated receipts and maintainer-reviewed docs remain
 the source of truth.
 
+Agents working on contributor-facing changes must also follow
+`CONTRIBUTING.md`; it is the public routing guide for ADRs, predicate changes,
+formal obligations, adapter certification and AI-assisted provenance. Do not
+turn contributor documentation into a second semantic authority.
+
 ## Core Rules
 
 1. Do not weaken dispatch invariants.

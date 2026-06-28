@@ -12,8 +12,9 @@ The public GitHub baseline is open, PUB0-PUB4 are recorded complete, package
 file-list review is recorded for every workspace crate, all eight runbook
 crates have been published and indexed, signed tag `v0.0.1` is pushed, and the
 GitHub pre-release is public. Public follow-up issues remain optional/deferred.
-M11.4 Examples is closed for public alpha preparation; the next
-product-roadmap action is M11.6 Contributor guide:
+M11.4 Examples and M11.6 Contributor guide are closed for public alpha
+preparation; the next product-roadmap action is M11.5 security/release hygiene
+hardening:
 
 ```text
 PUB0 refactor first
@@ -103,11 +104,16 @@ parallelizable explanations.
 
 ### M11.6 — Contributor guide
 
-- **Status:** `planned`
-- **Outcome:** ADR process, new predicate checklist, formal obligation template, adapter certification.
+- **Status:** `done_or_near_done`
+- **Outcome:** public contributor guide consolidates ADR process, new predicate checklist, formal obligation template, adapter certification and AI accountability.
 - **Definition of done:**
   - contributor docs explain human accountability for AI-assisted changes;
   - agent docs prohibit common architecture/documentation regressions.
+
+Update 2026-06-29: `CONTRIBUTING.md` now routes contributors through the
+existing ADR, predicate, formal impact, formal obligation, adapter
+certification and milestone execution guidance. `AGENTS.md` points agents back
+to that public guide while preserving the generated truth chain as authority.
 
 ### M11.7 — Release notes
 

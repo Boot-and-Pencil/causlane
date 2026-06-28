@@ -75,8 +75,9 @@ Current publication status: the `0.0.1` pre-alpha workspace release is
 published on crates.io, signed tag `v0.0.1` is pushed, the GitHub pre-release is
 public, and PUB6 evidence is recorded. Public follow-up issues remain
 optional/deferred. M11.4 Examples now has `simple-local`, `approval-gate`,
-`consequence-parallelism` and `why-not-parallel` runnable slices; the current
-product-roadmap action is M11.6 Contributor guide.
+`consequence-parallelism` and `why-not-parallel` runnable slices, and M11.6
+Contributor guide is recorded. The current product-roadmap action is M11.5
+security/release hygiene hardening.
 
 ## Implementation Handoff
 
@@ -410,7 +411,7 @@ Beta можно выпускать, когда:
 - `M11.3` — **Public API review** (`done_or_near_done`): Rust API guidelines, builders, newtypes, no raw Strings on critical fields.
 - `M11.4` — **Examples** (`done_or_near_done`): simple-local, approval-gate, consequence-parallelism and why-not-parallel are runnable and checked.
 - `M11.5` — **Security/release hygiene** (`exists_harden`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
-- `M11.6` — **Contributor guide** (`planned`): ADR process, new predicate checklist, formal obligation template, adapter certification.
+- `M11.6` — **Contributor guide** (`done_or_near_done`): public contributor guide consolidates ADR process, new predicate checklist, formal obligation template, adapter certification and AI accountability.
 - `M11.7` — **Release notes** (`done_or_near_done`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
 
 **Exit gate:** For `0.0.1`, the refactor-before-publication gate records PUB0-PUB4 complete, public API review is recorded, GitHub baseline is curated/scanned, package file lists are reviewed, crates are dry-run/published in dependency order, and downstream smoke can depend on `causlane@0.0.1`. Public alpha `0.1.x` additionally requires runnable examples, usable cookbook/docs, honest receipt-backed formal/replay status and a shaped feature/facade surface.
@@ -942,8 +943,8 @@ Beta можно выпускать, когда:
 ## M11.6 — Contributor guide
 
 - **Stage:** S11
-- **Status:** `planned`
-- **Purpose:** ADR process, new predicate checklist, formal obligation template, adapter certification.
+- **Status:** `done_or_near_done`
+- **Purpose:** public contributor guide consolidates ADR process, new predicate checklist, formal obligation template, adapter certification and AI accountability.
 
 ## M11.7 — Release notes
 
@@ -1817,14 +1818,14 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S11/M11.6 contributor guide for public alpha preparation
+  S11/M11.5 security/release hygiene hardening for public alpha preparation
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M11.6 contributor guidance after the M11.4 runnable
-examples (`simple-local`, `approval-gate`, `consequence-parallelism` and
-`why-not-parallel`). Do not upload additional `0.0.1` crates outside
-`PUBLISHING.md` and `docs/release/publish-all-crates-runbook.md`.
+gap for public alpha is M11.5 security/release hygiene hardening after the
+M11.4 runnable examples and M11.6 contributor guidance. Do not upload
+additional `0.0.1` crates outside `PUBLISHING.md` and
+`docs/release/publish-all-crates-runbook.md`.
 
 ## Entry Checklist
 

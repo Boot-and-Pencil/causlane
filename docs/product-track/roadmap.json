@@ -524,7 +524,7 @@
         {
           "id": "M11.6",
           "title": "Contributor guide",
-          "status": "planned"
+          "status": "done_or_near_done"
         },
         {
           "id": "M11.7",
@@ -1121,8 +1121,8 @@
     },
     "M11.6": {
       "title": "Contributor guide",
-      "description": "ADR process, new predicate checklist, formal obligation template, adapter certification.",
-      "status": "planned",
+      "description": "public contributor guide consolidates ADR process, new predicate checklist, formal obligation template, adapter certification and AI accountability.",
+      "status": "done_or_near_done",
       "stage": "S11"
     },
     "M11.7": {

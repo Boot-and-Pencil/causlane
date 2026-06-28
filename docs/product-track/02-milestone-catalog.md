@@ -471,8 +471,8 @@
 ## M11.6 — Contributor guide
 
 - **Stage:** S11
-- **Status:** `planned`
-- **Purpose:** ADR process, new predicate checklist, formal obligation template, adapter certification.
+- **Status:** `done_or_near_done`
+- **Purpose:** public contributor guide consolidates ADR process, new predicate checklist, formal obligation template, adapter certification and AI accountability.
 
 ## M11.7 — Release notes
 

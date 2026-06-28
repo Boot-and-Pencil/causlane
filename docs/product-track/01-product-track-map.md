@@ -207,7 +207,7 @@
 - `M11.3` — **Public API review** (`done_or_near_done`): Rust API guidelines, builders, newtypes, no raw Strings on critical fields.
 - `M11.4` — **Examples** (`done_or_near_done`): simple-local, approval-gate, consequence-parallelism and why-not-parallel are runnable and checked.
 - `M11.5` — **Security/release hygiene** (`exists_harden`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
-- `M11.6` — **Contributor guide** (`planned`): ADR process, new predicate checklist, formal obligation template, adapter certification.
+- `M11.6` — **Contributor guide** (`done_or_near_done`): public contributor guide consolidates ADR process, new predicate checklist, formal obligation template, adapter certification and AI accountability.
 - `M11.7` — **Release notes** (`done_or_near_done`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
 
 **Exit gate:** For `0.0.1`, the refactor-before-publication gate records PUB0-PUB4 complete, public API review is recorded, GitHub baseline is curated/scanned, package file lists are reviewed, crates are dry-run/published in dependency order, and downstream smoke can depend on `causlane@0.0.1`. Public alpha `0.1.x` additionally requires runnable examples, usable cookbook/docs, honest receipt-backed formal/replay status and a shaped feature/facade surface.
