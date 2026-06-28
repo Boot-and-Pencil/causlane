@@ -12,9 +12,9 @@ The public GitHub baseline is open, PUB0-PUB4 are recorded complete, package
 file-list review is recorded for every workspace crate, all eight runbook
 crates have been published and indexed, signed tag `v0.0.1` is pushed, and the
 GitHub pre-release is public. Public follow-up issues remain optional/deferred.
-M11.4 Examples and M11.6 Contributor guide are closed for public alpha
-preparation; the next product-roadmap action is M11.5 security/release hygiene
-hardening:
+M11.4 Examples, M11.5 security/release hygiene and M11.6 Contributor guide are
+closed for public alpha preparation; the next product-roadmap action is M12.1
+Reference integration 1:
 
 ```text
 PUB0 refactor first
@@ -91,7 +91,7 @@ parallelizable explanations.
 
 ### M11.5 — Security/release hygiene
 
-- **Status:** `exists_harden`
+- **Status:** `done_or_near_done`
 - **Outcome:** licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - **Definition of done:**
   - root security and AI/provenance docs are present;
@@ -101,6 +101,11 @@ parallelizable explanations.
   - secret/context scan is recorded before publication;
   - deprecated parser boundaries and duplicate dependency warnings are either
     resolved or explicitly tracked before full workspace publication.
+
+Update 2026-06-29: `deny.toml` denies new duplicate dependency versions and
+keeps only exact reviewed skips for the current transitive duplicate lines.
+`docs/release/m11.5-dependency-hygiene.md` records the cargo-deny evidence and
+follow-up policy.
 
 ### M11.6 — Contributor guide
 

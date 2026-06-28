@@ -465,7 +465,7 @@
 ## M11.5 — Security/release hygiene
 
 - **Stage:** S11
-- **Status:** `exists_harden`
+- **Status:** `done_or_near_done`
 - **Purpose:** licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 
 ## M11.6 — Contributor guide

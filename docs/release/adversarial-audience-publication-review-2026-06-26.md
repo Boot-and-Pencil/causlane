@@ -11,11 +11,11 @@ tone was not adopted; only the review dimensions were used.
 
 | Finding | Disposition | Current owner |
 |---|---|---|
-| M11.5 still appeared as `planned` even though release hygiene gates now exist. | Fixed now: product-track source status is `exists_harden`, and the milestone records current evidence plus remaining backlog. | Release track |
+| M11.5 still appeared as `planned` even though release hygiene gates now exist. | Fixed now: product-track source status is `done_or_near_done`, and the milestone records current evidence plus exact follow-up backlog. | Release track |
 | `cargo-deny` existed but was not a hard blocker in the publication plan. | Fixed now: `publication-prep.md` requires the gate to pass and requires warnings to be accepted or tracked. | Release track |
 | The Restate runtime path previously reached the RustCrypto RSA advisory chain. | Fixed before this review by switching the Restate backend to `aws_lc_rs`; this review records the evidence to prevent regression. | Runtime adapters |
 | `serde_yaml 0.9.34+deprecated` remains in contracts, replay and CLI parser boundaries, and reaches `unsafe-libyaml`. | Fixed 2026-06-27: YAML-facing crates now use `noyalib 0.0.8` with `compat-serde-yaml`; workspace MSRV is raised to `1.85`. | Contracts/replay tooling |
-| `cargo-deny` reports duplicate-version warnings. | Deferred with owner: convergence backlog before full workspace `0.0.1`; not hidden as a clean dependency story. | Release track |
+| `cargo-deny` reports duplicate-version warnings. | Fixed 2026-06-29: `deny.toml` denies new duplicate versions and keeps exact reviewed skips for the current transitive lines. | Release track |
 | Formal attestation tests contain a fixed key-like string. | Mitigated now: the script labels it as synthetic fixed test material. It is not a secret or environment credential. | Formal/replay tooling |
 
 ## Non-findings
@@ -33,7 +33,7 @@ tone was not adopted; only the review dimensions were used.
 - Before publishing YAML-facing crates beyond `causlane-formal`, rerun the
   dependency hygiene gate and verify `serde_yaml` / `unsafe-libyaml` remain out
   of the locked dependency graph.
-- Before full workspace `0.0.1`, rerun `./tools/cargo-dev deny check` and record
-  whether duplicate-version warnings were eliminated or intentionally accepted.
+- Before future release baselines, rerun `./tools/cargo-dev deny check` and
+  remove exact duplicate skips once upstream dependency lines converge.
 - Keep future advisory/license/source exceptions narrow and dated; do not add a
   blanket advisory suppression to make a publication gate pass.

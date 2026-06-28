@@ -68,13 +68,13 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S11/M11.5 security/release hygiene hardening for public alpha preparation
+  S12/M12.1 reference integration 1 for public alpha API-story validation
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M11.5 security/release hygiene hardening after the
-M11.4 runnable examples and M11.6 contributor guidance. Do not upload
-additional `0.0.1` crates outside `PUBLISHING.md` and
+gap for public alpha is M12.1 reference integration after the S11 examples,
+security/release hygiene and contributor guidance. Do not upload additional
+`0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 
 ## Entry Checklist

@@ -36,9 +36,20 @@ exceptions = [
 ignore = false
 
 [bans]
-multiple-versions = "warn"
+multiple-versions = "deny"
 wildcards = "deny"
 allow-workspace = true
+skip = [
+    { crate = "fallible-iterator@0.2.0", reason = "M11.5 reviewed duplicate: postgres/tokio-postgres remain on 0.2 while rusqlite has moved to 0.3; optional runtime adapter surface only." },
+    { crate = "getrandom@0.2.17", reason = "M11.5 reviewed duplicate: restate-sdk/jsonwebtoken transitive line has not converged with the current rand/tempfile/getrandom ecosystem." },
+    { crate = "getrandom@0.3.4", reason = "M11.5 reviewed duplicate: aws-lc/opentelemetry/proptest line is distinct from restate-sdk getrandom 0.2 and postgres/tempfile getrandom 0.4." },
+    { crate = "hashbrown@0.16.1", reason = "M11.5 reviewed duplicate: restate-sdk/typify regex stack remains one minor behind noyalib/indexmap." },
+    { crate = "r-efi@5.3.0", reason = "M11.5 reviewed duplicate: paired with getrandom 0.3 while getrandom 0.4 pulls r-efi 6; license exception remains exact." },
+    { crate = "rand@0.9.4", reason = "M11.5 reviewed duplicate: opentelemetry/proptest/apalis line has not converged with postgres rand 0.10." },
+    { crate = "rand_core@0.9.5", reason = "M11.5 reviewed duplicate: paired with rand 0.9 while postgres rand 0.10 uses rand_core 0.10." },
+    { crate = "regress@0.10.5", reason = "M11.5 reviewed duplicate: restate-sdk runtime dependency differs from typify build-time dependency." },
+    { crate = "wasi@0.11.1+wasi-snapshot-preview1", reason = "M11.5 reviewed duplicate: tokio/getrandom 0.2 line differs from wasite/whoami via postgres." },
+]
 
 [sources]
 unknown-registry = "deny"

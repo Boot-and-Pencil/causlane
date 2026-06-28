@@ -519,7 +519,7 @@
         {
           "id": "M11.5",
           "title": "Security/release hygiene",
-          "status": "exists_harden"
+          "status": "done_or_near_done"
         },
         {
           "id": "M11.6",
@@ -1116,7 +1116,7 @@
     "M11.5": {
       "title": "Security/release hygiene",
       "description": "licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.",
-      "status": "exists_harden",
+      "status": "done_or_near_done",
       "stage": "S11"
     },
     "M11.6": {
