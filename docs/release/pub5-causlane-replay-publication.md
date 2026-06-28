@@ -122,3 +122,8 @@ causlane-codegen
 Do not dry-run or publish crates after `causlane-codegen` in the runbook until
 `causlane-codegen` has itself passed dry-run, been published and been indexed on
 crates.io.
+
+Update 2026-06-28: the staged `causlane-codegen` dry-run passed. Evidence is
+recorded in `docs/release/pub5-causlane-codegen-dry-run.md`; the next
+irreversible action is publishing `causlane-codegen` after CI and maintainer
+confirmation.

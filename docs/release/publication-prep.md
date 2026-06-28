@@ -1,10 +1,12 @@
 # Publication Preparation Plan
 
 **Status:** publication-prep contract, not an upload approval.
-**Current next action:** run the staged one-crate dry-run gate for
-`causlane-codegen` if maintainers choose to continue. `causlane-core 0.0.1`,
+**Current next action:** publish `causlane-codegen` only after green CI and
+explicit maintainer confirmation. `causlane-core 0.0.1`,
 `causlane-formal 0.0.1`, `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1`
-and `causlane-replay 0.0.1` have been published and indexed.
+and `causlane-replay 0.0.1` have been published and indexed; the staged
+`causlane-codegen` dry-run passed and is recorded in
+`docs/release/pub5-causlane-codegen-dry-run.md`.
 
 This document is the human-maintained release plan. The generated readiness
 report lives in `docs/release/publish-readiness.md`; do not hand-edit that file.

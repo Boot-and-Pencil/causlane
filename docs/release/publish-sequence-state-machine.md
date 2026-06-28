@@ -7,9 +7,11 @@ publication.
 
 As of 2026-06-28, `causlane-core 0.0.1`, `causlane-formal 0.0.1`,
 `causlane-contracts 0.0.1`, `causlane-runtime 0.0.1` and
-`causlane-replay 0.0.1` are `Published` and `Indexed` on crates.io. Continue
-only through the staged order below; do not skip ahead to dependent crates. The
-next runbook crate is `causlane-codegen`.
+`causlane-replay 0.0.1` are `Published` and `Indexed` on crates.io. The staged
+dry-run for `causlane-codegen 0.0.1` has passed. Continue only through the
+staged order below; do not skip ahead to dependent crates. The next irreversible
+runbook action is publishing `causlane-codegen` after explicit maintainer
+confirmation.
 
 ## States
 

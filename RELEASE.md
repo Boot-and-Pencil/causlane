@@ -41,10 +41,12 @@ The first planned public upload is `0.0.1`, not `0.1.0`. Treat it as a pre-alpha
 bootstrap release whose purpose is package availability, dependency deployment
 and public provenance — not stable API commitment.
 
-The public repository baseline and package file-list review are recorded, and
-`causlane-core`, `causlane-formal`, `causlane-contracts` and
-`causlane-runtime` and `causlane-replay` have been published and indexed. The
-next staged step is the one-crate dry-run for `causlane-codegen`.
+The public repository baseline and package file-list review are recorded.
+`causlane-core`, `causlane-formal`, `causlane-contracts`, `causlane-runtime`
+and `causlane-replay` have been published and indexed. The staged
+`causlane-codegen` dry-run has passed. The next irreversible step is publishing
+`causlane-codegen` after green CI and maintainer confirmation, then waiting for
+indexing before any dependent crate dry-run.
 
 ## Tagging
 
