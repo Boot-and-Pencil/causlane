@@ -1109,7 +1109,7 @@
     },
     "M11.4": {
       "title": "Examples",
-      "description": "simple-local is runnable and checked; approval-gate, consequence-parallelism and why-not-parallel remain planned.",
+      "description": "simple-local and approval-gate are runnable and checked; consequence-parallelism and why-not-parallel remain planned.",
       "status": "exists",
       "stage": "S11"
     },

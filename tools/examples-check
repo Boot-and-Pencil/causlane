@@ -11,6 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 CARGO = ROOT / "tools" / "cargo-dev"
 EXAMPLES = [
     {
+        "name": "approval-gate",
+        "path": ROOT / "examples" / "approval-gate",
+        "marker": "approval-gate: approval satisfied; bundle replay verified",
+    },
+    {
         "name": "simple-local",
         "path": ROOT / "examples" / "simple-local",
         "marker": "simple-local: replay verified",

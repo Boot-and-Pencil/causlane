@@ -12,8 +12,8 @@ simple-local
   projection anchor and replay.
 
 approval-gate
-  planned:
-  hard effect waits for approval bound to action_id + plan_hash.
+  runnable: hard effect waits for approval bound to action_id + plan_hash +
+  impact_set_hash, with step-up, separation-of-duties and bundle replay.
 
 consequence-parallelism
   planned:

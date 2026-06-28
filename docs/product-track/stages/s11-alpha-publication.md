@@ -62,7 +62,7 @@ PUB6 post-publication stabilization
 ### M11.4 — Examples
 
 - **Status:** `exists`
-- **Outcome:** simple-local is runnable and checked; approval-gate, consequence-parallelism and why-not-parallel remain planned.
+- **Outcome:** simple-local and approval-gate are runnable and checked; consequence-parallelism and why-not-parallel remain planned.
 - **Definition of done:**
   - examples build without unpublished external infrastructure;
   - examples do not imply production workflow-engine readiness.
@@ -71,6 +71,11 @@ Update 2026-06-29: `examples/simple-local` is a standalone runnable example
 checked by `tools/examples-check` and CI. It covers one local runtime-execution
 flow with in-memory audit, barrier/capability, observed truth, projection anchor,
 replay verification and a missing-barrier negative control.
+
+Update 2026-06-29: `examples/approval-gate` is a standalone runnable example
+checked by `tools/examples-check` and CI. It covers fail-closed approval
+outcomes, exact action/plan/impact binding, step-up, separation-of-duties,
+deny-wins and bundle-bound replay refutation of a wrong-plan approval witness.
 
 ### M11.5 — Security/release hygiene
 
