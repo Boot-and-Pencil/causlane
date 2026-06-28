@@ -135,5 +135,6 @@ The next runbook crate is:
 causlane-cli
 ```
 
-Do not publish `causlane-cli` until `causlane-cli` has itself passed dry-run and
-maintainers have confirmed the next irreversible upload.
+Update 2026-06-28: the staged `causlane-cli` dry-run passed. Evidence is
+recorded in `docs/release/pub5-causlane-cli-dry-run.md`. The next irreversible
+action is publishing `causlane-cli` after green CI and maintainer confirmation.
