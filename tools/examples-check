@@ -24,6 +24,11 @@ EXAMPLES = [
         "name": "simple-local",
         "path": ROOT / "examples" / "simple-local",
         "marker": "simple-local: replay verified",
+    },
+    {
+        "name": "why-not-parallel",
+        "path": ROOT / "examples" / "why-not-parallel",
+        "marker": "why-not-parallel: blockers explained",
     }
 ]
 

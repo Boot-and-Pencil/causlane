@@ -1,0 +1,12 @@
+[package]
+name = "causlane-why-not-parallel-example"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "MIT OR Apache-2.0"
+rust-version = "1.85"
+
+[workspace]
+
+[dependencies]
+causlane = { path = "../../crates/causlane", version = "0.0.1" }

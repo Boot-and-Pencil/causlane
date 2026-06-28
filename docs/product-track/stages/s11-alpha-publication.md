@@ -12,7 +12,8 @@ The public GitHub baseline is open, PUB0-PUB4 are recorded complete, package
 file-list review is recorded for every workspace crate, all eight runbook
 crates have been published and indexed, signed tag `v0.0.1` is pushed, and the
 GitHub pre-release is public. Public follow-up issues remain optional/deferred.
-The next product-roadmap action is M11.4 Examples:
+M11.4 Examples is closed for public alpha preparation; the next
+product-roadmap action is M11.6 Contributor guide:
 
 ```text
 PUB0 refactor first
@@ -61,8 +62,8 @@ PUB6 post-publication stabilization
 
 ### M11.4 — Examples
 
-- **Status:** `exists`
-- **Outcome:** simple-local, approval-gate and consequence-parallelism are runnable and checked; why-not-parallel remains planned.
+- **Status:** `done_or_near_done`
+- **Outcome:** simple-local, approval-gate, consequence-parallelism and why-not-parallel are runnable and checked.
 - **Definition of done:**
   - examples build without unpublished external infrastructure;
   - examples do not imply production workflow-engine readiness.
@@ -81,6 +82,11 @@ Update 2026-06-29: `examples/consequence-parallelism` is a standalone runnable
 example checked by `tools/examples-check` and CI. It covers conflict-free
 frontier selection, pending write conflicts, lane capacity and bundle-bound
 replay refutation of overlapping exclusive leases.
+
+Update 2026-06-29: `examples/why-not-parallel` is a standalone runnable example
+checked by `tools/examples-check` and CI. It covers pairwise pending-write
+conflicts, dependency blockers, active writer blockers and positive
+parallelizable explanations.
 
 ### M11.5 — Security/release hygiene
 

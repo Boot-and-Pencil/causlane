@@ -1,8 +1,8 @@
 # Examples
 
 The current repository keeps examples intentionally small for the pre-alpha
-track. Runnable examples are checked by `python3 tools/examples-check`; planned
-entries describe intended coverage and are not production integration claims.
+track. Runnable examples are checked by `python3 tools/examples-check` and are
+not production integration claims.
 
 Current examples:
 
@@ -20,6 +20,6 @@ consequence-parallelism
   writes and lane capacity, with conflict-free parallel replay.
 
 why-not-parallel
-  planned:
-  explanation for conflict vs dependency.
+  runnable: machine-readable explanations for parallelizable ops, pending write
+  conflicts, dependency blockers and active writer blockers.
 ```
