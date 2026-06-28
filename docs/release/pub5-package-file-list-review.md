@@ -85,11 +85,14 @@ The workspace has moved beyond `PackageReviewed(all crates)`: `causlane-core`,
 Evidence for the `causlane-codegen` upload is recorded in
 `docs/release/pub5-causlane-codegen-publication.md`.
 
-The next staged command, if maintainers choose to continue after CI and
+The staged dry-run for `causlane` passed; evidence is recorded in
+`docs/release/pub5-causlane-dry-run.md`.
+
+The next irreversible command, if maintainers choose to continue after CI and
 explicit confirmation, is:
 
 ```bash
-./tools/cargo-dev publish -p causlane --dry-run --locked
+./tools/cargo-dev publish -p causlane --locked
 ```
 
 Do not dry-run or publish `causlane-cli` until `causlane` has been published

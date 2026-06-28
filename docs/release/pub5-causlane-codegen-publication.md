@@ -137,3 +137,7 @@ causlane
 
 Do not dry-run or publish `causlane-cli` until `causlane` has itself passed
 dry-run, been published and been indexed on crates.io.
+
+Update 2026-06-28: the staged `causlane` dry-run passed. Evidence is recorded
+in `docs/release/pub5-causlane-dry-run.md`; the next irreversible action is
+publishing `causlane` after CI and maintainer confirmation.
