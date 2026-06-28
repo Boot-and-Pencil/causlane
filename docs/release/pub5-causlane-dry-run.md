@@ -91,3 +91,7 @@ explicit confirmation, is:
 
 Do not dry-run or publish `causlane-cli` until `causlane` has been published and
 indexed on crates.io.
+
+Update 2026-06-28: `causlane 0.0.1` was published and indexed. Evidence is
+recorded in `docs/release/pub5-causlane-publication.md`; the next runbook crate
+is `causlane-cli`.
