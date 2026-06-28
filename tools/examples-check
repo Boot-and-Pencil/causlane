@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Check runnable examples that intentionally live outside the root workspace."""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CARGO = ROOT / "tools" / "cargo-dev"
+EXAMPLES = [
+    {
+        "name": "simple-local",
+        "path": ROOT / "examples" / "simple-local",
+        "marker": "simple-local: replay verified",
+    }
+]
+
+
+def run(
+    example: dict[str, object],
+    args: list[str],
+    capture: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    cwd = example["path"]
+    assert isinstance(cwd, Path)
+    cmd = [str(CARGO), *args]
+    print(f"examples-check: {example['name']}: {' '.join(args)}")
+    return subprocess.run(
+        cmd,
+        cwd=cwd,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE if capture else None,
+        stderr=subprocess.PIPE if capture else None,
+    )
+
+
+def main() -> int:
+    for example in EXAMPLES:
+        run(example, ["fmt", "--check"])
+        run(example, ["check", "--locked"])
+        run(example, ["clippy", "--all-targets", "--locked", "--", "-D", "warnings"])
+        run(example, ["test", "--locked"])
+        proc = run(example, ["run", "--locked", "--quiet"], capture=True)
+        marker = example["marker"]
+        assert isinstance(marker, str)
+        if marker not in proc.stdout:
+            sys.stderr.write(proc.stdout)
+            sys.stderr.write(proc.stderr)
+            sys.stderr.write(f"examples-check: {example['name']}: missing marker {marker!r}\n")
+            return 1
+    print("examples-check: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

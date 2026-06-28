@@ -459,8 +459,8 @@
 ## M11.4 — Examples
 
 - **Stage:** S11
-- **Status:** `planned`
-- **Purpose:** simple-local, approval-gate, consequence-parallelism, why-not-parallel.
+- **Status:** `exists`
+- **Purpose:** simple-local is runnable and checked; approval-gate, consequence-parallelism and why-not-parallel remain planned.
 
 ## M11.5 — Security/release hygiene
 

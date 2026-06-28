@@ -47,7 +47,7 @@ crates/causlane-replay/   Replay oracle: bundle-bound trace verifier.
 crates/causlane-codegen/  Formal artifact generators.
 crates/causlane-formal/   Pure formal-toolchain readiness logic.
 crates/causlane-cli/      CLI for bundle/scenario/replay/formal commands.
-examples/                 Planned end-to-end examples (placeholders).
+examples/                 Runnable and planned end-to-end examples.
 ```
 
 Maintainer-only context-pack hygiene is documented in

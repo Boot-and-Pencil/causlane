@@ -46,6 +46,8 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Test
         run: cargo test --workspace --all-targets --all-features --locked
+      - name: Examples
+        run: python3 tools/examples-check
 
   msrv:
     name: declared MSRV

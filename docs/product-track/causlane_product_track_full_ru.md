@@ -74,7 +74,9 @@ formal status, receipts, stale-check, coverage reports, or release gate outputs.
 Current publication status: the `0.0.1` pre-alpha workspace release is
 published on crates.io, signed tag `v0.0.1` is pushed, the GitHub pre-release is
 public, and PUB6 evidence is recorded. Public follow-up issues remain
-optional/deferred; the next product-roadmap action is M11.4 Examples.
+optional/deferred. The current product-roadmap action is M11.4 Examples; its
+first `simple-local` runnable slice exists and the remaining examples are
+planned.
 
 ## Implementation Handoff
 
@@ -406,7 +408,7 @@ Beta можно выпускать, когда:
 - `M11.1` — **Crate naming/publish check** (`exists_expand`): No-publish readiness cleared deterministic local blockers and handed off to staged release evidence.
 - `M11.2` — **Feature flags** (`done_or_near_done`): default minimal; existing optional runtime integrations are explicit and non-default.
 - `M11.3` — **Public API review** (`done_or_near_done`): Rust API guidelines, builders, newtypes, no raw Strings on critical fields.
-- `M11.4` — **Examples** (`planned`): simple-local, approval-gate, consequence-parallelism, why-not-parallel.
+- `M11.4` — **Examples** (`exists`): simple-local is runnable and checked; approval-gate, consequence-parallelism and why-not-parallel remain planned.
 - `M11.5` — **Security/release hygiene** (`exists_harden`): licenses, dependency audit, context-pack scan, secret rules, vulnerability policy.
 - `M11.6` — **Contributor guide** (`planned`): ADR process, new predicate checklist, formal obligation template, adapter certification.
 - `M11.7` — **Release notes** (`done_or_near_done`): Clear limitations: not workflow engine, formal lanes coverage, unstable APIs.
@@ -928,8 +930,8 @@ Beta можно выпускать, когда:
 ## M11.4 — Examples
 
 - **Stage:** S11
-- **Status:** `planned`
-- **Purpose:** simple-local, approval-gate, consequence-parallelism, why-not-parallel.
+- **Status:** `exists`
+- **Purpose:** simple-local is runnable and checked; approval-gate, consequence-parallelism and why-not-parallel remain planned.
 
 ## M11.5 — Security/release hygiene
 
@@ -1815,12 +1817,13 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S11/M11.4 runnable examples for public alpha preparation
+  S11/M11.4 remaining runnable examples for public alpha preparation
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M11.4 Examples. Do not upload additional `0.0.1` crates
-outside `PUBLISHING.md` and `docs/release/publish-all-crates-runbook.md`.
+gap for public alpha is the remaining M11.4 Examples after the `simple-local`
+slice. Do not upload additional `0.0.1` crates outside `PUBLISHING.md` and
+`docs/release/publish-all-crates-runbook.md`.
 
 ## Entry Checklist
 

@@ -1,10 +1,16 @@
 # simple-local
 
-Pre-alpha placeholder for the smallest local flow. This is an intended example
-shape, not a production runtime recipe.
+Pre-alpha runnable example for the smallest local flow. It is a local protocol
+example, not a production runtime recipe.
 
-Minimal future example:
+Flow:
 
 ```text
 ActionCall -> ActionPlan -> DispatchLogged -> Barrier -> NoopExecutor -> ObservedTruth -> Projection -> Replay
+```
+
+Run it from the repository root:
+
+```bash
+python3 tools/examples-check
 ```

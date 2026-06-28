@@ -514,7 +514,7 @@
         {
           "id": "M11.4",
           "title": "Examples",
-          "status": "planned"
+          "status": "exists"
         },
         {
           "id": "M11.5",
@@ -1109,8 +1109,8 @@
     },
     "M11.4": {
       "title": "Examples",
-      "description": "simple-local, approval-gate, consequence-parallelism, why-not-parallel.",
-      "status": "planned",
+      "description": "simple-local is runnable and checked; approval-gate, consequence-parallelism and why-not-parallel remain planned.",
+      "status": "exists",
       "stage": "S11"
     },
     "M11.5": {
