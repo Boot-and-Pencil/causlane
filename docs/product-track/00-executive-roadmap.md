@@ -54,7 +54,7 @@ Runtime adapters decide how to physically execute already-authorized work.
 | S09 | Performance, reliability и high-throughput readiness | active_next | Сохранить correctness, но не превратить hot path в тяжелый workflow/control-plane overhead. |
 | S10 | Formal depth и proof hardening | active_next | Углубить доказательства после стабилизации ядра: больше invariants, scopes, interleavings, preservation/refinement. |
 | S11 | Public pre-alpha/bootstrap and alpha publication | active_pre_alpha_prep | Prepare public source/package provenance before public alpha. |
-| S12 | Beta integrations и ecosystem validation | planned | Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters. |
+| S12 | Beta integrations и ecosystem validation | active_next | Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters. |
 | S13 | 1.0 release readiness | planned | Стабилизировать публичный API, semver, invariants, docs, formal/replay gates и эксплуатационные гарантии. |
 | S14 | Post-1.0: platform, ecosystem, advanced modes | future | Развивать control-plane/service mode, marketplace adapters, richer proofs, dashboards, distributed deployment. |
 

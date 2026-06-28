@@ -77,7 +77,8 @@ public, and PUB6 evidence is recorded. Public follow-up issues remain
 optional/deferred. M11.4 Examples now has `simple-local`, `approval-gate`,
 `consequence-parallelism` and `why-not-parallel` runnable slices, M11.5
 security/release hygiene is recorded, and M11.6 Contributor guide is recorded.
-The current product-roadmap action is M12.1 Reference integration 1.
+M12.1 Reference integration 1 now has an in-repo API+worker+audit+projection
+slice; the current product-roadmap action is M12.1 hardening.
 
 ## Implementation Handoff
 
@@ -147,7 +148,7 @@ Runtime adapters decide how to physically execute already-authorized work.
 | S09 | Performance, reliability и high-throughput readiness | active_next | Сохранить correctness, но не превратить hot path в тяжелый workflow/control-plane overhead. |
 | S10 | Formal depth и proof hardening | active_next | Углубить доказательства после стабилизации ядра: больше invariants, scopes, interleavings, preservation/refinement. |
 | S11 | Public pre-alpha/bootstrap and alpha publication | active_pre_alpha_prep | Prepare public source/package provenance before public alpha. |
-| S12 | Beta integrations и ecosystem validation | planned | Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters. |
+| S12 | Beta integrations и ecosystem validation | active_next | Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters. |
 | S13 | 1.0 release readiness | planned | Стабилизировать публичный API, semver, invariants, docs, formal/replay gates и эксплуатационные гарантии. |
 | S14 | Post-1.0: platform, ecosystem, advanced modes | future | Развивать control-plane/service mode, marketplace adapters, richer proofs, dashboards, distributed deployment. |
 
@@ -418,13 +419,13 @@ Beta можно выпускать, когда:
 
 ## S12 — Beta integrations и ecosystem validation
 
-**Status:** `planned`
+**Status:** `active_next`
 
 **Theme:** Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters.
 
 **Milestones:**
 
-- `M12.1` — **Reference integration 1** (`planned`): Rust service with API+worker+audit+projection.
+- `M12.1` — **Reference integration 1** (`exists_harden`): Rust service with API+worker+audit+projection.
 - `M12.2` — **Reference integration 2** (`planned`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`planned`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`planned`): Document external adapter interface, compatibility/certification.
@@ -955,7 +956,7 @@ Beta можно выпускать, когда:
 ## M12.1 — Reference integration 1
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `exists_harden`
 - **Purpose:** Rust service with API+worker+audit+projection.
 
 ## M12.2 — Reference integration 2
@@ -1818,12 +1819,12 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S12/M12.1 reference integration 1 for public alpha API-story validation
+  S12/M12.1 harden reference integration 1 beyond the in-repo API+worker+audit+projection slice
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M12.1 reference integration after the S11 examples,
-security/release hygiene and contributor guidance. Do not upload additional
+gap for public alpha is M12.1 reference integration hardening after the first
+in-repo API+worker+audit+projection slice. Do not upload additional
 `0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 

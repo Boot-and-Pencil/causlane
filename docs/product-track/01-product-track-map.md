@@ -214,13 +214,13 @@
 
 ## S12 — Beta integrations и ecosystem validation
 
-**Status:** `planned`
+**Status:** `active_next`
 
 **Theme:** Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters.
 
 **Milestones:**
 
-- `M12.1` — **Reference integration 1** (`planned`): Rust service with API+worker+audit+projection.
+- `M12.1` — **Reference integration 1** (`exists_harden`): Rust service with API+worker+audit+projection.
 - `M12.2` — **Reference integration 2** (`planned`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`planned`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`planned`): Document external adapter interface, compatibility/certification.

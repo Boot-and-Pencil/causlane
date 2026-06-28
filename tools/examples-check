@@ -29,6 +29,11 @@ EXAMPLES = [
         "name": "why-not-parallel",
         "path": ROOT / "examples" / "why-not-parallel",
         "marker": "why-not-parallel: blockers explained",
+    },
+    {
+        "name": "reference-integration",
+        "path": ROOT / "examples" / "reference-integration",
+        "marker": "reference-integration: api worker audit projection verified",
     }
 ]
 

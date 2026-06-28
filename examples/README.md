@@ -22,4 +22,8 @@ consequence-parallelism
 why-not-parallel
   runnable: machine-readable explanations for parallelizable ops, pending write
   conflicts, dependency blockers and active writer blockers.
+
+reference-integration
+  runnable: API submission, deterministic worker drain, runtime audit adapter
+  append and guarded projection redaction for the M12.1 public alpha API story.
 ```

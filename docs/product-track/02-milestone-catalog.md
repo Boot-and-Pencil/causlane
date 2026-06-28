@@ -483,7 +483,7 @@
 ## M12.1 — Reference integration 1
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `exists_harden`
 - **Purpose:** Rust service with API+worker+audit+projection.
 
 ## M12.2 — Reference integration 2

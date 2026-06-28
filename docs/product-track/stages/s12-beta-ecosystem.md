@@ -1,6 +1,6 @@
 # S12 — Beta integrations и ecosystem validation
 
-**Status:** `planned`
+**Status:** `active_next`
 
 **Purpose:** Проверить полезность на нескольких реальных интеграциях и улучшить DX/adapters.
 
@@ -8,8 +8,9 @@
 
 ### M12.1 — Reference integration 1
 
-- **Status:** `planned`
+- **Status:** `exists_harden`
 - **Outcome:** Rust service with API+worker+audit+projection.
+- **Evidence:** `examples/reference-integration` runs an in-repo API+worker+audit+projection slice through public host-dispatch, runtime audit and guarded projection APIs.
 - **Definition of done:**
   - typed contract or executable check exists;
   - docs/ADR updated;
