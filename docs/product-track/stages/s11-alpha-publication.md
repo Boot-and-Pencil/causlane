@@ -10,10 +10,9 @@ bootstrap release. A later `0.1.x` release is the first public alpha.
 
 The public GitHub baseline is open, PUB0-PUB4 are recorded complete, package
 file-list review is recorded for every workspace crate, and `causlane-core`,
-`causlane-formal` and `causlane-contracts` have been published and indexed. The
-`causlane-runtime` dry-run has passed; the immediate next action is an explicit
-maintainer decision on whether to publish `causlane-runtime`, then wait for
-indexing before any dependent crate dry-run:
+`causlane-formal`, `causlane-contracts` and `causlane-runtime` have been
+published and indexed. The immediate next action is the staged package-list and
+dry-run gate for `causlane-replay`:
 
 ```text
 PUB0 refactor first

@@ -7,8 +7,8 @@ Causlane must not upload any crate to crates.io unless this gate remains valid
 for the selected baseline. The current next repository action is:
 
 ```text
-decide whether to publish causlane-runtime after its passed dry-run;
-wait for causlane-runtime to be indexed before dependent crate dry-runs;
+run the staged one-crate dry-run for causlane-replay;
+publish causlane-replay only after its dry-run and maintainer confirmation;
 continue the staged PUB5 sequence one crate at a time.
 ```
 
@@ -254,6 +254,11 @@ the staged dry-run passed. Evidence is recorded in
 performed. The publication state is now `DryRunPassed(causlane-runtime)`. The
 next irreversible action is publishing `causlane-runtime` after CI and
 maintainer confirmation.
+
+Update 2026-06-28: `causlane-runtime 0.0.1` was published and indexed on
+crates.io. Evidence is recorded in
+`docs/release/pub5-causlane-runtime-publication.md`. The publication state is
+now `Indexed(causlane-runtime)`. The next runbook crate is `causlane-replay`.
 
 Update 2026-06-26: a hostile-audience publication review is recorded in
 `docs/release/adversarial-audience-publication-review-2026-06-26.md`.

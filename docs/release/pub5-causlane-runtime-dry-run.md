@@ -90,3 +90,7 @@ The next irreversible action, if maintainers choose to continue after CI, is:
 
 Do not dry-run or publish crates that depend on `causlane-runtime` until
 `causlane-runtime` has been published and indexed on crates.io.
+
+Update 2026-06-28: `causlane-runtime 0.0.1` was published and indexed.
+Publication evidence is recorded in
+`docs/release/pub5-causlane-runtime-publication.md`.
