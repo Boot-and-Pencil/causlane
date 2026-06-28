@@ -73,8 +73,9 @@ The first public crates.io release is staged as an experimental `0.0.1`
 pre-alpha bootstrap. The repository is public, PUB4 public-baseline evidence is
 recorded, and PUB5 package file-list review is complete. `causlane-core`,
 `causlane-formal`, `causlane-contracts` and `causlane-runtime` have been
-published and indexed. The next release action is the staged package-list and
-dry-run gate for `causlane-replay`.
+published and indexed. The staged dry-run for `causlane-replay` has passed; the
+next irreversible release action is publishing `causlane-replay` only after
+green CI and explicit maintainer confirmation.
 
 The library facade crate is `causlane`; the command-line binary is shipped by
 the `causlane-cli` package. After crates.io publication, install the CLI with:
