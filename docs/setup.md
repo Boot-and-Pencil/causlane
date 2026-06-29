@@ -29,6 +29,10 @@ tools/full-doctor --json --profile proof
 Optional tools that are missing (or merely version-drifted) are reported as
 `warn`, never a hard failure — unless you pass `--require-optional`.
 
+For the LAN host that carries the combined formal, property-test and cargo-fuzz
+toolchains, see `docs/ci-dispatcher.md`. Its machine-specific inventory belongs
+in the ignored `local/ci-dispatcher.local.md`, not in tracked setup docs.
+
 ## Profiles
 
 | Profile  | Adds on top of previous                                                |

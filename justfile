@@ -204,6 +204,9 @@ bootstrap-full *args:
 doctor-full:
   tools/full-doctor --json --profile all
 
+ci-dispatcher-preflight *args:
+  tools/ci-dispatcher-preflight {{args}}
+
 # --- architecture / quality refactor gates ---
 
 architecture-lint *args:

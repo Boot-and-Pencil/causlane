@@ -91,7 +91,9 @@ lease amount/epoch/expiry and `u32` op-index boundary values, and the registry
 property tests generate `u64` authz freshness and `u32` version boundary values.
 The fuzz corpus includes numeric-extreme seeds for the three protocol targets.
 The routine `ci-dispatcher` long-run budget is now defined as **15 minutes per
-protocol target**:
+protocol target**. The portable dispatcher contract and preflight command are
+documented in `docs/ci-dispatcher.md`; machine-specific host notes belong in the
+ignored `local/ci-dispatcher.local.md`.
 
 ```bash
 cargo fuzz run replay_trace_json -- -max_total_time=900
