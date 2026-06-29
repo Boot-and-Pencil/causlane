@@ -63,7 +63,8 @@
 - **Evidence seed:** `docs/product-track/api-validation-loop-plan.json`
   records the selected candidate surfaces and binds them to existing example,
   property/fuzz and performance-scale evidence where available; all selected
-  surfaces remain `pending`.
+  surfaces remain `pending`. `examples/facade-kernel-ergonomics` is the first
+  facade-only synthetic example for `public_facade_and_core_kernel`.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;

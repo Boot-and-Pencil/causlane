@@ -511,7 +511,8 @@
 - **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Evidence seed:** selected-surface inventory is recorded in
   `docs/product-track/api-validation-loop-plan.json`; classifications remain
-  `pending`.
+  `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
+  evidence for `public_facade_and_core_kernel`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

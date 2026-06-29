@@ -51,6 +51,10 @@
           "evidence": [
             {
               "kind": "example_marker",
+              "token": "facade-kernel-ergonomics: facade admission and frontier verified"
+            },
+            {
+              "kind": "example_marker",
               "token": "simple-local: replay verified"
             },
             {

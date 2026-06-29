@@ -19,6 +19,10 @@ consequence-parallelism
   runnable: safe frontier selection for independent consequences, conflicting
   writes and lane capacity, with conflict-free parallel replay.
 
+facade-kernel-ergonomics
+  runnable: downstream facade-only admission, barrier policy and frontier
+  selection through the `causlane` crate.
+
 why-not-parallel
   runnable: machine-readable explanations for parallelizable ops, pending write
   conflicts, dependency blockers and active writer blockers.

@@ -21,6 +21,11 @@ EXAMPLES = [
         "marker": "consequence-parallelism: frontier selected; replay verified",
     },
     {
+        "name": "facade-kernel-ergonomics",
+        "path": ROOT / "examples" / "facade-kernel-ergonomics",
+        "marker": "facade-kernel-ergonomics: facade admission and frontier verified",
+    },
+    {
         "name": "simple-local",
         "path": ROOT / "examples" / "simple-local",
         "marker": "simple-local: replay verified",
