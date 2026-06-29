@@ -68,8 +68,9 @@ optional/deferred. M11.4 Examples now has `simple-local`, `approval-gate`,
 security/release hygiene is recorded, and M11.6 Contributor guide is recorded.
 M12.1 Reference integration 1 now has an in-repo API+worker+audit+projection
 slice and checked evidence matrix, and M12.2 Reference integration 2 has a
-bounded release orchestration slice. The current product-roadmap action is M12.3
-Migration/shadow docs.
+bounded release orchestration slice. M12.3 Migration/shadow docs has a bounded
+adoption playbook and checked evidence artifact. The current product-roadmap
+action is M12.4 Adapter ecosystem.
 
 ## Implementation Handoff
 

@@ -1,0 +1,111 @@
+{
+  "artifact": "causlane.migration-shadow-adoption.v1",
+  "milestone": "M12.3",
+  "status": "covered_bounded",
+  "playbook": "docs/scenarios/migration-shadow.md",
+  "api_surface": {
+    "crate": "causlane-runtime",
+    "feature": "tokio-runtime",
+    "source": "crates/causlane-runtime/src/shadow.rs",
+    "symbols": [
+      "InProcessRuntimeEvent",
+      "ShadowExpectation",
+      "ShadowExpectationKind",
+      "ShadowComparison",
+      "compare_shadow_events"
+    ]
+  },
+  "claims": [
+    {
+      "claim": "replay_first_baseline_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/migration-shadow.md#replay-first-baseline"
+      ],
+      "summary": "Adoption starts with bounded replay/example evidence before runtime enforcement."
+    },
+    {
+      "claim": "shadow_diagnostics_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/migration-shadow.md#shadow-diagnostics",
+        "crates/causlane-runtime/src/shadow.rs"
+      ],
+      "summary": "The playbook documents the shadow comparison API and its diagnostic result shape."
+    },
+    {
+      "claim": "diagnostic_only_boundary_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/migration-shadow.md#diagnostic-only-boundary",
+        "tests::shadow_mismatch_does_not_enforce_runtime_execution"
+      ],
+      "summary": "Shadow mismatches remain data and do not feed back into execution."
+    },
+    {
+      "claim": "incremental_rollout_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/migration-shadow.md#incremental-rollout"
+      ],
+      "summary": "The playbook gives a bounded observe-before-guarding rollout sequence."
+    },
+    {
+      "claim": "negative_controls_bound_to_runtime_tests",
+      "status": "covered",
+      "evidence": [
+        "tests::missing_expected_event_yields_mismatch",
+        "tests::extra_actual_event_is_unexpected",
+        "tests::produced_refs_mismatch_reports_actual_for_same_task",
+        "tests::unkeyed_rejection_cannot_satisfy_keyed_expectation",
+        "tests::shadow_mismatch_does_not_enforce_runtime_execution"
+      ],
+      "summary": "Existing runtime negative controls back the diagnostic-only adoption claim."
+    },
+    {
+      "claim": "risk_limitations_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/migration-shadow.md#deferred-production-claims"
+      ],
+      "summary": "Production rollout, rollback, durable worker and semver claims remain deferred."
+    }
+  ],
+  "deferred_claims": [
+    {
+      "claim": "production_rollout_automation",
+      "status": "deferred",
+      "deferred_to": [
+        "M12.4",
+        "M13.5"
+      ],
+      "reason": "M12.3 documents rollout guidance but does not automate provider-specific deployment or production rollout."
+    },
+    {
+      "claim": "durable_worker_migration",
+      "status": "deferred",
+      "deferred_to": [
+        "M12.4",
+        "M13.4"
+      ],
+      "reason": "Shadow diagnostics observe in-process runtime events and do not add durable migration workers."
+    },
+    {
+      "claim": "semver_compatibility_policy",
+      "status": "deferred",
+      "deferred_to": [
+        "M12.6",
+        "M13.2"
+      ],
+      "reason": "The pre-alpha adoption guide is bounded; stable compatibility and migration windows remain later release-readiness work."
+    },
+    {
+      "claim": "shadow_mismatch_enforcement",
+      "status": "deferred",
+      "deferred_to": [
+        "not planned for M12.3"
+      ],
+      "reason": "Shadow mismatch remains diagnostic-only and must not become a hidden runtime authority."
+    }
+  ]
+}

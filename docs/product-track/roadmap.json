@@ -554,7 +554,7 @@
         {
           "id": "M12.3",
           "title": "Migration/shadow docs",
-          "status": "planned"
+          "status": "done_or_near_done"
         },
         {
           "id": "M12.4",
@@ -1146,7 +1146,7 @@
     "M12.3": {
       "title": "Migration/shadow docs",
       "description": "How to adopt incrementally without rewrite.",
-      "status": "planned",
+      "status": "done_or_near_done",
       "stage": "S12"
     },
     "M12.4": {

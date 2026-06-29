@@ -29,6 +29,7 @@ jobs:
           tools/context-pack-scan
           tools/product-track-status-check
           tools/reference-integration-check
+          tools/migration-shadow-doc-check
 
   rust:
     name: rust workspace

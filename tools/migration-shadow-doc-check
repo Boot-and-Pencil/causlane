@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""Validate M12.3 migration/shadow adoption documentation evidence."""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+ARTIFACT = ROOT / "docs" / "product-track" / "migration-shadow-adoption.json"
+PLAYBOOK = ROOT / "docs" / "scenarios" / "migration-shadow.md"
+SHADOW_SOURCE = ROOT / "crates" / "causlane-runtime" / "src" / "shadow.rs"
+IN_PROCESS_TESTS = ROOT / "crates" / "causlane-runtime" / "src" / "in_process" / "tests.rs"
+
+REQUIRED_ARTIFACT = "causlane.migration-shadow-adoption.v1"
+REQUIRED_MILESTONE = "M12.3"
+REQUIRED_STATUS = "covered_bounded"
+
+REQUIRED_SYMBOLS = {
+    "InProcessRuntimeEvent",
+    "ShadowExpectation",
+    "ShadowExpectationKind",
+    "ShadowComparison",
+    "compare_shadow_events",
+}
+REQUIRED_CLAIMS = {
+    "replay_first_baseline_documented",
+    "shadow_diagnostics_documented",
+    "diagnostic_only_boundary_documented",
+    "incremental_rollout_documented",
+    "negative_controls_bound_to_runtime_tests",
+    "risk_limitations_documented",
+}
+REQUIRED_DEFERRED = {
+    "production_rollout_automation",
+    "durable_worker_migration",
+    "semver_compatibility_policy",
+    "shadow_mismatch_enforcement",
+}
+REQUIRED_PLAYBOOK_TOKENS = {
+    "# Migration And Shadow Adoption",
+    "## Replay-first baseline",
+    "## Shadow diagnostics",
+    "## Diagnostic-only boundary",
+    "## Incremental rollout",
+    "## Negative controls",
+    "## Deferred production claims",
+    "ShadowExpectation",
+    "ShadowComparison",
+    "compare_shadow_events",
+    "InProcessRuntimeEvent",
+    "HostDispatchError",
+    "must not",
+}
+REQUIRED_TEST_TOKENS = {
+    "missing_expected_event_yields_mismatch",
+    "extra_actual_event_is_unexpected",
+    "produced_refs_mismatch_reports_actual_for_same_task",
+    "unkeyed_rejection_cannot_satisfy_keyed_expectation",
+    "shadow_mismatch_does_not_enforce_runtime_execution",
+}
+
+
+def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def read(path: Path, errors: list[str]) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return ""
+
+
+def load_artifact(errors: list[str]) -> dict[str, Any]:
+    try:
+        return json.loads(
+            ARTIFACT.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        errors.append(f"{ARTIFACT.relative_to(ROOT)}: {error}")
+        return {}
+
+
+def expect(condition: bool, errors: list[str], message: str) -> None:
+    if not condition:
+        errors.append(message)
+
+
+def validate_entries(
+    entries: Any,
+    required: set[str],
+    label: str,
+    errors: list[str],
+) -> set[str]:
+    if not isinstance(entries, list):
+        errors.append(f"{label} must be a list")
+        return set()
+
+    seen: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            errors.append(f"{label} entries must be objects")
+            continue
+        entry_id = entry.get("claim")
+        if not isinstance(entry_id, str):
+            errors.append(f"{label} entry missing string claim")
+            continue
+        seen.add(entry_id)
+        expect(
+            entry.get("status") in {"covered", "deferred"},
+            errors,
+            f"{label} {entry_id}: status must be covered or deferred",
+        )
+        expect(
+            isinstance(entry.get("summary") or entry.get("reason"), str)
+            and bool((entry.get("summary") or entry.get("reason")).strip()),
+            errors,
+            f"{label} {entry_id}: summary or reason must be non-empty",
+        )
+
+    missing = required - seen
+    extra = seen - required
+    expect(not missing, errors, f"{label} missing: {sorted(missing)}")
+    expect(not extra, errors, f"{label} unknown: {sorted(extra)}")
+    return seen
+
+
+def main() -> int:
+    errors: list[str] = []
+    artifact = load_artifact(errors)
+    playbook = read(PLAYBOOK, errors)
+    shadow_source = read(SHADOW_SOURCE, errors)
+    in_process_tests = read(IN_PROCESS_TESTS, errors)
+
+    expect(
+        artifact.get("artifact") == REQUIRED_ARTIFACT,
+        errors,
+        f"artifact must be {REQUIRED_ARTIFACT}",
+    )
+    expect(
+        artifact.get("milestone") == REQUIRED_MILESTONE,
+        errors,
+        f"milestone must be {REQUIRED_MILESTONE}",
+    )
+    expect(
+        artifact.get("status") == REQUIRED_STATUS,
+        errors,
+        f"status must be {REQUIRED_STATUS}",
+    )
+    expect(
+        artifact.get("playbook") == "docs/scenarios/migration-shadow.md",
+        errors,
+        "playbook must point to docs/scenarios/migration-shadow.md",
+    )
+
+    api_surface = artifact.get("api_surface")
+    if not isinstance(api_surface, dict):
+        errors.append("api_surface must be an object")
+    else:
+        expect(
+            api_surface.get("crate") == "causlane-runtime",
+            errors,
+            "api_surface crate must be causlane-runtime",
+        )
+        expect(
+            api_surface.get("feature") == "tokio-runtime",
+            errors,
+            "api_surface feature must be tokio-runtime",
+        )
+        symbols = api_surface.get("symbols")
+        if not isinstance(symbols, list) or not all(isinstance(symbol, str) for symbol in symbols):
+            errors.append("api_surface symbols must be a string list")
+        else:
+            seen_symbols = set(symbols)
+            expect(
+                REQUIRED_SYMBOLS == seen_symbols,
+                errors,
+                f"api_surface symbols must be exactly {sorted(REQUIRED_SYMBOLS)}",
+            )
+
+    validate_entries(artifact.get("claims"), REQUIRED_CLAIMS, "claims", errors)
+    validate_entries(
+        artifact.get("deferred_claims"),
+        REQUIRED_DEFERRED,
+        "deferred_claims",
+        errors,
+    )
+
+    for token in sorted(REQUIRED_PLAYBOOK_TOKENS):
+        expect(token in playbook, errors, f"playbook missing token: {token}")
+    for symbol in sorted(REQUIRED_SYMBOLS - {"InProcessRuntimeEvent"}):
+        expect(symbol in shadow_source, errors, f"shadow source missing symbol: {symbol}")
+    for test_token in sorted(REQUIRED_TEST_TOKENS):
+        if test_token == "shadow_mismatch_does_not_enforce_runtime_execution":
+            source = in_process_tests
+        else:
+            source = shadow_source
+        expect(test_token in source, errors, f"runtime negative control missing: {test_token}")
+
+    if errors:
+        print("migration-shadow-doc-check: FAILED", file=sys.stderr)
+        for error in errors:
+            print(f"  - {error}", file=sys.stderr)
+        return 1
+
+    print("migration-shadow-doc-check: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

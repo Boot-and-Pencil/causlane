@@ -495,7 +495,7 @@
 ## M12.3 — Migration/shadow docs
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Purpose:** How to adopt incrementally without rewrite.
 
 ## M12.4 — Adapter ecosystem

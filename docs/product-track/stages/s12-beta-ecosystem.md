@@ -30,13 +30,17 @@
 
 ### M12.3 — Migration/shadow docs
 
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Outcome:** How to adopt incrementally without rewrite.
 - **Definition of done:**
   - typed contract or executable check exists;
   - docs/ADR updated;
   - tests or replay scenario added where relevant;
   - no prose-only claim remains for protocol-critical behavior.
+- **Evidence:** `docs/scenarios/migration-shadow.md` and
+  `docs/product-track/migration-shadow-adoption.json` document the bounded
+  migration/shadow adoption path; `tools/migration-shadow-doc-check` pins the
+  doc to existing shadow API and runtime negative-control tests.
 
 ### M12.4 — Adapter ecosystem
 
