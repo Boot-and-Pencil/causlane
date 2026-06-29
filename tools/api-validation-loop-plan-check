@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import ast
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +23,10 @@ MILESTONE_12_5 = TRACK / "milestones" / "m12.5-api-validation-loop.md"
 MILESTONE_12_6 = TRACK / "milestones" / "m12.6-semver-pre-1.0-freeze-plan.md"
 README = TRACK / "README.md"
 START_GATE = TRACK / "11-implementation-start-gate.md"
+EXAMPLES_CHECK = ROOT / "tools" / "examples-check"
+FUZZ_MANIFEST = ROOT / "fuzz" / "Cargo.toml"
+FUZZ_TARGETS = ROOT / "fuzz" / "fuzz_targets"
+BENCH_MATRIX = TRACK / "bench-suite-matrix.json"
 
 REQUIRED_ARTIFACT = "causlane.api-validation-loop-plan.v1"
 REQUIRED_MILESTONE = "M12.5"
@@ -33,6 +39,24 @@ REQUIRED_LANES = {
     "api_feedback",
 }
 REQUIRED_TERMINAL = {"needs_api_change", "accepted_for_freeze"}
+REQUIRED_INVENTORY_STATUS = "seeded"
+REQUIRED_SURFACES = {
+    "public_facade_and_core_kernel",
+    "contracts_registry_bundle_plan_hash",
+    "replay_scenario_explain",
+    "runtime_dispatch_audit_projection",
+}
+REQUIRED_SURFACE_LANES = {
+    "synthetic_examples",
+    "property_fuzz",
+    "performance_scale",
+}
+REQUIRED_EVIDENCE_KINDS = {
+    "example_marker",
+    "rust_test",
+    "fuzz_target",
+    "bench",
+}
 REQUIRED_DOC_TOKENS = {
     "API validation loop",
     "realistic synthetic examples",
@@ -79,6 +103,103 @@ def load_json(path: Path, errors: list[str]) -> dict[str, Any]:
 def expect(condition: bool, errors: list[str], message: str) -> None:
     if not condition:
         errors.append(message)
+
+
+def string_literals(path: Path, errors: list[str]) -> set[str]:
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError) as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return set()
+    return {
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+    }
+
+
+def rust_test_exists(path: Path, function: str, errors: list[str]) -> bool:
+    source = read(path, errors)
+    return re.search(rf"\bfn\s+{re.escape(function)}\b", source) is not None
+
+
+def fuzz_targets(errors: list[str]) -> set[str]:
+    manifest = read(FUZZ_MANIFEST, errors)
+    declared = set(re.findall(r'(?m)^name\s*=\s*"([^"]+)"', manifest))
+    declared.discard("causlane-fuzz")
+    existing = {path.stem for path in FUZZ_TARGETS.glob("*.rs")}
+    return declared & existing
+
+
+def bench_ids(errors: list[str]) -> set[str]:
+    matrix = load_json(BENCH_MATRIX, errors)
+    benchmarks = matrix.get("benchmarks")
+    if not isinstance(benchmarks, list):
+        errors.append("bench-suite-matrix benchmarks must be a list")
+        return set()
+    ids: set[str] = set()
+    for benchmark in benchmarks:
+        if isinstance(benchmark, dict) and isinstance(benchmark.get("id"), str):
+            ids.add(benchmark["id"])
+    return ids
+
+
+def validate_evidence(
+    evidence: dict[str, Any],
+    *,
+    example_markers: set[str],
+    fuzz_target_ids: set[str],
+    benchmark_ids: set[str],
+    errors: list[str],
+    context: str,
+) -> str | None:
+    kind = evidence.get("kind")
+    if kind not in REQUIRED_EVIDENCE_KINDS:
+        errors.append(f"{context}: evidence kind must be one of {sorted(REQUIRED_EVIDENCE_KINDS)}")
+        return None
+
+    if kind == "example_marker":
+        token = evidence.get("token")
+        expect(
+            isinstance(token, str) and token in example_markers,
+            errors,
+            f"{context}: example_marker token must exist in tools/examples-check",
+        )
+        return kind
+
+    if kind == "rust_test":
+        raw_path = evidence.get("path")
+        function = evidence.get("function")
+        if not isinstance(raw_path, str) or not isinstance(function, str):
+            errors.append(f"{context}: rust_test evidence requires path and function strings")
+            return kind
+        path = ROOT / raw_path
+        expect(
+            path.is_file() and rust_test_exists(path, function, errors),
+            errors,
+            f"{context}: rust_test {raw_path}::{function} not found",
+        )
+        return kind
+
+    if kind == "fuzz_target":
+        target = evidence.get("target")
+        expect(
+            isinstance(target, str) and target in fuzz_target_ids,
+            errors,
+            f"{context}: fuzz_target must exist in fuzz/Cargo.toml and fuzz/fuzz_targets",
+        )
+        return kind
+
+    if kind == "bench":
+        benchmark = evidence.get("benchmark")
+        expect(
+            isinstance(benchmark, str) and benchmark in benchmark_ids,
+            errors,
+            f"{context}: bench benchmark must exist in bench-suite-matrix.json",
+        )
+        return kind
+
+    return kind
 
 
 def validate_artifact(artifact: dict[str, Any], errors: list[str]) -> None:
@@ -158,6 +279,134 @@ def validate_artifact(artifact: dict[str, Any], errors: list[str]) -> None:
             errors,
             f"terminal_classifications must be {sorted(REQUIRED_TERMINAL)}",
         )
+
+    validate_inventory(artifact, errors)
+
+
+def validate_inventory(artifact: dict[str, Any], errors: list[str]) -> None:
+    expect(
+        artifact.get("inventory_status") == REQUIRED_INVENTORY_STATUS,
+        errors,
+        f"inventory_status must be {REQUIRED_INVENTORY_STATUS}",
+    )
+    surfaces = artifact.get("selected_surfaces")
+    if not isinstance(surfaces, list):
+        errors.append("selected_surfaces must be a list")
+        return
+
+    example_markers = string_literals(EXAMPLES_CHECK, errors)
+    fuzz_target_ids = fuzz_targets(errors)
+    benchmark_ids = bench_ids(errors)
+    seen_surfaces: set[str] = set()
+
+    for surface in surfaces:
+        if not isinstance(surface, dict):
+            errors.append("selected_surfaces entries must be objects")
+            continue
+        surface_id = surface.get("id")
+        if not isinstance(surface_id, str):
+            errors.append("selected surface missing string id")
+            continue
+        if surface_id in seen_surfaces:
+            errors.append(f"{surface_id}: duplicate selected surface id")
+        seen_surfaces.add(surface_id)
+
+        classification = surface.get("classification")
+        expect(
+            classification == "pending" or classification in REQUIRED_TERMINAL,
+            errors,
+            f"{surface_id}: classification must be pending or a terminal classification",
+        )
+        api_scope = surface.get("api_scope")
+        expect(
+            isinstance(api_scope, list)
+            and bool(api_scope)
+            and all(isinstance(entry, str) and entry.strip() for entry in api_scope),
+            errors,
+            f"{surface_id}: api_scope must be a non-empty string list",
+        )
+
+        lanes = surface.get("lanes")
+        if not isinstance(lanes, list):
+            errors.append(f"{surface_id}: lanes must be a list")
+            continue
+        lane_ids: set[str] = set()
+        has_gap = False
+        for lane in lanes:
+            if not isinstance(lane, dict):
+                errors.append(f"{surface_id}: lane entries must be objects")
+                continue
+            lane_id = lane.get("lane")
+            if not isinstance(lane_id, str):
+                errors.append(f"{surface_id}: lane entry missing string lane")
+                continue
+            context = f"{surface_id}/{lane_id}"
+            if lane_id in lane_ids:
+                errors.append(f"{context}: duplicate lane")
+            lane_ids.add(lane_id)
+            expect(
+                lane.get("status") in {"seeded", "complete"},
+                errors,
+                f"{context}: status must be seeded or complete",
+            )
+            gap = lane.get("gap_before_freeze")
+            if isinstance(gap, str) and gap.strip():
+                has_gap = True
+            evidence_items = lane.get("evidence")
+            if not isinstance(evidence_items, list) or not evidence_items:
+                errors.append(f"{context}: evidence must be a non-empty list")
+                continue
+            evidence_kinds: set[str] = set()
+            for index, evidence in enumerate(evidence_items):
+                if not isinstance(evidence, dict):
+                    errors.append(f"{context}: evidence entries must be objects")
+                    continue
+                kind = validate_evidence(
+                    evidence,
+                    example_markers=example_markers,
+                    fuzz_target_ids=fuzz_target_ids,
+                    benchmark_ids=benchmark_ids,
+                    errors=errors,
+                    context=f"{context}/evidence[{index}]",
+                )
+                if kind:
+                    evidence_kinds.add(kind)
+            if lane_id == "synthetic_examples":
+                expect(
+                    evidence_kinds == {"example_marker"},
+                    errors,
+                    f"{context}: synthetic_examples must use example_marker evidence",
+                )
+            if lane_id == "property_fuzz":
+                expect(
+                    bool(evidence_kinds & {"rust_test", "fuzz_target"}),
+                    errors,
+                    f"{context}: property_fuzz must use rust_test or fuzz_target evidence",
+                )
+            if lane_id == "performance_scale":
+                expect(
+                    evidence_kinds == {"bench"},
+                    errors,
+                    f"{context}: performance_scale must use bench evidence",
+                )
+
+        expect(
+            lane_ids == REQUIRED_SURFACE_LANES,
+            errors,
+            f"{surface_id}: lanes must be exactly {sorted(REQUIRED_SURFACE_LANES)}",
+        )
+        if classification in REQUIRED_TERMINAL:
+            expect(
+                not has_gap,
+                errors,
+                f"{surface_id}: terminal classification cannot be recorded while any lane has gap_before_freeze",
+            )
+
+    expect(
+        seen_surfaces == REQUIRED_SURFACES,
+        errors,
+        f"selected_surfaces must be exactly {sorted(REQUIRED_SURFACES)}",
+    )
 
 
 def validate_roadmap(roadmap: dict[str, Any], errors: list[str]) -> None:

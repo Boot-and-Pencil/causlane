@@ -509,6 +509,9 @@
 - **Stage:** S12
 - **Status:** `planned`
 - **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
+- **Evidence seed:** selected-surface inventory is recorded in
+  `docs/product-track/api-validation-loop-plan.json`; classifications remain
+  `pending`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

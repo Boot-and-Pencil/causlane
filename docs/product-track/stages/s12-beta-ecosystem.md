@@ -60,6 +60,10 @@
 
 - **Status:** `planned`
 - **Outcome:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
+- **Evidence seed:** `docs/product-track/api-validation-loop-plan.json`
+  records the selected candidate surfaces and binds them to existing example,
+  property/fuzz and performance-scale evidence where available; all selected
+  surfaces remain `pending`.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;

@@ -433,7 +433,7 @@ Beta можно выпускать, когда:
 - `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`done_or_near_done`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`done_or_near_done`): Document external adapter interface, compatibility/certification.
-- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
+- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze; selected-surface inventory is seeded.
 - `M12.6` — **Semver pre-1.0 freeze plan** (`planned`): Identify APIs slated for stabilization.
 
 **Exit gate:** Есть 2–3 reference integrations, migration/shadow-mode story и feedback-driven API hardening.
@@ -986,6 +986,9 @@ Beta можно выпускать, когда:
 - **Stage:** S12
 - **Status:** `planned`
 - **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
+- **Evidence seed:** selected-surface inventory is recorded in
+  `docs/product-track/api-validation-loop-plan.json`; classifications remain
+  `pending`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 
