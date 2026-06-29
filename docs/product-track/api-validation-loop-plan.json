@@ -100,7 +100,7 @@
     },
     {
       "id": "contracts_registry_bundle_plan_hash",
-      "classification": "pending",
+      "classification": "accepted_for_freeze",
       "api_scope": [
         "causlane_contracts::RegistryManifest",
         "causlane_contracts::CompiledDispatchBundle",
@@ -109,7 +109,7 @@
       "lanes": [
         {
           "lane": "synthetic_examples",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "example_marker",
@@ -122,17 +122,25 @@
             {
               "kind": "example_marker",
               "token": "contracts-boundary-ergonomics: registry bundle and plan hashes verified"
+            },
+            {
+              "kind": "example_marker",
+              "token": "contracts-registry-bundle-workflow: registry bundle workflow verified"
             }
-          ],
-          "gap_before_freeze": "Add more near-real registry and bundle examples before terminal classification."
+          ]
         },
         {
           "lane": "property_fuzz",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "fuzz_target",
               "target": "registry_yaml_compile"
+            },
+            {
+              "kind": "rust_test",
+              "path": "examples/contracts-registry-bundle-workflow/src/lib.rs",
+              "function": "negative_controls_are_independently_observable"
             },
             {
               "kind": "rust_test",
@@ -144,12 +152,11 @@
               "path": "crates/causlane-replay/tests/proptest_parse_boundaries.rs",
               "function": "registry_yaml_numeric_edges_parse_and_compile"
             }
-          ],
-          "gap_before_freeze": "Run long fuzz profiles and record findings before terminal classification."
+          ]
         },
         {
           "lane": "performance_scale",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "bench",
@@ -163,8 +170,7 @@
               "kind": "bench",
               "benchmark": "bundle_load_from_json"
             }
-          ],
-          "gap_before_freeze": "Add larger registry and bundle-load scale profiles before terminal classification."
+          ]
         }
       ]
     },

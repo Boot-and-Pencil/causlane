@@ -23,6 +23,11 @@ contracts-boundary-ergonomics
   runnable: public contracts boundary for registry compilation, bundle artifact
   verification, template resolution, plan hashing and impact hashing.
 
+contracts-registry-bundle-workflow
+  runnable: near-real multi-predicate registry compilation, bundle reload,
+  plan-template cache identity, template resolution and fail-closed controls for
+  the M12.5 API validation loop.
+
 facade-kernel-ergonomics
   runnable: downstream facade-only admission, barrier policy and frontier
   selection through the `causlane` crate.

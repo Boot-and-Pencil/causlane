@@ -67,7 +67,15 @@
   facade-only synthetic example for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
   `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` adds
-  contracts/bundle/plan-hash coverage for `contracts_registry_bundle_plan_hash`.
+  contracts/bundle/plan-hash coverage for `contracts_registry_bundle_plan_hash`;
+  `examples/contracts-registry-bundle-workflow` adds a near-real multi-predicate
+  contracts workflow for the same surface. A 15-minute dispatcher long-run for
+  `registry_yaml_compile` is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-contracts-fuzz-long-run.md`, dispatcher
+  Criterion evidence is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-contracts-performance-scale.md`, and the
+  contracts surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-contracts-api-feedback-classification.md`.
   `examples/runtime-guarded-audit-projection` adds guarded execution, audit trace
   projection and projection-redaction coverage for
   `runtime_dispatch_audit_projection`; `examples/runtime-operator-workflow`

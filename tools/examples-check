@@ -26,6 +26,11 @@ EXAMPLES = [
         "marker": "contracts-boundary-ergonomics: registry bundle and plan hashes verified",
     },
     {
+        "name": "contracts-registry-bundle-workflow",
+        "path": ROOT / "examples" / "contracts-registry-bundle-workflow",
+        "marker": "contracts-registry-bundle-workflow: registry bundle workflow verified",
+    },
+    {
         "name": "facade-kernel-ergonomics",
         "path": ROOT / "examples" / "facade-kernel-ergonomics",
         "marker": "facade-kernel-ergonomics: facade admission and frontier verified",
