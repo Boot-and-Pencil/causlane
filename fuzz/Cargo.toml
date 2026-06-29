@@ -9,9 +9,11 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
+causlane = { path = "../crates/causlane" }
 causlane-contracts = { path = "../crates/causlane-contracts" }
 causlane-formal = { path = "../crates/causlane-formal" }
 causlane-replay = { path = "../crates/causlane-replay" }
+causlane-runtime = { path = "../crates/causlane-runtime" }
 
 [[bin]]
 name = "requirement_from_tokens"
@@ -37,6 +39,13 @@ bench = false
 [[bin]]
 name = "registry_yaml_compile"
 path = "fuzz_targets/registry_yaml_compile.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "runtime_guarded_audit_projection"
+path = "fuzz_targets/runtime_guarded_audit_projection.rs"
 test = false
 doc = false
 bench = false

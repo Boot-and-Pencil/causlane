@@ -9,6 +9,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
+name = "causlane"
+version = "0.0.1"
+dependencies = [
+ "causlane-core",
+]
+
+[[package]]
 name = "causlane-contracts"
 version = "0.0.1"
 dependencies = [
@@ -34,9 +41,11 @@ dependencies = [
 name = "causlane-fuzz"
 version = "0.0.0"
 dependencies = [
+ "causlane",
  "causlane-contracts",
  "causlane-formal",
  "causlane-replay",
+ "causlane-runtime",
  "libfuzzer-sys",
 ]
 
@@ -49,6 +58,13 @@ dependencies = [
  "noyalib",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "causlane-runtime"
+version = "0.0.1"
+dependencies = [
+ "causlane-core",
 ]
 
 [[package]]

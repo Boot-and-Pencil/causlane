@@ -300,9 +300,13 @@
               "kind": "rust_test",
               "path": "examples/runtime-guarded-audit-projection/src/lib.rs",
               "function": "negative_controls_are_independently_observable"
+            },
+            {
+              "kind": "fuzz_target",
+              "target": "runtime_guarded_audit_projection"
             }
           ],
-          "gap_before_freeze": "Add property/fuzz-style runtime adapter controls beyond current deterministic negative tests."
+          "gap_before_freeze": "Run longer runtime authz/audit/projection fuzz profiles and classify findings before terminal classification."
         },
         {
           "lane": "performance_scale",
