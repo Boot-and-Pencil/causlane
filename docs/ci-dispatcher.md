@@ -19,23 +19,26 @@ just ci-dispatcher-preflight
 ```
 
 The default host is `ci-dispatcher.lan`; the default checkout path is
-`/workspace/repo-main`. Override them when needed:
+`/workspace/repo`. Override them when needed:
 
 ```bash
 CI_DISPATCHER_HOST=ci-dispatcher.lan \
-CI_DISPATCHER_REPO=/workspace/repo-main \
+CI_DISPATCHER_REPO=/workspace/repo \
 tools/ci-dispatcher-preflight
 
-tools/ci-dispatcher-preflight --host ci-dispatcher.lan --repo /workspace/repo-main
+tools/ci-dispatcher-preflight --host ci-dispatcher.lan --repo /workspace/repo
 ```
 
 The preflight is deliberately fail-closed:
 
-- the remote checkout must be clean;
-- sync is `git fetch origin main` followed by `git merge --ff-only origin/main`;
+- the remote checkout is reset from GitHub on each normal run;
+- sync is `git fetch origin main`, `git checkout -B main origin/main`,
+  `git reset --hard origin/main`, then `git clean -ffd`;
+- ignored local tool/cache directories such as `.tools/`, `target/` and
+  `fuzz/artifacts/` are preserved by design;
 - the final `HEAD`, `origin/main` and `git ls-remote origin refs/heads/main`
   values must match;
-- non-fast-forward or unrelated checkout history is reported, not repaired.
+- pass `--no-sync` only for diagnostics against an already-clean checkout.
 
 ## Gate Surface
 
@@ -116,7 +119,7 @@ Use that ignored note for:
 
 - the operational checkout path on this machine;
 - installed tool versions and package-manager details;
-- known stale or preserved checkouts;
+- backup paths for replaced or preserved checkouts;
 - local artifact directories and logs;
 - remediation notes that should not be portable documentation.
 
@@ -126,9 +129,9 @@ backups.
 
 ## Troubleshooting
 
-`remote checkout is not an ancestor of origin/main` means the selected checkout
-cannot be fast-forwarded. Use a clean checkout or pass `--repo` pointing at one;
-do not repair this by resetting a checkout that may contain local work.
+If the reset step fails, verify SSH access to GitHub and that the selected path
+is a real Causlane checkout. Normal preflight runs intentionally discard tracked
+local changes and ordinary untracked source files in the dispatcher checkout.
 
 `missing required tool` means the dispatcher image is missing part of the
 formal/property/fuzz surface. Install or expose the tool on `PATH`, then rerun
