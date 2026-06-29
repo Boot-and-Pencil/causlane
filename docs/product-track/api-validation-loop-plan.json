@@ -37,7 +37,7 @@
   "selected_surfaces": [
     {
       "id": "public_facade_and_core_kernel",
-      "classification": "pending",
+      "classification": "accepted_for_freeze",
       "api_scope": [
         "causlane::prelude",
         "causlane::core::{protocol,kernel,ports,prelude}",
@@ -47,11 +47,15 @@
       "lanes": [
         {
           "lane": "synthetic_examples",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "example_marker",
               "token": "facade-kernel-ergonomics: facade admission and frontier verified"
+            },
+            {
+              "kind": "example_marker",
+              "token": "facade-kernel-operator-workflow: facade kernel workflow verified"
             },
             {
               "kind": "example_marker",
@@ -61,13 +65,16 @@
               "kind": "example_marker",
               "token": "reference-integration: api worker audit projection verified"
             }
-          ],
-          "gap_before_freeze": "Expand facade-only examples for the public prelude and curated core modules before terminal classification."
+          ]
         },
         {
           "lane": "property_fuzz",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
+            {
+              "kind": "fuzz_target",
+              "target": "facade_kernel_frontier"
+            },
             {
               "kind": "rust_test",
               "path": "crates/causlane-core/tests/proptest_protocol_properties.rs",
@@ -77,13 +84,22 @@
               "kind": "rust_test",
               "path": "crates/causlane-core/tests/proptest_protocol_properties.rs",
               "function": "token_budget_contract_surface_preserves_documented_outcomes"
+            },
+            {
+              "kind": "rust_test",
+              "path": "examples/facade-kernel-operator-workflow/src/lib.rs",
+              "function": "negative_controls_are_independently_observable"
+            },
+            {
+              "kind": "rust_test",
+              "path": "examples/facade-kernel-operator-workflow/src/lib.rs",
+              "function": "constraint_decisions_delegate_to_kernel_contracts"
             }
-          ],
-          "gap_before_freeze": "Add properties for candidate facade ergonomics once the freeze surface is narrowed."
+          ]
         },
         {
           "lane": "performance_scale",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "bench",
@@ -93,8 +109,7 @@
               "kind": "bench",
               "benchmark": "lease_grant_exclusive"
             }
-          ],
-          "gap_before_freeze": "Record larger scale profiles for selected kernel hot paths before terminal classification."
+          ]
         }
       ]
     },

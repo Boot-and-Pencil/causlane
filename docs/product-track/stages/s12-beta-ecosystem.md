@@ -61,11 +61,18 @@
 - **Status:** `planned`
 - **Outcome:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Evidence seed:** `docs/product-track/api-validation-loop-plan.json`
-  records the selected candidate surfaces and binds them to existing example,
-  property/fuzz and performance-scale evidence where available; only
-  `public_facade_and_core_kernel` remains `pending`.
-  `examples/facade-kernel-ergonomics` is the first
-  facade-only synthetic example for `public_facade_and_core_kernel`, and
+  records the selected candidate surfaces and binds them to terminal
+  `accepted_for_freeze` classifications for every selected surface.
+  `examples/facade-kernel-ergonomics` is the first facade-only synthetic example
+  for `public_facade_and_core_kernel`; `examples/facade-kernel-operator-workflow`
+  adds a near-real facade-only operator workflow for the same surface.
+  `facade_kernel_frontier` seeds the same surface's property/fuzz lane. A
+  15-minute dispatcher long-run for that fuzz target is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-facade-fuzz-long-run.md`; dispatcher
+  Criterion evidence is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-facade-performance-scale.md`; and the
+  facade/kernel surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-facade-api-feedback-classification.md`.
   `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
   `replay_scenario_explain`; `examples/replay-operator-diagnostics` adds a
   near-real replay diagnostics workflow for the same surface. A 15-minute

@@ -433,7 +433,7 @@ Beta можно выпускать, когда:
 - `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`done_or_near_done`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`done_or_near_done`): Document external adapter interface, compatibility/certification.
-- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze; selected-surface inventory is seeded, with contracts, replay and runtime surfaces classified `accepted_for_freeze`.
+- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze; selected-surface inventory now has terminal `accepted_for_freeze` classifications for facade/kernel, contracts, replay and runtime surfaces.
 - `M12.6` — **Semver pre-1.0 freeze plan** (`planned`): Identify APIs slated for stabilization.
 
 **Exit gate:** Есть 2–3 reference integrations, migration/shadow-mode story и feedback-driven API hardening.
@@ -987,9 +987,18 @@ Beta можно выпускать, когда:
 - **Status:** `planned`
 - **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Evidence seed:** selected-surface inventory is recorded in
-  `docs/product-track/api-validation-loop-plan.json`; most classifications
-  remain `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
-  evidence for `public_facade_and_core_kernel`, and
+  `docs/product-track/api-validation-loop-plan.json`; every selected surface now
+  has terminal `accepted_for_freeze` classification evidence.
+  `examples/facade-kernel-ergonomics` seeds facade-only synthetic evidence for
+  `public_facade_and_core_kernel`; `examples/facade-kernel-operator-workflow`
+  adds a near-real facade-only operator workflow for the same surface.
+  `facade_kernel_frontier` seeds the same surface's property/fuzz lane. A
+  15-minute dispatcher long-run for that fuzz target is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-facade-fuzz-long-run.md`; dispatcher
+  Criterion evidence is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-facade-performance-scale.md`; and the
+  facade/kernel surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-facade-api-feedback-classification.md`.
   `examples/replay-diagnostics` seeds replay/explain diagnostics evidence for
   `replay_scenario_explain`; `examples/replay-operator-diagnostics` adds a
   near-real replay diagnostics workflow for the same surface. A 15-minute
