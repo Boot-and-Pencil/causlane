@@ -252,7 +252,9 @@
       "classification": "pending",
       "api_scope": [
         "causlane_runtime::linear_host",
-        "causlane_runtime::InMemoryAuditLog",
+        "causlane_runtime::guarded_executor",
+        "causlane_runtime::adapters::audit::InMemoryAuditLog",
+        "causlane_runtime::adapters::tracing::TraceProjectingAuditLog",
         "causlane_runtime::projection_guard"
       ],
       "lanes": [
@@ -267,6 +269,10 @@
             {
               "kind": "example_marker",
               "token": "release-orchestration: ci release graph verified"
+            },
+            {
+              "kind": "example_marker",
+              "token": "runtime-guarded-audit-projection: authz execution audit and projection verified"
             }
           ],
           "gap_before_freeze": "Add more runtime-host examples that exercise authz, projection and audit ergonomics under realistic workflow shapes."
@@ -289,6 +295,11 @@
               "kind": "rust_test",
               "path": "examples/release-orchestration/src/lib.rs",
               "function": "forbidden_publish_upload_is_rejected"
+            },
+            {
+              "kind": "rust_test",
+              "path": "examples/runtime-guarded-audit-projection/src/lib.rs",
+              "function": "negative_controls_are_independently_observable"
             }
           ],
           "gap_before_freeze": "Add property/fuzz-style runtime adapter controls beyond current deterministic negative tests."

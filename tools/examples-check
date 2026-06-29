@@ -51,6 +51,11 @@ EXAMPLES = [
         "marker": "reference-integration: api worker audit projection verified",
     },
     {
+        "name": "runtime-guarded-audit-projection",
+        "path": ROOT / "examples" / "runtime-guarded-audit-projection",
+        "marker": "runtime-guarded-audit-projection: authz execution audit and projection verified",
+    },
+    {
         "name": "release-orchestration",
         "path": ROOT / "examples" / "release-orchestration",
         "marker": "release-orchestration: ci release graph verified",

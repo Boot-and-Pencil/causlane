@@ -68,6 +68,9 @@
   `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
   `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` adds
   contracts/bundle/plan-hash coverage for `contracts_registry_bundle_plan_hash`.
+  `examples/runtime-guarded-audit-projection` adds guarded execution, audit trace
+  projection and projection-redaction coverage for
+  `runtime_dispatch_audit_projection`.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;

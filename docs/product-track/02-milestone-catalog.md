@@ -516,6 +516,9 @@
   `examples/replay-diagnostics` seeds replay/explain diagnostics evidence for
   `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` seeds
   contracts/bundle/plan-hash evidence for `contracts_registry_bundle_plan_hash`.
+  `examples/runtime-guarded-audit-projection` seeds guarded execution, audit trace
+  projection and projection-redaction evidence for
+  `runtime_dispatch_audit_projection`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

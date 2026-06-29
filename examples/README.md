@@ -39,6 +39,11 @@ reference-integration
   runnable: API submission, deterministic worker drain, runtime audit adapter
   append and guarded projection redaction for the M12.1 public alpha API story.
 
+runtime-guarded-audit-projection
+  runnable: authz-guarded execution, runtime audit append, trace projection,
+  guarded projection redaction and negative controls for the M12.5 API
+  validation loop.
+
 release-orchestration
   runnable: CI gates, package-list review, publish dry-run planning and
   downstream smoke planning for the M12.2 release orchestration story.
