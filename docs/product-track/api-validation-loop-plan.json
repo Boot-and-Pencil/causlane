@@ -188,6 +188,10 @@
             {
               "kind": "example_marker",
               "token": "why-not-parallel: blockers explained"
+            },
+            {
+              "kind": "example_marker",
+              "token": "replay-diagnostics: explain accepted and rejected traces classified"
             }
           ],
           "gap_before_freeze": "Grow the replay/explain corpus with more close-to-real failure and diagnosis examples."

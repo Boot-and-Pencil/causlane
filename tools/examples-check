@@ -26,6 +26,11 @@ EXAMPLES = [
         "marker": "facade-kernel-ergonomics: facade admission and frontier verified",
     },
     {
+        "name": "replay-diagnostics",
+        "path": ROOT / "examples" / "replay-diagnostics",
+        "marker": "replay-diagnostics: explain accepted and rejected traces classified",
+    },
+    {
         "name": "simple-local",
         "path": ROOT / "examples" / "simple-local",
         "marker": "simple-local: replay verified",

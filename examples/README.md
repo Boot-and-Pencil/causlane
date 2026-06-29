@@ -23,6 +23,10 @@ facade-kernel-ergonomics
   runnable: downstream facade-only admission, barrier policy and frontier
   selection through the `causlane` crate.
 
+replay-diagnostics
+  runnable: public replay explain diagnostics for accepted, invariant rejected
+  and structural rejected release-promotion traces.
+
 why-not-parallel
   runnable: machine-readable explanations for parallelizable ops, pending write
   conflicts, dependency blockers and active writer blockers.

@@ -989,7 +989,9 @@ Beta можно выпускать, когда:
 - **Evidence seed:** selected-surface inventory is recorded in
   `docs/product-track/api-validation-loop-plan.json`; classifications remain
   `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
-  evidence for `public_facade_and_core_kernel`.
+  evidence for `public_facade_and_core_kernel`, and
+  `examples/replay-diagnostics` seeds replay/explain diagnostics evidence for
+  `replay_scenario_explain`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

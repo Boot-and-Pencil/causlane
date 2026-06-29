@@ -64,7 +64,9 @@
   records the selected candidate surfaces and binds them to existing example,
   property/fuzz and performance-scale evidence where available; all selected
   surfaces remain `pending`. `examples/facade-kernel-ergonomics` is the first
-  facade-only synthetic example for `public_facade_and_core_kernel`.
+  facade-only synthetic example for `public_facade_and_core_kernel`, and
+  `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
+  `replay_scenario_explain`.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;
