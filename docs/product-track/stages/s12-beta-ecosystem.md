@@ -66,7 +66,8 @@
   surfaces remain `pending`. `examples/facade-kernel-ergonomics` is the first
   facade-only synthetic example for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
-  `replay_scenario_explain`.
+  `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` adds
+  contracts/bundle/plan-hash coverage for `contracts_registry_bundle_plan_hash`.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;

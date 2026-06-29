@@ -514,7 +514,8 @@
   `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
   evidence for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` seeds replay/explain diagnostics evidence for
-  `replay_scenario_explain`.
+  `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` seeds
+  contracts/bundle/plan-hash evidence for `contracts_registry_bundle_plan_hash`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

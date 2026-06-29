@@ -21,6 +21,11 @@ EXAMPLES = [
         "marker": "consequence-parallelism: frontier selected; replay verified",
     },
     {
+        "name": "contracts-boundary-ergonomics",
+        "path": ROOT / "examples" / "contracts-boundary-ergonomics",
+        "marker": "contracts-boundary-ergonomics: registry bundle and plan hashes verified",
+    },
+    {
         "name": "facade-kernel-ergonomics",
         "path": ROOT / "examples" / "facade-kernel-ergonomics",
         "marker": "facade-kernel-ergonomics: facade admission and frontier verified",

@@ -19,6 +19,10 @@ consequence-parallelism
   runnable: safe frontier selection for independent consequences, conflicting
   writes and lane capacity, with conflict-free parallel replay.
 
+contracts-boundary-ergonomics
+  runnable: public contracts boundary for registry compilation, bundle artifact
+  verification, template resolution, plan hashing and impact hashing.
+
 facade-kernel-ergonomics
   runnable: downstream facade-only admission, barrier policy and frontier
   selection through the `causlane` crate.

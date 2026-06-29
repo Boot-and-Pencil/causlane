@@ -118,6 +118,10 @@
             {
               "kind": "example_marker",
               "token": "release-orchestration: ci release graph verified"
+            },
+            {
+              "kind": "example_marker",
+              "token": "contracts-boundary-ergonomics: registry bundle and plan hashes verified"
             }
           ],
           "gap_before_freeze": "Add more near-real registry and bundle examples before terminal classification."
