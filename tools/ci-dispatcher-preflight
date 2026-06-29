@@ -176,13 +176,20 @@ step "property smoke"
 
 step "fuzz compile"
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
-  ./tools/cargo +"$fuzz_toolchain" test --manifest-path fuzz/Cargo.toml --no-run --bins
+  ./tools/cargo +"$fuzz_toolchain" test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
 
 step "fuzz one-run smoke"
 mkdir -p "$fuzz_artifacts"
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   ./tools/cargo +"$fuzz_toolchain" fuzz run "$fuzz_target" -- \
   -runs=1 -artifact_prefix="${fuzz_artifacts%/}/"
+
+step "post-run cleanliness"
+git status --short --branch
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo "remote checkout changed during preflight: $repo" >&2
+  exit 16
+fi
 
 step "preflight passed"
 printf 'host=%s repo=%s head=%s\n' "$(hostname)" "$repo" "$local_head"

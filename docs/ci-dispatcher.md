@@ -53,7 +53,7 @@ python3 tools/formal-doctor --json --profile all --lane local_smoke
 Portable cargo-fuzz equivalents:
 
 ```bash
-cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins
+cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
 cargo +nightly-2025-11-21 fuzz run requirement_from_tokens -- \
   -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/
 ```
@@ -62,14 +62,15 @@ The repository-local wrapper form used by the preflight is:
 
 ```bash
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
-  ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins
+  ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   ./tools/cargo +nightly-2025-11-21 fuzz run requirement_from_tokens -- \
   -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/
 ```
 
 The one-run fuzz command is a smoke test for toolchain wiring. It is not the
-long-run fuzz budget used for coverage evidence.
+long-run fuzz budget used for coverage evidence. The preflight checks git
+cleanliness again after fuzzing so lockfile or corpus drift cannot be hidden.
 
 ## Long Fuzz Runs
 
