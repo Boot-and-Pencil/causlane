@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+"""Validate the M12.5 API validation loop planning surface."""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+TRACK = ROOT / "docs" / "product-track"
+ARTIFACT = TRACK / "api-validation-loop-plan.json"
+ROADMAP_JSON = TRACK / "roadmap.json"
+ROADMAP_YAML = TRACK / "roadmap.yaml"
+PRODUCT_MAP = TRACK / "01-product-track-map.md"
+CATALOG = TRACK / "02-milestone-catalog.md"
+STAGE = TRACK / "stages" / "s12-beta-ecosystem.md"
+MILESTONE_12_5 = TRACK / "milestones" / "m12.5-api-validation-loop.md"
+MILESTONE_12_6 = TRACK / "milestones" / "m12.6-semver-pre-1.0-freeze-plan.md"
+README = TRACK / "README.md"
+START_GATE = TRACK / "11-implementation-start-gate.md"
+
+REQUIRED_ARTIFACT = "causlane.api-validation-loop-plan.v1"
+REQUIRED_MILESTONE = "M12.5"
+REQUIRED_TITLE = "API validation loop"
+FORBIDDEN_TITLE = "DX feedback loop"
+REQUIRED_LANES = {
+    "synthetic_examples",
+    "property_fuzz",
+    "performance_scale",
+    "api_feedback",
+}
+REQUIRED_TERMINAL = {"needs_api_change", "accepted_for_freeze"}
+REQUIRED_DOC_TOKENS = {
+    "API validation loop",
+    "realistic synthetic examples",
+    "property/fuzz",
+    "performance scale",
+    "accepted_for_freeze",
+}
+REQUIRED_FREEZE_TOKENS = {
+    "M12.5",
+    "validation evidence",
+    "terminal classification",
+    "freeze",
+}
+
+
+def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def read(path: Path, errors: list[str]) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return ""
+
+
+def load_json(path: Path, errors: list[str]) -> dict[str, Any]:
+    try:
+        return json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return {}
+
+
+def expect(condition: bool, errors: list[str], message: str) -> None:
+    if not condition:
+        errors.append(message)
+
+
+def validate_artifact(artifact: dict[str, Any], errors: list[str]) -> None:
+    expect(
+        artifact.get("artifact") == REQUIRED_ARTIFACT,
+        errors,
+        f"artifact must be {REQUIRED_ARTIFACT}",
+    )
+    expect(
+        artifact.get("milestone") == REQUIRED_MILESTONE,
+        errors,
+        "milestone must be M12.5",
+    )
+    expect(artifact.get("status") == "planned", errors, "status must remain planned")
+
+    dependency = artifact.get("freeze_dependency")
+    if not isinstance(dependency, dict):
+        errors.append("freeze_dependency must be an object")
+    else:
+        expect(
+            dependency.get("milestone") == "M12.6",
+            errors,
+            "freeze_dependency milestone must be M12.6",
+        )
+        rule = dependency.get("rule")
+        expect(
+            isinstance(rule, str)
+            and "must not claim freeze readiness" in rule
+            and "terminal classification" in rule,
+            errors,
+            "freeze_dependency rule must block freeze readiness before terminal classification",
+        )
+
+    lanes = artifact.get("lanes")
+    if not isinstance(lanes, list):
+        errors.append("lanes must be a list")
+        seen_lanes: set[str] = set()
+    else:
+        seen_lanes = set()
+        for lane in lanes:
+            if not isinstance(lane, dict):
+                errors.append("lane entries must be objects")
+                continue
+            lane_id = lane.get("lane")
+            if not isinstance(lane_id, str):
+                errors.append("lane entry missing string lane")
+                continue
+            seen_lanes.add(lane_id)
+            expect(
+                lane.get("status") == "planned",
+                errors,
+                f"{lane_id}: status must be planned",
+            )
+            expect(
+                isinstance(lane.get("goal"), str) and bool(lane["goal"].strip()),
+                errors,
+                f"{lane_id}: goal must be non-empty",
+            )
+            expect(
+                isinstance(lane.get("terminal_evidence"), str)
+                and bool(lane["terminal_evidence"].strip()),
+                errors,
+                f"{lane_id}: terminal_evidence must be non-empty",
+            )
+    expect(
+        seen_lanes == REQUIRED_LANES,
+        errors,
+        f"lanes must be exactly {sorted(REQUIRED_LANES)}",
+    )
+
+    terminal = artifact.get("terminal_classifications")
+    if not isinstance(terminal, list) or not all(isinstance(item, str) for item in terminal):
+        errors.append("terminal_classifications must be a string list")
+    else:
+        expect(
+            set(terminal) == REQUIRED_TERMINAL,
+            errors,
+            f"terminal_classifications must be {sorted(REQUIRED_TERMINAL)}",
+        )
+
+
+def validate_roadmap(roadmap: dict[str, Any], errors: list[str]) -> None:
+    milestones = roadmap.get("milestones")
+    if not isinstance(milestones, dict):
+        errors.append("roadmap milestones must be an object")
+        return
+
+    m125 = milestones.get("M12.5")
+    m126 = milestones.get("M12.6")
+    if not isinstance(m125, dict):
+        errors.append("roadmap missing M12.5")
+    else:
+        expect(
+            m125.get("title") == REQUIRED_TITLE,
+            errors,
+            "roadmap M12.5 title must be API validation loop",
+        )
+        description = m125.get("description")
+        expect(
+            isinstance(description, str)
+            and all(
+                token in description
+                for token in ["synthetic examples", "property/fuzz", "performance scale"]
+            ),
+            errors,
+            "roadmap M12.5 description must mention all validation lanes",
+        )
+    if not isinstance(m126, dict):
+        errors.append("roadmap missing M12.6")
+    else:
+        description = m126.get("description")
+        expect(
+            isinstance(description, str) and "M12.5 validation evidence" in description,
+            errors,
+            "roadmap M12.6 description must consume M12.5 validation evidence",
+        )
+
+
+def validate_docs(errors: list[str]) -> None:
+    m125_text = read(MILESTONE_12_5, errors)
+    m126_text = read(MILESTONE_12_6, errors)
+    combined = "\n".join(
+        read(path, errors)
+        for path in [PRODUCT_MAP, CATALOG, STAGE, README, START_GATE, ROADMAP_YAML]
+    )
+
+    expect(FORBIDDEN_TITLE not in combined, errors, f"docs must not still say {FORBIDDEN_TITLE}")
+    for token in REQUIRED_DOC_TOKENS:
+        expect(token in m125_text, errors, f"M12.5 milestone missing token: {token}")
+        expect(token in combined, errors, f"product-track docs missing token: {token}")
+    for token in REQUIRED_FREEZE_TOKENS:
+        expect(token in m126_text, errors, f"M12.6 milestone missing freeze token: {token}")
+
+
+def main() -> int:
+    errors: list[str] = []
+    artifact = load_json(ARTIFACT, errors)
+    roadmap = load_json(ROADMAP_JSON, errors)
+    validate_artifact(artifact, errors)
+    validate_roadmap(roadmap, errors)
+    validate_docs(errors)
+
+    if errors:
+        print("api-validation-loop-plan-check: FAILED", file=sys.stderr)
+        for error in errors:
+            print(f"  - {error}", file=sys.stderr)
+        return 1
+
+    print("api-validation-loop-plan-check: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

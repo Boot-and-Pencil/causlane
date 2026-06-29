@@ -504,17 +504,17 @@
 - **Status:** `done_or_near_done`
 - **Purpose:** Document external adapter interface, compatibility/certification.
 
-## M12.5 — DX feedback loop
+## M12.5 — API validation loop
 
 - **Stage:** S12
 - **Status:** `planned`
-- **Purpose:** Simplify common paths, reduce ceremony, improve error messages.
+- **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 
 - **Stage:** S12
 - **Status:** `planned`
-- **Purpose:** Identify APIs slated for stabilization.
+- **Purpose:** Identify APIs slated for stabilization after M12.5 validation evidence is classified.
 
 ## M13.1 — API stabilization
 

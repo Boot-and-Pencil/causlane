@@ -82,7 +82,7 @@ slice and checked evidence matrix, and M12.2 Reference integration 2 has a
 bounded release orchestration slice. M12.3 Migration/shadow docs has a bounded
 adoption playbook and checked evidence artifact, and M12.4 Adapter ecosystem
 has external adapter guidance pinned to the existing certification matrix. The
-current product-roadmap action is M12.5 DX feedback loop.
+current product-roadmap action is M12.5 API validation loop.
 
 ## Implementation Handoff
 
@@ -433,7 +433,7 @@ Beta можно выпускать, когда:
 - `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`done_or_near_done`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`done_or_near_done`): Document external adapter interface, compatibility/certification.
-- `M12.5` — **DX feedback loop** (`planned`): Simplify common paths, reduce ceremony, improve error messages.
+- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - `M12.6` — **Semver pre-1.0 freeze plan** (`planned`): Identify APIs slated for stabilization.
 
 **Exit gate:** Есть 2–3 reference integrations, migration/shadow-mode story и feedback-driven API hardening.
@@ -981,17 +981,17 @@ Beta можно выпускать, когда:
 - **Status:** `done_or_near_done`
 - **Purpose:** Document external adapter interface, compatibility/certification.
 
-## M12.5 — DX feedback loop
+## M12.5 — API validation loop
 
 - **Stage:** S12
 - **Status:** `planned`
-- **Purpose:** Simplify common paths, reduce ceremony, improve error messages.
+- **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 
 - **Stage:** S12
 - **Status:** `planned`
-- **Purpose:** Identify APIs slated for stabilization.
+- **Purpose:** Identify APIs slated for stabilization after M12.5 validation evidence is classified.
 
 ## M13.1 — API stabilization
 
@@ -1823,12 +1823,12 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S12/M12.5 DX feedback loop for common paths and error-message hardening
+  S12/M12.5 API validation loop for examples, property/fuzz and performance scale
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M12.5 DX feedback after the M12.4 adapter ecosystem
-guidance. Do not upload additional
+gap for public alpha is M12.5 API validation before the M12.6 semver freeze
+plan. Do not upload additional
 `0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 

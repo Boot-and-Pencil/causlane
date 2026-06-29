@@ -56,25 +56,25 @@
   adapter interface and certification expectations; `tools/adapter-ecosystem-doc-check`
   pins those claims to the existing M08.7 certification matrix.
 
-### M12.5 — DX feedback loop
+### M12.5 — API validation loop
 
 - **Status:** `planned`
-- **Outcome:** Simplify common paths, reduce ceremony, improve error messages.
+- **Outcome:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Definition of done:**
-  - typed contract or executable check exists;
-  - docs/ADR updated;
-  - tests or replay scenario added where relevant;
-  - no prose-only claim remains for protocol-critical behavior.
+  - realistic synthetic corpus exists and covers common public API workflows;
+  - property/fuzz lanes exist for the surfaces selected for freeze;
+  - scale/performance evidence exists for the hot paths selected for freeze;
+  - API feedback from all three lanes is classified as `needs_api_change` or `accepted_for_freeze`.
 
 ### M12.6 — Semver pre-1.0 freeze plan
 
 - **Status:** `planned`
-- **Outcome:** Identify APIs slated for stabilization.
+- **Outcome:** Identify APIs slated for stabilization after M12.5 validation evidence is classified.
 - **Definition of done:**
-  - typed contract or executable check exists;
-  - docs/ADR updated;
-  - tests or replay scenario added where relevant;
-  - no prose-only claim remains for protocol-critical behavior.
+  - M12.5 API validation loop has a recorded terminal classification;
+  - APIs accepted for freeze are listed explicitly;
+  - APIs needing change remain experimental or get a pre-freeze action;
+  - no freeze claim is made from prose-only evidence.
 
 ## Exit gate
 

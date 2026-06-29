@@ -71,7 +71,7 @@ slice and checked evidence matrix, and M12.2 Reference integration 2 has a
 bounded release orchestration slice. M12.3 Migration/shadow docs has a bounded
 adoption playbook and checked evidence artifact, and M12.4 Adapter ecosystem
 has external adapter guidance pinned to the existing certification matrix. The
-current product-roadmap action is M12.5 DX feedback loop.
+current product-roadmap action is M12.5 API validation loop.
 
 ## Implementation Handoff
 

@@ -1,0 +1,58 @@
+{
+  "artifact": "causlane.api-validation-loop-plan.v1",
+  "milestone": "M12.5",
+  "status": "planned",
+  "purpose": "Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.",
+  "freeze_dependency": {
+    "milestone": "M12.6",
+    "rule": "M12.6 must not claim freeze readiness until M12.5 has a recorded terminal classification."
+  },
+  "lanes": [
+    {
+      "lane": "synthetic_examples",
+      "status": "planned",
+      "goal": "Build many synthetic but realistic scenarios that exercise public API ergonomics across API+worker+audit+projection, release orchestration, adapter boundary, authz/projection and replay/explain workflows.",
+      "terminal_evidence": "Scenario corpus and usability findings are recorded."
+    },
+    {
+      "lane": "property_fuzz",
+      "status": "planned",
+      "goal": "Add property and fuzz lanes for the surfaces selected for freeze, with negative controls that would fail if invariants are weakened.",
+      "terminal_evidence": "Property/fuzz targets, run profile and findings are recorded."
+    },
+    {
+      "lane": "performance_scale",
+      "status": "planned",
+      "goal": "Run larger performance and scale checks for hot paths selected for freeze, including dispatch, replay, plan hashing, bundle loading and explain paths.",
+      "terminal_evidence": "Scale/performance profile and bottleneck findings are recorded."
+    },
+    {
+      "lane": "api_feedback",
+      "status": "planned",
+      "goal": "Classify feedback from examples, property/fuzz and performance lanes before the semver freeze plan.",
+      "terminal_evidence": "Each reviewed API surface is classified as needs_api_change or accepted_for_freeze."
+    }
+  ],
+  "terminal_classifications": [
+    "needs_api_change",
+    "accepted_for_freeze"
+  ],
+  "deferred_claims": [
+    {
+      "claim": "completed_validation_loop",
+      "status": "deferred",
+      "deferred_to": [
+        "M12.5 implementation"
+      ],
+      "reason": "This artifact records the required loop shape; it does not execute the synthetic corpus, property/fuzz lanes or performance scale runs."
+    },
+    {
+      "claim": "api_freeze_readiness",
+      "status": "deferred",
+      "deferred_to": [
+        "M12.6"
+      ],
+      "reason": "Freeze readiness can only be claimed after M12.5 records terminal classifications."
+    }
+  ]
+}

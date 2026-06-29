@@ -180,6 +180,7 @@ product-track-check:
   tools/product-track-status-check
   tools/migration-shadow-doc-check
   tools/adapter-ecosystem-doc-check
+  tools/api-validation-loop-plan-check
 
 publish-readiness:
   tools/publish-readiness --write
@@ -225,6 +226,7 @@ refactor-readiness:
   tools/product-track-status-check
   tools/migration-shadow-doc-check
   tools/adapter-ecosystem-doc-check
+  tools/api-validation-loop-plan-check
 
 commit-trailer-check count="50":
   tools/check-commit-trailers {{count}}

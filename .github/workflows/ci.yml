@@ -31,6 +31,7 @@ jobs:
           tools/reference-integration-check
           tools/migration-shadow-doc-check
           tools/adapter-ecosystem-doc-check
+          tools/api-validation-loop-plan-check
 
   rust:
     name: rust workspace

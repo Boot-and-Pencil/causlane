@@ -381,7 +381,7 @@ stages:
     title: Adapter ecosystem
     status: done_or_near_done
   - id: M12.5
-    title: DX feedback loop
+    title: API validation loop
     status: planned
   - id: M12.6
     title: Semver pre-1.0 freeze plan
@@ -917,13 +917,15 @@ milestones:
     status: done_or_near_done
     stage: S12
   M12.5:
-    title: DX feedback loop
-    description: Simplify common paths, reduce ceremony, improve error messages.
+    title: API validation loop
+    description: Closed loop over realistic synthetic examples, property/fuzz testing and
+      performance scale testing before API freeze.
     status: planned
     stage: S12
   M12.6:
     title: Semver pre-1.0 freeze plan
-    description: Identify APIs slated for stabilization.
+    description: Identify APIs slated for stabilization after M12.5 validation evidence
+      is classified.
     status: planned
     stage: S12
   M13.1:
