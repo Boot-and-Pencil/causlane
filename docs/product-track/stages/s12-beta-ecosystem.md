@@ -71,7 +71,11 @@
   `examples/runtime-guarded-audit-projection` adds guarded execution, audit trace
   projection and projection-redaction coverage for
   `runtime_dispatch_audit_projection`; `runtime_guarded_audit_projection` seeds
-  the same surface's property/fuzz lane.
+  the same surface's property/fuzz lane. A 15-minute dispatcher long-run for
+  that fuzz target is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-runtime-fuzz-long-run.md`; the surface
+  remains `pending` until API feedback and performance-scale findings are
+  classified.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;

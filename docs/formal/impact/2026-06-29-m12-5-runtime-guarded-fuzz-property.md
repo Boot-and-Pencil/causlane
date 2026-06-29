@@ -64,8 +64,9 @@ None.
 
 ## Not applicable lanes
 
-Generated formal lanes are unaffected. Long-running fuzz execution remains part
-of the M12.5 evidence collection before terminal API classification.
+Generated formal lanes are unaffected. Long-running fuzz execution is tracked by
+`docs/formal/impact/2026-06-29-m12-5-runtime-fuzz-long-run.md`; terminal API
+classification remains part of the M12.5 evidence loop.
 
 ## Acceptance commands
 
@@ -79,6 +80,6 @@ REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +ni
 ## Exception request
 
 - Exception needed? no
-- Follow-up issue: run a longer `runtime_guarded_audit_projection` fuzz profile
-  on the dispatcher host and record any reproducer as curated corpus plus an API
-  feedback finding.
+- Follow-up issue: classify runtime authz/audit/projection API feedback with
+  the remaining M12.5 synthetic example and performance-scale evidence before
+  terminal classification.

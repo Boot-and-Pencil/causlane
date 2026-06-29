@@ -77,7 +77,7 @@ cleanliness again after fuzzing so lockfile or corpus drift cannot be hidden.
 
 ## Long Fuzz Runs
 
-Routine protocol fuzz evidence uses a 15-minute budget per protocol target:
+Routine protocol and runtime fuzz evidence uses a 15-minute budget per target:
 
 ```bash
 cargo +nightly-2025-11-21 fuzz run replay_trace_json -- \
@@ -85,6 +85,8 @@ cargo +nightly-2025-11-21 fuzz run replay_trace_json -- \
 cargo +nightly-2025-11-21 fuzz run replay_scenario_yaml -- \
   -max_total_time=900 -print_final_stats=1
 cargo +nightly-2025-11-21 fuzz run registry_yaml_compile -- \
+  -max_total_time=900 -print_final_stats=1
+cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- \
   -max_total_time=900 -print_final_stats=1
 ```
 
@@ -99,6 +101,9 @@ REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   -max_total_time=900 -print_final_stats=1
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   ./tools/cargo +nightly-2025-11-21 fuzz run registry_yaml_compile -- \
+  -max_total_time=900 -print_final_stats=1
+REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
+  ./tools/cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- \
   -max_total_time=900 -print_final_stats=1
 ```
 

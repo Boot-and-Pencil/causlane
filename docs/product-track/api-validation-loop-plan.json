@@ -306,7 +306,7 @@
               "target": "runtime_guarded_audit_projection"
             }
           ],
-          "gap_before_freeze": "Run longer runtime authz/audit/projection fuzz profiles and classify findings before terminal classification."
+          "gap_before_freeze": "Classify runtime authz/audit/projection fuzz findings with API feedback before terminal classification."
         },
         {
           "lane": "performance_scale",
