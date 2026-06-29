@@ -249,7 +249,7 @@
     },
     {
       "id": "runtime_dispatch_audit_projection",
-      "classification": "pending",
+      "classification": "accepted_for_freeze",
       "api_scope": [
         "causlane_runtime::linear_host",
         "causlane_runtime::guarded_executor",
@@ -260,7 +260,7 @@
       "lanes": [
         {
           "lane": "synthetic_examples",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "example_marker",
@@ -273,13 +273,16 @@
             {
               "kind": "example_marker",
               "token": "runtime-guarded-audit-projection: authz execution audit and projection verified"
+            },
+            {
+              "kind": "example_marker",
+              "token": "runtime-operator-workflow: guarded multi-op audit projection verified"
             }
-          ],
-          "gap_before_freeze": "Add more runtime-host examples that exercise authz, projection and audit ergonomics under realistic workflow shapes."
+          ]
         },
         {
           "lane": "property_fuzz",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "rust_test",
@@ -302,15 +305,19 @@
               "function": "negative_controls_are_independently_observable"
             },
             {
+              "kind": "rust_test",
+              "path": "examples/runtime-operator-workflow/src/lib.rs",
+              "function": "negative_controls_are_independently_observable"
+            },
+            {
               "kind": "fuzz_target",
               "target": "runtime_guarded_audit_projection"
             }
-          ],
-          "gap_before_freeze": "Classify runtime authz/audit/projection fuzz findings with API feedback before terminal classification."
+          ]
         },
         {
           "lane": "performance_scale",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "bench",
@@ -324,8 +331,7 @@
               "kind": "bench",
               "benchmark": "runtime_guarded_audit_projection_flow"
             }
-          ],
-          "gap_before_freeze": "Classify runtime authz/audit/projection performance-scale findings with API feedback before terminal classification."
+          ]
         }
       ]
     }

@@ -56,6 +56,11 @@ EXAMPLES = [
         "marker": "runtime-guarded-audit-projection: authz execution audit and projection verified",
     },
     {
+        "name": "runtime-operator-workflow",
+        "path": ROOT / "examples" / "runtime-operator-workflow",
+        "marker": "runtime-operator-workflow: guarded multi-op audit projection verified",
+    },
+    {
         "name": "release-orchestration",
         "path": ROOT / "examples" / "release-orchestration",
         "marker": "release-orchestration: ci release graph verified",

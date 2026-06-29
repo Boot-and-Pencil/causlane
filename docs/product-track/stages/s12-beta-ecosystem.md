@@ -62,7 +62,7 @@
 - **Outcome:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Evidence seed:** `docs/product-track/api-validation-loop-plan.json`
   records the selected candidate surfaces and binds them to existing example,
-  property/fuzz and performance-scale evidence where available; all selected
+  property/fuzz and performance-scale evidence where available; most selected
   surfaces remain `pending`. `examples/facade-kernel-ergonomics` is the first
   facade-only synthetic example for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
@@ -70,13 +70,15 @@
   contracts/bundle/plan-hash coverage for `contracts_registry_bundle_plan_hash`.
   `examples/runtime-guarded-audit-projection` adds guarded execution, audit trace
   projection and projection-redaction coverage for
-  `runtime_dispatch_audit_projection`; `runtime_guarded_audit_projection` seeds
-  the same surface's property/fuzz lane. A 15-minute dispatcher long-run for
-  that fuzz target is recorded in
+  `runtime_dispatch_audit_projection`; `examples/runtime-operator-workflow`
+  adds a multi-operation runtime host workflow for the same surface.
+  `runtime_guarded_audit_projection` seeds the same surface's property/fuzz
+  lane. A 15-minute dispatcher long-run for that fuzz target is recorded in
   `docs/formal/impact/2026-06-29-m12-5-runtime-fuzz-long-run.md`; the surface
   also has dispatcher performance-scale evidence recorded in
   `docs/formal/impact/2026-06-29-m12-5-runtime-performance-scale.md`; the
-  surface remains `pending` until API feedback is classified.
+  runtime surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-runtime-api-feedback-classification.md`.
 - **Definition of done:**
   - realistic synthetic corpus exists and covers common public API workflows;
   - property/fuzz lanes exist for the surfaces selected for freeze;

@@ -987,21 +987,23 @@ Beta можно выпускать, когда:
 - **Status:** `planned`
 - **Purpose:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Evidence seed:** selected-surface inventory is recorded in
-  `docs/product-track/api-validation-loop-plan.json`; classifications remain
-  `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
+  `docs/product-track/api-validation-loop-plan.json`; most classifications
+  remain `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
   evidence for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` seeds replay/explain diagnostics evidence for
   `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` seeds
   contracts/bundle/plan-hash evidence for `contracts_registry_bundle_plan_hash`.
   `examples/runtime-guarded-audit-projection` seeds guarded execution, audit trace
   projection and projection-redaction evidence for
-  `runtime_dispatch_audit_projection`; `runtime_guarded_audit_projection` seeds
-  the same surface's property/fuzz lane. A 15-minute dispatcher long-run for
-  that fuzz target is recorded in
+  `runtime_dispatch_audit_projection`; `examples/runtime-operator-workflow`
+  adds a multi-operation runtime host workflow for the same surface.
+  `runtime_guarded_audit_projection` seeds the same surface's property/fuzz
+  lane. A 15-minute dispatcher long-run for that fuzz target is recorded in
   `docs/formal/impact/2026-06-29-m12-5-runtime-fuzz-long-run.md`; the surface
   also has dispatcher performance-scale evidence recorded in
   `docs/formal/impact/2026-06-29-m12-5-runtime-performance-scale.md`; the
-  surface remains `pending` until API feedback is classified.
+  runtime surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-runtime-api-feedback-classification.md`.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

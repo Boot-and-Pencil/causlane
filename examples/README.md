@@ -44,6 +44,11 @@ runtime-guarded-audit-projection
   guarded projection redaction and negative controls for the M12.5 API
   validation loop.
 
+runtime-operator-workflow
+  runnable: multi-operation runtime host workflow with guarded execution,
+  append-only audit trace projection, guarded dashboard projection redaction and
+  negative controls for the M12.5 API validation loop.
+
 release-orchestration
   runnable: CI gates, package-list review, publish dry-run planning and
   downstream smoke planning for the M12.2 release orchestration story.
