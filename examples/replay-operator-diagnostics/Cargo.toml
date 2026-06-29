@@ -1,0 +1,13 @@
+[package]
+name = "causlane-replay-operator-diagnostics-example"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "MIT OR Apache-2.0"
+rust-version = "1.85"
+
+[workspace]
+
+[dependencies]
+causlane-contracts = { path = "../../crates/causlane-contracts", version = "0.0.1" }
+causlane-replay = { path = "../../crates/causlane-replay", version = "0.0.1" }

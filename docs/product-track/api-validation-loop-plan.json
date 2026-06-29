@@ -176,7 +176,7 @@
     },
     {
       "id": "replay_scenario_explain",
-      "classification": "pending",
+      "classification": "accepted_for_freeze",
       "api_scope": [
         "causlane_replay::ReplayTrace",
         "causlane_replay::ReplayScenario",
@@ -185,7 +185,7 @@
       "lanes": [
         {
           "lane": "synthetic_examples",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "example_marker",
@@ -202,13 +202,16 @@
             {
               "kind": "example_marker",
               "token": "replay-diagnostics: explain accepted and rejected traces classified"
+            },
+            {
+              "kind": "example_marker",
+              "token": "replay-operator-diagnostics: replay diagnostics workflow verified"
             }
-          ],
-          "gap_before_freeze": "Grow the replay/explain corpus with more close-to-real failure and diagnosis examples."
+          ]
         },
         {
           "lane": "property_fuzz",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "fuzz_target",
@@ -232,13 +235,17 @@
               "kind": "rust_test",
               "path": "crates/causlane-replay/tests/mutation_fuzz.rs",
               "function": "totality_no_panic_over_malformed_traces"
+            },
+            {
+              "kind": "rust_test",
+              "path": "examples/replay-operator-diagnostics/src/lib.rs",
+              "function": "strict_bundle_hash_negative_control_is_observable"
             }
-          ],
-          "gap_before_freeze": "Run long replay fuzz profiles and classify replay/explain API findings."
+          ]
         },
         {
           "lane": "performance_scale",
-          "status": "seeded",
+          "status": "complete",
           "evidence": [
             {
               "kind": "bench",
@@ -248,8 +255,7 @@
               "kind": "bench",
               "benchmark": "replay_explain_human"
             }
-          ],
-          "gap_before_freeze": "Record larger replay and explain profiles before terminal classification."
+          ]
         }
       ]
     },

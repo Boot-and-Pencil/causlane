@@ -36,6 +36,11 @@ replay-diagnostics
   runnable: public replay explain diagnostics for accepted, invariant rejected
   and structural rejected release-promotion traces.
 
+replay-operator-diagnostics
+  runnable: near-real replay diagnostics workflow for release execution,
+  read-only sidecar projection, multi-action histories, structural provenance
+  failures and strict bundle-binding controls.
+
 why-not-parallel
   runnable: machine-readable explanations for parallelizable ops, pending write
   conflicts, dependency blockers and active writer blockers.

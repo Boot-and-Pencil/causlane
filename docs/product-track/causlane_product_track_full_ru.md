@@ -433,7 +433,7 @@ Beta можно выпускать, когда:
 - `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`done_or_near_done`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`done_or_near_done`): Document external adapter interface, compatibility/certification.
-- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze; selected-surface inventory is seeded, with contracts and runtime surfaces classified `accepted_for_freeze`.
+- `M12.5` — **API validation loop** (`planned`): Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze; selected-surface inventory is seeded, with contracts, replay and runtime surfaces classified `accepted_for_freeze`.
 - `M12.6` — **Semver pre-1.0 freeze plan** (`planned`): Identify APIs slated for stabilization.
 
 **Exit gate:** Есть 2–3 reference integrations, migration/shadow-mode story и feedback-driven API hardening.
@@ -991,7 +991,15 @@ Beta можно выпускать, когда:
   remain `pending`; `examples/facade-kernel-ergonomics` seeds facade-only synthetic
   evidence for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` seeds replay/explain diagnostics evidence for
-  `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` seeds
+  `replay_scenario_explain`; `examples/replay-operator-diagnostics` adds a
+  near-real replay diagnostics workflow for the same surface. A 15-minute
+  dispatcher long-run for `replay_trace_json` and `replay_scenario_yaml` is
+  recorded in `docs/formal/impact/2026-06-29-m12-5-replay-fuzz-long-run.md`,
+  dispatcher Criterion evidence is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-replay-performance-scale.md`, and the
+  replay surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-replay-api-feedback-classification.md`.
+  `examples/contracts-boundary-ergonomics` seeds
   contracts/bundle/plan-hash evidence for `contracts_registry_bundle_plan_hash`;
   `examples/contracts-registry-bundle-workflow` adds a near-real multi-predicate
   contracts workflow for the same surface. A 15-minute dispatcher long-run for

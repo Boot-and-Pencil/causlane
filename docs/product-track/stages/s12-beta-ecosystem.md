@@ -62,11 +62,20 @@
 - **Outcome:** Closed loop over realistic synthetic examples, property/fuzz testing and performance scale testing before API freeze.
 - **Evidence seed:** `docs/product-track/api-validation-loop-plan.json`
   records the selected candidate surfaces and binds them to existing example,
-  property/fuzz and performance-scale evidence where available; most selected
-  surfaces remain `pending`. `examples/facade-kernel-ergonomics` is the first
+  property/fuzz and performance-scale evidence where available; only
+  `public_facade_and_core_kernel` remains `pending`.
+  `examples/facade-kernel-ergonomics` is the first
   facade-only synthetic example for `public_facade_and_core_kernel`, and
   `examples/replay-diagnostics` adds replay/explain diagnostics coverage for
-  `replay_scenario_explain`. `examples/contracts-boundary-ergonomics` adds
+  `replay_scenario_explain`; `examples/replay-operator-diagnostics` adds a
+  near-real replay diagnostics workflow for the same surface. A 15-minute
+  dispatcher long-run for `replay_trace_json` and `replay_scenario_yaml` is
+  recorded in `docs/formal/impact/2026-06-29-m12-5-replay-fuzz-long-run.md`,
+  dispatcher Criterion evidence is recorded in
+  `docs/formal/impact/2026-06-29-m12-5-replay-performance-scale.md`, and the
+  replay surface is now classified `accepted_for_freeze` in
+  `docs/formal/impact/2026-06-29-m12-5-replay-api-feedback-classification.md`.
+  `examples/contracts-boundary-ergonomics` adds
   contracts/bundle/plan-hash coverage for `contracts_registry_bundle_plan_hash`;
   `examples/contracts-registry-bundle-workflow` adds a near-real multi-predicate
   contracts workflow for the same surface. A 15-minute dispatcher long-run for

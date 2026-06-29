@@ -41,6 +41,11 @@ EXAMPLES = [
         "marker": "replay-diagnostics: explain accepted and rejected traces classified",
     },
     {
+        "name": "replay-operator-diagnostics",
+        "path": ROOT / "examples" / "replay-operator-diagnostics",
+        "marker": "replay-operator-diagnostics: replay diagnostics workflow verified",
+    },
+    {
         "name": "simple-local",
         "path": ROOT / "examples" / "simple-local",
         "marker": "simple-local: replay verified",
