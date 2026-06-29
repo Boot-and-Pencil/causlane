@@ -489,7 +489,7 @@
 ## M12.2 — Reference integration 2
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Purpose:** Agent/tool execution or CI/CD/release orchestration.
 
 ## M12.3 — Migration/shadow docs

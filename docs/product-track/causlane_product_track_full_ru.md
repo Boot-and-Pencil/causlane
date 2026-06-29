@@ -78,8 +78,9 @@ optional/deferred. M11.4 Examples now has `simple-local`, `approval-gate`,
 `consequence-parallelism` and `why-not-parallel` runnable slices, M11.5
 security/release hygiene is recorded, and M11.6 Contributor guide is recorded.
 M12.1 Reference integration 1 now has an in-repo API+worker+audit+projection
-slice and checked evidence matrix; the current product-roadmap action is M12.2
-Reference integration 2.
+slice and checked evidence matrix, and M12.2 Reference integration 2 has a
+bounded release orchestration slice. The current product-roadmap action is M12.3
+Migration/shadow docs.
 
 ## Implementation Handoff
 
@@ -427,7 +428,7 @@ Beta можно выпускать, когда:
 **Milestones:**
 
 - `M12.1` — **Reference integration 1** (`done_or_near_done`): Rust service with API+worker+audit+projection.
-- `M12.2` — **Reference integration 2** (`planned`): Agent/tool execution or CI/CD/release orchestration.
+- `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`planned`): How to adopt incrementally without rewrite.
 - `M12.4` — **Adapter ecosystem** (`planned`): Document external adapter interface, compatibility/certification.
 - `M12.5` — **DX feedback loop** (`planned`): Simplify common paths, reduce ceremony, improve error messages.
@@ -963,7 +964,7 @@ Beta можно выпускать, когда:
 ## M12.2 — Reference integration 2
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Purpose:** Agent/tool execution or CI/CD/release orchestration.
 
 ## M12.3 — Migration/shadow docs
@@ -1820,12 +1821,12 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S12/M12.2 reference integration 2 for agent/tool execution or CI/CD/release orchestration
+  S12/M12.3 migration/shadow docs for incremental adoption without rewrite
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M12.2 reference integration after the M12.1
-API+worker+audit+projection evidence matrix. Do not upload additional
+gap for public alpha is M12.3 migration/shadow documentation after the M12.2
+release orchestration reference integration. Do not upload additional
 `0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 

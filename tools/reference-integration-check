@@ -13,21 +13,36 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 MATRIX = ROOT / "docs" / "product-track" / "reference-integration-matrix.json"
 EXAMPLES_CHECK = ROOT / "tools" / "examples-check"
-EXAMPLE = ROOT / "examples" / "reference-integration"
-EXAMPLE_LIB = EXAMPLE / "src" / "lib.rs"
+REFERENCE_EXAMPLE = ROOT / "examples" / "reference-integration"
+REFERENCE_EXAMPLE_LIB = REFERENCE_EXAMPLE / "src" / "lib.rs"
+RELEASE_EXAMPLE = ROOT / "examples" / "release-orchestration"
+RELEASE_EXAMPLE_LIB = RELEASE_EXAMPLE / "src" / "lib.rs"
 
 ARTIFACT = "causlane.reference-integrations.v1"
-REQUIRED_GATES = {
+REQUIRED_M12_1_GATES = {
     "api_submission",
     "worker_drain_dependency_order",
     "audit_append_indexing",
     "projection_authz_redaction",
     "negative_controls",
 }
-REQUIRED_DEFERRED = {
+REQUIRED_M12_1_DEFERRED = {
     "durable_queue_or_distributed_leases",
     "http_database_service_shape",
     "host_retry_policy",
+}
+REQUIRED_M12_2_GATES = {
+    "ci_release_graph_execution",
+    "release_dependency_gate",
+    "audit_release_gate_sequence",
+    "release_idempotency_negative_control",
+    "forbidden_publish_upload_negative_control",
+}
+REQUIRED_M12_2_DEFERRED = {
+    "actual_cratesio_upload",
+    "signed_tag_or_release_mutation",
+    "secret_token_handling",
+    "durable_ci_worker_or_rollback",
 }
 
 
@@ -110,45 +125,51 @@ def validate_integration(
     source: str,
     examples_check: str,
     errors: list[str],
+    *,
+    milestone: str,
+    expected_id: str,
+    surface: str,
+    example_dir: Path,
+    required_gates: set[str],
+    required_deferred: set[str],
 ) -> None:
     expect(
-        integration.get("id") == "reference-integration-1",
+        integration.get("id") == expected_id,
         errors,
-        "M12.1 integration id must be reference-integration-1",
+        f"{milestone} integration id must be {expected_id}",
     )
     expect(
-        integration.get("milestone") == "M12.1",
+        integration.get("milestone") == milestone,
         errors,
-        "reference integration must be bound to M12.1",
+        f"reference integration must be bound to {milestone}",
     )
     expect(
         integration.get("status") == "covered_bounded",
         errors,
-        "M12.1 integration status must be covered_bounded",
+        f"{milestone} integration status must be covered_bounded",
     )
-    surface = integration.get("surface")
     expect(
-        surface == "examples/reference-integration",
+        integration.get("surface") == surface,
         errors,
-        "M12.1 surface must be examples/reference-integration",
+        f"{milestone} surface must be {surface}",
     )
-    expect(EXAMPLE.is_dir(), errors, "examples/reference-integration is missing")
+    expect(example_dir.is_dir(), errors, f"{surface} is missing")
 
     marker = integration.get("marker")
     expect(
         isinstance(marker, str) and marker in examples_check,
         errors,
-        "M12.1 marker must be registered in tools/examples-check",
+        f"{milestone} marker must be registered in tools/examples-check",
     )
     expect(
-        "reference-integration" in examples_check,
+        Path(surface).name in examples_check,
         errors,
-        "reference-integration must be listed in tools/examples-check",
+        f"{Path(surface).name} must be listed in tools/examples-check",
     )
 
     gates = integration.get("gates")
     if not isinstance(gates, list):
-        errors.append("M12.1 gates must be a list")
+        errors.append(f"{milestone} gates must be a list")
         seen_gates: set[str] = set()
     else:
         seen_gates = {
@@ -158,24 +179,24 @@ def validate_integration(
             for gate_id in [validate_gate(gate, source, errors)]
             if gate_id is not None
         }
-    missing = REQUIRED_GATES - seen_gates
-    extra = seen_gates - REQUIRED_GATES
-    expect(not missing, errors, f"M12.1 gates missing: {sorted(missing)}")
-    expect(not extra, errors, f"M12.1 gates unknown: {sorted(extra)}")
+    missing = required_gates - seen_gates
+    extra = seen_gates - required_gates
+    expect(not missing, errors, f"{milestone} gates missing: {sorted(missing)}")
+    expect(not extra, errors, f"{milestone} gates unknown: {sorted(extra)}")
 
     deferred = integration.get("deferred_claims")
     if not isinstance(deferred, list):
-        errors.append("M12.1 deferred_claims must be a list")
+        errors.append(f"{milestone} deferred_claims must be a list")
         seen_deferred: set[str] = set()
     else:
         seen_deferred = set()
         for claim in deferred:
             if not isinstance(claim, dict):
-                errors.append("M12.1 deferred claim entries must be objects")
+                errors.append(f"{milestone} deferred claim entries must be objects")
                 continue
             claim_id = claim.get("claim")
             if not isinstance(claim_id, str):
-                errors.append("M12.1 deferred claim missing string claim id")
+                errors.append(f"{milestone} deferred claim missing string claim id")
                 continue
             seen_deferred.add(claim_id)
             expect(
@@ -197,24 +218,25 @@ def validate_integration(
                 errors,
                 f"{claim_id}: reason must be non-empty",
             )
-    missing_deferred = REQUIRED_DEFERRED - seen_deferred
-    extra_deferred = seen_deferred - REQUIRED_DEFERRED
+    missing_deferred = required_deferred - seen_deferred
+    extra_deferred = seen_deferred - required_deferred
     expect(
         not missing_deferred,
         errors,
-        f"M12.1 deferred claims missing: {sorted(missing_deferred)}",
+        f"{milestone} deferred claims missing: {sorted(missing_deferred)}",
     )
     expect(
         not extra_deferred,
         errors,
-        f"M12.1 deferred claims unknown: {sorted(extra_deferred)}",
+        f"{milestone} deferred claims unknown: {sorted(extra_deferred)}",
     )
 
 
 def main() -> int:
     errors: list[str] = []
     matrix = load_matrix(errors)
-    source = text(EXAMPLE_LIB, errors)
+    reference_source = text(REFERENCE_EXAMPLE_LIB, errors)
+    release_source = text(RELEASE_EXAMPLE_LIB, errors)
     examples_check = text(EXAMPLES_CHECK, errors)
 
     expect(matrix.get("artifact") == ARTIFACT, errors, f"artifact must be {ARTIFACT}")
@@ -242,7 +264,38 @@ def main() -> int:
         ]
         expect(len(m121) == 1, errors, "matrix must contain exactly one M12.1 integration")
         for integration in m121:
-            validate_integration(integration, source, examples_check, errors)
+            validate_integration(
+                integration,
+                reference_source,
+                examples_check,
+                errors,
+                milestone="M12.1",
+                expected_id="reference-integration-1",
+                surface="examples/reference-integration",
+                example_dir=REFERENCE_EXAMPLE,
+                required_gates=REQUIRED_M12_1_GATES,
+                required_deferred=REQUIRED_M12_1_DEFERRED,
+            )
+
+        m122 = [
+            integration
+            for integration in integrations
+            if isinstance(integration, dict) and integration.get("milestone") == "M12.2"
+        ]
+        expect(len(m122) == 1, errors, "matrix must contain exactly one M12.2 integration")
+        for integration in m122:
+            validate_integration(
+                integration,
+                release_source,
+                examples_check,
+                errors,
+                milestone="M12.2",
+                expected_id="reference-integration-2",
+                surface="examples/release-orchestration",
+                example_dir=RELEASE_EXAMPLE,
+                required_gates=REQUIRED_M12_2_GATES,
+                required_deferred=REQUIRED_M12_2_DEFERRED,
+            )
 
     if errors:
         print("reference-integration-check: FAILED", file=sys.stderr)

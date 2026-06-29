@@ -81,6 +81,94 @@
           "reason": "Retry policy remains host-owned; this slice proves duplicate suppression, not first-class worker retry orchestration."
         }
       ]
+    },
+    {
+      "id": "reference-integration-2",
+      "milestone": "M12.2",
+      "status": "covered_bounded",
+      "surface": "examples/release-orchestration",
+      "marker": "release-orchestration: ci release graph verified",
+      "gates": [
+        {
+          "gate": "ci_release_graph_execution",
+          "status": "covered",
+          "evidence": [
+            "tests::release_orchestration_runs_ci_release_graph",
+            "tests::release_tasks_execute_in_dependency_order"
+          ],
+          "claim": "The example executes a CI/CD release orchestration graph in dependency order."
+        },
+        {
+          "gate": "release_dependency_gate",
+          "status": "covered",
+          "evidence": [
+            "tests::review_and_dry_run_wait_for_ci_prerequisites"
+          ],
+          "claim": "Package review and dry-run planning remain blocked until CI prerequisites complete."
+        },
+        {
+          "gate": "audit_release_gate_sequence",
+          "status": "covered",
+          "evidence": [
+            "tests::audit_events_cover_release_gate_sequence"
+          ],
+          "claim": "Runtime audit append evidence covers the release orchestration gate sequence."
+        },
+        {
+          "gate": "release_idempotency_negative_control",
+          "status": "covered",
+          "evidence": [
+            "tests::duplicate_release_attempt_is_suppressed"
+          ],
+          "claim": "Duplicate release attempts are suppressed by host idempotency."
+        },
+        {
+          "gate": "forbidden_publish_upload_negative_control",
+          "status": "covered",
+          "evidence": [
+            "tests::forbidden_publish_upload_is_rejected"
+          ],
+          "claim": "A forbidden upload task is rejected instead of executed."
+        }
+      ],
+      "deferred_claims": [
+        {
+          "claim": "actual_cratesio_upload",
+          "status": "deferred",
+          "deferred_to": [
+            "PUBLISHING.md",
+            "docs/release/publish-all-crates-runbook.md"
+          ],
+          "reason": "M12.2 models release orchestration as a bounded example; it never runs cargo publish or uploads crates."
+        },
+        {
+          "claim": "signed_tag_or_release_mutation",
+          "status": "deferred",
+          "deferred_to": [
+            "M12.3",
+            "docs/release/publish-all-crates-runbook.md"
+          ],
+          "reason": "The example does not create tags, GitHub releases or other irreversible release mutations."
+        },
+        {
+          "claim": "secret_token_handling",
+          "status": "deferred",
+          "deferred_to": [
+            "M12.3",
+            "M13.5"
+          ],
+          "reason": "No credentials or registry tokens are read; token handling remains a host/release runbook concern."
+        },
+        {
+          "claim": "durable_ci_worker_or_rollback",
+          "status": "deferred",
+          "deferred_to": [
+            "M12.3",
+            "M13.4"
+          ],
+          "reason": "The example uses the deterministic in-process reference dispatcher, not a durable CI worker or rollback policy."
+        }
+      ]
     }
   ]
 }

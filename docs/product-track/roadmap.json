@@ -549,7 +549,7 @@
         {
           "id": "M12.2",
           "title": "Reference integration 2",
-          "status": "planned"
+          "status": "done_or_near_done"
         },
         {
           "id": "M12.3",
@@ -1140,7 +1140,7 @@
     "M12.2": {
       "title": "Reference integration 2",
       "description": "Agent/tool execution or CI/CD/release orchestration.",
-      "status": "planned",
+      "status": "done_or_near_done",
       "stage": "S12"
     },
     "M12.3": {

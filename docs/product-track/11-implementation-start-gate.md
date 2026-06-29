@@ -68,12 +68,12 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S12/M12.2 reference integration 2 for agent/tool execution or CI/CD/release orchestration
+  S12/M12.3 migration/shadow docs for incremental adoption without rewrite
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M12.2 reference integration after the M12.1
-API+worker+audit+projection evidence matrix. Do not upload additional
+gap for public alpha is M12.3 migration/shadow documentation after the M12.2
+release orchestration reference integration. Do not upload additional
 `0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 

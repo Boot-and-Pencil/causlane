@@ -19,8 +19,9 @@
 
 ### M12.2 — Reference integration 2
 
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Outcome:** Agent/tool execution or CI/CD/release orchestration.
+- **Evidence:** `examples/release-orchestration` runs a bounded CI/CD release orchestration graph through public host-dispatch and runtime audit APIs; `docs/product-track/reference-integration-matrix.json` is checked by `tools/reference-integration-check`.
 - **Definition of done:**
   - typed contract or executable check exists;
   - docs/ADR updated;

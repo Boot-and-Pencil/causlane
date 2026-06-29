@@ -34,6 +34,11 @@ EXAMPLES = [
         "name": "reference-integration",
         "path": ROOT / "examples" / "reference-integration",
         "marker": "reference-integration: api worker audit projection verified",
+    },
+    {
+        "name": "release-orchestration",
+        "path": ROOT / "examples" / "release-orchestration",
+        "marker": "release-orchestration: ci release graph verified",
     }
 ]
 
