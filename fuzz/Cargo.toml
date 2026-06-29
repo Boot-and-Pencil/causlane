@@ -50,6 +50,13 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "facade_kernel_frontier"
+path = "fuzz_targets/facade_kernel_frontier.rs"
+test = false
+doc = false
+bench = false
+
 # Detach from the parent workspace on purpose: the fuzz crate needs the nightly
 # toolchain + sanitizer runtime and must NOT be pulled into stable
 # `cargo --workspace` builds/checks. cargo-fuzz drives it directly.

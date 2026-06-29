@@ -32,6 +32,11 @@ facade-kernel-ergonomics
   runnable: downstream facade-only admission, barrier policy and frontier
   selection through the `causlane` crate.
 
+facade-kernel-operator-workflow
+  runnable: facade-only operator workflow for admission, barrier/truth policy,
+  frontier selection, constraint decisions, lease validation and fail-closed
+  controls for the M12.5 API validation loop.
+
 replay-diagnostics
   runnable: public replay explain diagnostics for accepted, invariant rejected
   and structural rejected release-promotion traces.

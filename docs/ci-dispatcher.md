@@ -88,6 +88,8 @@ cargo +nightly-2025-11-21 fuzz run registry_yaml_compile -- \
   -max_total_time=900 -print_final_stats=1
 cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- \
   -max_total_time=900 -print_final_stats=1
+cargo +nightly-2025-11-21 fuzz run facade_kernel_frontier -- \
+  -max_total_time=900 -print_final_stats=1
 ```
 
 Repository-local wrapper form:
@@ -104,6 +106,9 @@ REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   -max_total_time=900 -print_final_stats=1
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   ./tools/cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- \
+  -max_total_time=900 -print_final_stats=1
+REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
+  ./tools/cargo +nightly-2025-11-21 fuzz run facade_kernel_frontier -- \
   -max_total_time=900 -print_final_stats=1
 ```
 

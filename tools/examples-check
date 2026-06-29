@@ -36,6 +36,11 @@ EXAMPLES = [
         "marker": "facade-kernel-ergonomics: facade admission and frontier verified",
     },
     {
+        "name": "facade-kernel-operator-workflow",
+        "path": ROOT / "examples" / "facade-kernel-operator-workflow",
+        "marker": "facade-kernel-operator-workflow: facade kernel workflow verified",
+    },
+    {
         "name": "replay-diagnostics",
         "path": ROOT / "examples" / "replay-diagnostics",
         "marker": "replay-diagnostics: explain accepted and rejected traces classified",
