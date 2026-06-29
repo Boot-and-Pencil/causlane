@@ -325,7 +325,7 @@
               "benchmark": "runtime_guarded_audit_projection_flow"
             }
           ],
-          "gap_before_freeze": "Record dispatcher measurement results for the runtime guarded audit/projection scale profile before terminal classification."
+          "gap_before_freeze": "Classify runtime authz/audit/projection performance-scale findings with API feedback before terminal classification."
         }
       ]
     }

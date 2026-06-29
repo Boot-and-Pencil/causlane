@@ -522,8 +522,9 @@
   the same surface's property/fuzz lane. A 15-minute dispatcher long-run for
   that fuzz target is recorded in
   `docs/formal/impact/2026-06-29-m12-5-runtime-fuzz-long-run.md`; the surface
-  remains `pending` until API feedback and performance-scale findings are
-  classified.
+  also has dispatcher performance-scale evidence recorded in
+  `docs/formal/impact/2026-06-29-m12-5-runtime-performance-scale.md`; the
+  surface remains `pending` until API feedback is classified.
 
 ## M12.6 — Semver pre-1.0 freeze plan
 

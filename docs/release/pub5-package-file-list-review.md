@@ -11,9 +11,9 @@ generated readiness report remains `docs/release/publish-readiness.md`.
 Reviewed source baseline:
 
 ```text
-main_commit: 6913e087544ab7517052583e590ffc6716e25fa9
+main_commit: 1b62a8c09f65ca3fc35f132cbfaac32f5fe75543
 operator: Vitalii Lobanov / vitalii-lobanov
-date: 2026-06-27
+date: 2026-06-29
 host: dispatcher
 ```
 
@@ -76,6 +76,12 @@ Update 2026-06-27: `causlane-cli` package contents were rechecked after the
 devinfra checker metadata pin was updated to `cli-checker 0.1.20` in
 `fixtures/.devinfra/tool-versions.json`. The file list remains 44 files, and
 the fixture remains an expected crate-local test input.
+
+Update 2026-06-29: `causlane` package contents were rechecked after
+`runtime_guarded_audit_projection_flow` updated the existing
+`benches/dispatch_baseline_bench_suite.rs` benchmark file. The package file
+list remains 10 files, and the existing benchmark entry remains expected
+crate-local performance evidence.
 
 ## Next State
 
