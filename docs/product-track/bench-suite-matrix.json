@@ -45,6 +45,11 @@
       "id": "replay_explain_human",
       "measures": "ReplayTrace::verify_explain(...).to_human",
       "fixture": "bundle-bound release-promote replay trace"
+    },
+    {
+      "id": "runtime_guarded_audit_projection_flow",
+      "measures": "GuardedExecutor plus TraceProjectingAuditLog plus guard_projection_read",
+      "fixture": "512-op runtime guarded execution, audit trace and projection flow"
     }
   ],
   "notes": [

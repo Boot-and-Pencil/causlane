@@ -319,9 +319,13 @@
             {
               "kind": "bench",
               "benchmark": "frontier_conflict_selection"
+            },
+            {
+              "kind": "bench",
+              "benchmark": "runtime_guarded_audit_projection_flow"
             }
           ],
-          "gap_before_freeze": "Record larger runtime dispatch/audit scale profiles before terminal classification."
+          "gap_before_freeze": "Record dispatcher measurement results for the runtime guarded audit/projection scale profile before terminal classification."
         }
       ]
     }
