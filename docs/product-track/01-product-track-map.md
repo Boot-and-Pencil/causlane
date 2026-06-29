@@ -223,7 +223,7 @@
 - `M12.1` — **Reference integration 1** (`done_or_near_done`): Rust service with API+worker+audit+projection.
 - `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`done_or_near_done`): How to adopt incrementally without rewrite.
-- `M12.4` — **Adapter ecosystem** (`planned`): Document external adapter interface, compatibility/certification.
+- `M12.4` — **Adapter ecosystem** (`done_or_near_done`): Document external adapter interface, compatibility/certification.
 - `M12.5` — **DX feedback loop** (`planned`): Simplify common paths, reduce ceremony, improve error messages.
 - `M12.6` — **Semver pre-1.0 freeze plan** (`planned`): Identify APIs slated for stabilization.
 

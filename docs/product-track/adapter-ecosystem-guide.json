@@ -1,0 +1,106 @@
+{
+  "artifact": "causlane.adapter-ecosystem-guide.v1",
+  "milestone": "M12.4",
+  "status": "covered_bounded",
+  "guide": "docs/scenarios/adapter-ecosystem.md",
+  "certification_matrix": "docs/product-track/adapter-certification-matrix.json",
+  "references": [
+    "docs/08-extension-process.md",
+    "docs/adr/0007-rust-ecosystem-boundaries.md",
+    "docs/product-track/milestones/m08.7-adapter-certification.md"
+  ],
+  "claims": [
+    {
+      "claim": "adapter_classes_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/adapter-ecosystem.md#adapter-classes"
+      ],
+      "summary": "The guide names the supported adapter classes and requires independent certification per boundary."
+    },
+    {
+      "claim": "semantic_boundary_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/adapter-ecosystem.md#semantic-boundary",
+        "docs/adr/0007-rust-ecosystem-boundaries.md"
+      ],
+      "summary": "Adapters carry or spend the contract; they do not define semantic admissibility or observed truth."
+    },
+    {
+      "claim": "certification_path_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/adapter-ecosystem.md#certification-path",
+        "docs/product-track/adapter-certification-matrix.json"
+      ],
+      "summary": "External maintainers get a bounded certification path tied to the existing matrix."
+    },
+    {
+      "claim": "execution_bridge_controls_bound",
+      "status": "covered",
+      "evidence": [
+        "adapters::certification::apalis::apalis_certified_missing_authz_never_reaches_executor",
+        "adapters::certification::apalis::apalis_certified_request_metadata_is_not_authority",
+        "adapters::certification::restate::restate_certified_missing_authz_never_reaches_executor",
+        "adapters::certification::restate::restate_certified_payload_bytes_are_not_authority"
+      ],
+      "summary": "Execution bridge controls are bound to existing certification tests."
+    },
+    {
+      "claim": "audit_observability_boundaries_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/adapter-ecosystem.md#certification-path",
+        "runtime.audit",
+        "runtime.tracing"
+      ],
+      "summary": "Audit and observability adapter boundaries are documented and tied to current matrix entries."
+    },
+    {
+      "claim": "bounded_status_limitations_documented",
+      "status": "covered",
+      "evidence": [
+        "docs/scenarios/adapter-ecosystem.md#unsupported-claims"
+      ],
+      "summary": "The guide keeps production certification, durable retry/cancel and provider-specific deployment claims deferred."
+    }
+  ],
+  "deferred_claims": [
+    {
+      "claim": "production_certification",
+      "status": "deferred",
+      "deferred_to": [
+        "M13.5"
+      ],
+      "reason": "M12.4 documents bounded ecosystem expectations; it does not certify external providers for production use."
+    },
+    {
+      "claim": "durable_retry_cancel_semantics",
+      "status": "deferred",
+      "deferred_to": [
+        "M10.1",
+        "M10.2",
+        "M13.4"
+      ],
+      "reason": "Retry, cancellation and supersession for hard effects remain future protocol/runtime semantics."
+    },
+    {
+      "claim": "provider_specific_deployment",
+      "status": "deferred",
+      "deferred_to": [
+        "external integration work"
+      ],
+      "reason": "Provider CI, deployment and operations remain host-owned until a provider-specific adapter supplies evidence."
+    },
+    {
+      "claim": "stable_semver_compatibility",
+      "status": "deferred",
+      "deferred_to": [
+        "M12.6",
+        "M13.2"
+      ],
+      "reason": "The repository is still pre-alpha; stable adapter API compatibility is part of later release-readiness work."
+    }
+  ]
+}

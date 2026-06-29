@@ -379,7 +379,7 @@ stages:
     status: done_or_near_done
   - id: M12.4
     title: Adapter ecosystem
-    status: planned
+    status: done_or_near_done
   - id: M12.5
     title: DX feedback loop
     status: planned
@@ -914,7 +914,7 @@ milestones:
   M12.4:
     title: Adapter ecosystem
     description: Document external adapter interface, compatibility/certification.
-    status: planned
+    status: done_or_near_done
     stage: S12
   M12.5:
     title: DX feedback loop

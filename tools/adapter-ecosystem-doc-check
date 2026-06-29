@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+"""Validate M12.4 adapter ecosystem documentation evidence."""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+ARTIFACT = ROOT / "docs" / "product-track" / "adapter-ecosystem-guide.json"
+GUIDE = ROOT / "docs" / "scenarios" / "adapter-ecosystem.md"
+MATRIX = ROOT / "docs" / "product-track" / "adapter-certification-matrix.json"
+CERTIFICATION_SOURCE = (
+    ROOT / "crates" / "causlane-runtime" / "src" / "adapters" / "certification.rs"
+)
+
+REQUIRED_ARTIFACT = "causlane.adapter-ecosystem-guide.v1"
+REQUIRED_MILESTONE = "M12.4"
+REQUIRED_STATUS = "covered_bounded"
+REQUIRED_CLAIMS = {
+    "adapter_classes_documented",
+    "semantic_boundary_documented",
+    "certification_path_documented",
+    "execution_bridge_controls_bound",
+    "audit_observability_boundaries_documented",
+    "bounded_status_limitations_documented",
+}
+REQUIRED_DEFERRED = {
+    "production_certification",
+    "durable_retry_cancel_semantics",
+    "provider_specific_deployment",
+    "stable_semver_compatibility",
+}
+REQUIRED_ADAPTERS = {
+    "runtime.apalis": {
+        "kind": "execution_bridge",
+        "status": "certified_bounded",
+        "covered_gates": {
+            "no_execution_before_barrier",
+            "executor_requires_scoped_capability",
+            "adapter_metadata_not_authority",
+            "produced_refs_preserved",
+        },
+        "deferred_gates": {
+            "retry_idempotency_safe_for_hard_effects",
+            "cancellation_supersession",
+            "truth_commit_orchestration",
+        },
+    },
+    "runtime.restate": {
+        "kind": "execution_bridge",
+        "status": "certified_bounded",
+        "covered_gates": {
+            "no_execution_before_barrier",
+            "executor_requires_scoped_capability",
+            "adapter_metadata_not_authority",
+            "produced_refs_preserved",
+        },
+        "deferred_gates": {
+            "retry_idempotency_safe_for_hard_effects",
+            "cancellation_supersession",
+            "truth_commit_orchestration",
+        },
+    },
+    "runtime.audit": {
+        "kind": "audit_adapter",
+        "status": "covered",
+        "covered_gates": {
+            "append_only_monotonic_truth",
+            "batched_write_ahead_order",
+            "batch_failure_atomicity",
+        },
+        "deferred_gates": set(),
+    },
+    "runtime.tracing": {
+        "kind": "observability_adapter",
+        "status": "covered",
+        "covered_gates": {
+            "observability_not_authority",
+            "batch_observability_after_authority",
+        },
+        "deferred_gates": set(),
+    },
+}
+REQUIRED_GUIDE_TOKENS = {
+    "# Adapter Ecosystem Guide",
+    "## Adapter classes",
+    "## Semantic boundary",
+    "## Certification path",
+    "## Current bounded evidence",
+    "## Unsupported claims",
+    "execution bridge",
+    "audit adapter",
+    "authz adapter",
+    "observability adapter",
+    "registry or bundle adapter",
+    "must not",
+    "adapter metadata is not authority",
+    "docs/product-track/adapter-certification-matrix.json",
+}
+REQUIRED_SOURCE_TESTS = {
+    "apalis_certified_missing_authz_never_reaches_executor",
+    "apalis_certified_request_metadata_is_not_authority",
+    "restate_certified_missing_authz_never_reaches_executor",
+    "restate_certified_payload_bytes_are_not_authority",
+}
+
+
+def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def read(path: Path, errors: list[str]) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return ""
+
+
+def load_json(path: Path, errors: list[str]) -> dict[str, Any]:
+    try:
+        return json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        errors.append(f"{path.relative_to(ROOT)}: {error}")
+        return {}
+
+
+def expect(condition: bool, errors: list[str], message: str) -> None:
+    if not condition:
+        errors.append(message)
+
+
+def validate_claims(entries: Any, required: set[str], label: str, errors: list[str]) -> None:
+    if not isinstance(entries, list):
+        errors.append(f"{label} must be a list")
+        return
+
+    seen: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            errors.append(f"{label} entries must be objects")
+            continue
+        claim = entry.get("claim")
+        if not isinstance(claim, str):
+            errors.append(f"{label} entry missing string claim")
+            continue
+        seen.add(claim)
+        expect(
+            entry.get("status") in {"covered", "deferred"},
+            errors,
+            f"{label} {claim}: status must be covered or deferred",
+        )
+        detail = entry.get("summary") or entry.get("reason")
+        expect(
+            isinstance(detail, str) and bool(detail.strip()),
+            errors,
+            f"{label} {claim}: summary or reason must be non-empty",
+        )
+
+    missing = required - seen
+    extra = seen - required
+    expect(not missing, errors, f"{label} missing: {sorted(missing)}")
+    expect(not extra, errors, f"{label} unknown: {sorted(extra)}")
+
+
+def gate_statuses(adapter: dict[str, Any]) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for evidence in adapter.get("evidence", []):
+        if isinstance(evidence, dict):
+            gate = evidence.get("gate")
+            status = evidence.get("status")
+            if isinstance(gate, str) and isinstance(status, str):
+                result[gate] = status
+    return result
+
+
+def validate_matrix(matrix: dict[str, Any], errors: list[str]) -> None:
+    expect(
+        matrix.get("artifact") == "causlane.adapter-certification.v1",
+        errors,
+        "certification matrix artifact must be causlane.adapter-certification.v1",
+    )
+    adapters = matrix.get("adapters")
+    if not isinstance(adapters, list):
+        errors.append("certification matrix adapters must be a list")
+        return
+
+    by_id = {
+        adapter.get("id"): adapter
+        for adapter in adapters
+        if isinstance(adapter, dict) and isinstance(adapter.get("id"), str)
+    }
+    missing_adapters = set(REQUIRED_ADAPTERS) - set(by_id)
+    expect(
+        not missing_adapters,
+        errors,
+        f"matrix missing adapters: {sorted(missing_adapters)}",
+    )
+
+    for adapter_id, expected in REQUIRED_ADAPTERS.items():
+        adapter = by_id.get(adapter_id)
+        if not isinstance(adapter, dict):
+            continue
+        expect(
+            adapter.get("kind") == expected["kind"],
+            errors,
+            f"{adapter_id}: kind must be {expected['kind']}",
+        )
+        expect(
+            adapter.get("status") == expected["status"],
+            errors,
+            f"{adapter_id}: status must be {expected['status']}",
+        )
+        statuses = gate_statuses(adapter)
+        for gate in expected["covered_gates"]:
+            expect(
+                statuses.get(gate) == "covered",
+                errors,
+                f"{adapter_id}: {gate} must be covered",
+            )
+        for gate in expected["deferred_gates"]:
+            expect(
+                statuses.get(gate) == "deferred",
+                errors,
+                f"{adapter_id}: {gate} must remain deferred",
+            )
+
+
+def main() -> int:
+    errors: list[str] = []
+    artifact = load_json(ARTIFACT, errors)
+    matrix = load_json(MATRIX, errors)
+    guide = read(GUIDE, errors)
+    certification_source = read(CERTIFICATION_SOURCE, errors)
+
+    expect(
+        artifact.get("artifact") == REQUIRED_ARTIFACT,
+        errors,
+        f"artifact must be {REQUIRED_ARTIFACT}",
+    )
+    expect(
+        artifact.get("milestone") == REQUIRED_MILESTONE,
+        errors,
+        f"milestone must be {REQUIRED_MILESTONE}",
+    )
+    expect(
+        artifact.get("status") == REQUIRED_STATUS,
+        errors,
+        f"status must be {REQUIRED_STATUS}",
+    )
+    expect(
+        artifact.get("guide") == "docs/scenarios/adapter-ecosystem.md",
+        errors,
+        "guide must point to docs/scenarios/adapter-ecosystem.md",
+    )
+    expect(
+        artifact.get("certification_matrix")
+        == "docs/product-track/adapter-certification-matrix.json",
+        errors,
+        "certification_matrix must point to the existing M08.7 matrix",
+    )
+    validate_claims(artifact.get("claims"), REQUIRED_CLAIMS, "claims", errors)
+    validate_claims(artifact.get("deferred_claims"), REQUIRED_DEFERRED, "deferred_claims", errors)
+    validate_matrix(matrix, errors)
+
+    for token in sorted(REQUIRED_GUIDE_TOKENS):
+        expect(token in guide, errors, f"guide missing token: {token}")
+    for adapter_id in REQUIRED_ADAPTERS:
+        expect(adapter_id in guide, errors, f"guide missing current adapter id: {adapter_id}")
+    for test_name in sorted(REQUIRED_SOURCE_TESTS):
+        expect(test_name in certification_source, errors, f"certification source missing test: {test_name}")
+
+    if errors:
+        print("adapter-ecosystem-doc-check: FAILED", file=sys.stderr)
+        for error in errors:
+            print(f"  - {error}", file=sys.stderr)
+        return 1
+
+    print("adapter-ecosystem-doc-check: OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

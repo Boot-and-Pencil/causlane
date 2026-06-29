@@ -44,13 +44,17 @@
 
 ### M12.4 — Adapter ecosystem
 
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Outcome:** Document external adapter interface, compatibility/certification.
 - **Definition of done:**
   - typed contract or executable check exists;
   - docs/ADR updated;
   - tests or replay scenario added where relevant;
   - no prose-only claim remains for protocol-critical behavior.
+- **Evidence:** `docs/scenarios/adapter-ecosystem.md` and
+  `docs/product-track/adapter-ecosystem-guide.json` document the external
+  adapter interface and certification expectations; `tools/adapter-ecosystem-doc-check`
+  pins those claims to the existing M08.7 certification matrix.
 
 ### M12.5 — DX feedback loop
 

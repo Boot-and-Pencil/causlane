@@ -80,8 +80,9 @@ security/release hygiene is recorded, and M11.6 Contributor guide is recorded.
 M12.1 Reference integration 1 now has an in-repo API+worker+audit+projection
 slice and checked evidence matrix, and M12.2 Reference integration 2 has a
 bounded release orchestration slice. M12.3 Migration/shadow docs has a bounded
-adoption playbook and checked evidence artifact. The current product-roadmap
-action is M12.4 Adapter ecosystem.
+adoption playbook and checked evidence artifact, and M12.4 Adapter ecosystem
+has external adapter guidance pinned to the existing certification matrix. The
+current product-roadmap action is M12.5 DX feedback loop.
 
 ## Implementation Handoff
 
@@ -431,7 +432,7 @@ Beta можно выпускать, когда:
 - `M12.1` — **Reference integration 1** (`done_or_near_done`): Rust service with API+worker+audit+projection.
 - `M12.2` — **Reference integration 2** (`done_or_near_done`): Agent/tool execution or CI/CD/release orchestration.
 - `M12.3` — **Migration/shadow docs** (`done_or_near_done`): How to adopt incrementally without rewrite.
-- `M12.4` — **Adapter ecosystem** (`planned`): Document external adapter interface, compatibility/certification.
+- `M12.4` — **Adapter ecosystem** (`done_or_near_done`): Document external adapter interface, compatibility/certification.
 - `M12.5` — **DX feedback loop** (`planned`): Simplify common paths, reduce ceremony, improve error messages.
 - `M12.6` — **Semver pre-1.0 freeze plan** (`planned`): Identify APIs slated for stabilization.
 
@@ -977,7 +978,7 @@ Beta можно выпускать, когда:
 ## M12.4 — Adapter ecosystem
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Purpose:** Document external adapter interface, compatibility/certification.
 
 ## M12.5 — DX feedback loop
@@ -1822,12 +1823,12 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S12/M12.4 adapter ecosystem documentation and certification guidance
+  S12/M12.5 DX feedback loop for common paths and error-message hardening
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M12.4 adapter ecosystem guidance after the M12.3
-migration/shadow adoption documentation. Do not upload additional
+gap for public alpha is M12.5 DX feedback after the M12.4 adapter ecosystem
+guidance. Do not upload additional
 `0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 

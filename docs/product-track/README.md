@@ -69,8 +69,9 @@ security/release hygiene is recorded, and M11.6 Contributor guide is recorded.
 M12.1 Reference integration 1 now has an in-repo API+worker+audit+projection
 slice and checked evidence matrix, and M12.2 Reference integration 2 has a
 bounded release orchestration slice. M12.3 Migration/shadow docs has a bounded
-adoption playbook and checked evidence artifact. The current product-roadmap
-action is M12.4 Adapter ecosystem.
+adoption playbook and checked evidence artifact, and M12.4 Adapter ecosystem
+has external adapter guidance pinned to the existing certification matrix. The
+current product-roadmap action is M12.5 DX feedback loop.
 
 ## Implementation Handoff
 

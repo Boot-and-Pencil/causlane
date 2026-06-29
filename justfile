@@ -179,6 +179,7 @@ formal-exceptions-check *args:
 product-track-check:
   tools/product-track-status-check
   tools/migration-shadow-doc-check
+  tools/adapter-ecosystem-doc-check
 
 publish-readiness:
   tools/publish-readiness --write
@@ -223,6 +224,7 @@ refactor-readiness:
   tools/formal-exceptions-check
   tools/product-track-status-check
   tools/migration-shadow-doc-check
+  tools/adapter-ecosystem-doc-check
 
 commit-trailer-check count="50":
   tools/check-commit-trailers {{count}}

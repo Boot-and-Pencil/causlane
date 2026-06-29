@@ -501,7 +501,7 @@
 ## M12.4 — Adapter ecosystem
 
 - **Stage:** S12
-- **Status:** `planned`
+- **Status:** `done_or_near_done`
 - **Purpose:** Document external adapter interface, compatibility/certification.
 
 ## M12.5 — DX feedback loop

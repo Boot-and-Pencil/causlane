@@ -68,12 +68,12 @@ only after that (recorded complete for v0.0.1):
   S11/PUB6 post-publication stabilization
 
 active_next:
-  S12/M12.4 adapter ecosystem documentation and certification guidance
+  S12/M12.5 DX feedback loop for common paths and error-message hardening
 ```
 
 S08/S09/S10 remain product-roadmap workstreams, but the immediate product-track
-gap for public alpha is M12.4 adapter ecosystem guidance after the M12.3
-migration/shadow adoption documentation. Do not upload additional
+gap for public alpha is M12.5 DX feedback after the M12.4 adapter ecosystem
+guidance. Do not upload additional
 `0.0.1` crates outside `PUBLISHING.md` and
 `docs/release/publish-all-crates-runbook.md`.
 
