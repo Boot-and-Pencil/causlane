@@ -3,3 +3,6 @@ target-dir = "target"
 
 [term]
 progress.when = "never"
+
+[net]
+git-fetch-with-cli = true

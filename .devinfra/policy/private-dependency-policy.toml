@@ -1,0 +1,25 @@
+mode = "private_git_pinned"
+allowed_remotes = [
+  "ssh://git@github.com/Boot-and-Pencil/hopium-foundation.git",
+  "ssh://git@github.com/Boot-and-Pencil/hopium-contracts.git",
+  "ssh://git@github.com/Boot-and-Pencil/hopium-platform.git",
+  "ssh://git@github.com/Boot-and-Pencil/hopium-refinery.git",
+  "ssh://git@github.com/Boot-and-Pencil/hopium-strategy-authoring.git",
+  "ssh://git@github.com/Boot-and-Pencil/causlane.git",
+  "ssh://git@github.com/Boot-and-Pencil/cli-checker.git",
+  "ssh://git@github.com/Boot-and-Pencil/maw.git",
+  "ssh://git@github.com/Boot-and-Pencil/meat-grinder.git",
+]
+pre_freeze_pin = "rev"
+post_freeze_pin = "tag"
+disallowed_in_ci = [
+  "cross_repo_path_dependencies",
+  "unpinned_git_dependencies",
+  "plain_branch_dependencies",
+]
+required_cargo_config_key = "net.git-fetch-with-cli"
+required_cargo_config_value = true
+
+allowed_external_git_remotes = [
+  "https://codeberg.org/Lonami/grammers.git",
+]
