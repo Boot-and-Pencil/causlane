@@ -1,9 +1,20 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 skip_cargo=0
 skip_checker=0
 skip_private_deps=0
+status=0
+
+run_step() {
+  echo "==> $*"
+  "$@"
+  local rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "step failed ($rc): $*" >&2
+    status=1
+  fi
+}
 
 for arg in "$@"; do
   case "$arg" in
@@ -25,6 +36,8 @@ Runs the repo-local migration gate:
   - private git dependency policy scanner
   - optional architecture verifier
   - cargo fmt, clippy, and tests unless --skip-cargo is set
+
+All available checks run; the script exits non-zero at the end if any step failed.
 EOF
       exit 0
       ;;
@@ -41,26 +54,27 @@ cd "$root"
 if [ "$skip_checker" -eq 0 ]; then
   if ! command -v cli-checker >/dev/null 2>&1; then
     echo "cli-checker is required but was not found in PATH" >&2
-    exit 1
-  fi
-  if [ -f .cli-checker.toml ]; then
-    cli-checker validate-config --config .cli-checker.toml
-    cli-checker check-repo --config .cli-checker.toml
+    status=1
+  elif [ -f .cli-checker.toml ]; then
+    run_step cli-checker validate-config --config .cli-checker.toml
+    run_step cli-checker check-repo --config .cli-checker.toml
   else
-    cli-checker check-repo
+    run_step cli-checker check-repo
   fi
 fi
 
 if [ "$skip_private_deps" -eq 0 ]; then
-  python3 scripts/check-private-deps.py
+  run_step python3 scripts/check-private-deps.py
 fi
 
 if [ -f scripts/verify-architecture.py ]; then
-  python3 scripts/verify-architecture.py
+  run_step python3 scripts/verify-architecture.py
 fi
 
 if [ "$skip_cargo" -eq 0 ] && [ -f Cargo.toml ]; then
-  cargo fmt --all -- --check
-  cargo clippy --workspace --all-targets -- -D warnings
-  cargo test --workspace --all-targets
+  run_step cargo fmt --all -- --check
+  run_step cargo clippy --workspace --all-targets -- -D warnings
+  run_step cargo test --workspace --all-targets
 fi
+
+exit "$status"
