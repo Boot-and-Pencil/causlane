@@ -6,7 +6,10 @@ does not claim that product code has been migrated.
 ## Role
 
 `causlane` owns the generic dispatcher kernel/runtime. It must remain reusable
-and should not absorb Hopium-specific business semantics.
+and should not absorb Hopium-specific business semantics. For Stage 11 contract
+closure, the preferred direction is to deepen generic host-dispatch capability
+inside `causlane` while product repositories translate their own contracts into
+that generic API outside this repository.
 
 ## Provides To
 
@@ -18,8 +21,9 @@ and should not absorb Hopium-specific business semantics.
 
 ## Consumes From
 
-- Hopium-specific contracts only through narrow bridge surfaces owned outside
-  the dispatcher kernel.
+- No Hopium-specific contracts, DTOs, schemas, or foundation primitives.
+- Host/product repositories may consume `causlane` and map their own contracts
+  into `HostDispatchContext` and `HostTaskSpec`.
 
 ## Does Not Own
 
@@ -31,4 +35,4 @@ and should not absorb Hopium-specific business semantics.
 - Backtest engine behavior.
 - Trading decision or execution logic.
 - CLI checker policy implementation.
-
+- Product-specific bridge or compatibility adapters.

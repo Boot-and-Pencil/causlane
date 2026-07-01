@@ -7,9 +7,9 @@
 use std::collections::{BTreeSet, VecDeque};
 
 use causlane_core::{
-    validate_host_task, HostDispatchContext, HostDispatchError, HostDispatchPort,
-    HostDispatchTicket, HostDispatcherCapabilities, HostDrainOutcome, HostEffectHandler,
-    HostTaskSpec,
+    validate_host_context, validate_host_submission, HostDispatchContext, HostDispatchError,
+    HostDispatchPort, HostDispatchTicket, HostDispatcherCapabilities, HostDrainOutcome,
+    HostEffectHandler, HostTaskSpec,
 };
 
 /// Deterministic linear implementation of [`HostDispatchPort`].
@@ -72,7 +72,7 @@ impl HostDispatchPort for LinearHostDispatcher {
         ctx: &HostDispatchContext,
         task: HostTaskSpec,
     ) -> Result<HostDispatchTicket, HostDispatchError> {
-        validate_host_task(&task)?;
+        validate_host_submission(ctx, &task)?;
 
         if let Some(key) = &task.idempotency_key {
             if self.seen_idempotency_keys.contains(key) {
@@ -97,6 +97,7 @@ impl HostDispatchPort for LinearHostDispatcher {
         ctx: &HostDispatchContext,
         handler: &mut H,
     ) -> Result<HostDrainOutcome, HostDispatchError> {
+        validate_host_context(ctx)?;
         if self.queue.is_empty() {
             return Ok(HostDrainOutcome::Idle);
         }
@@ -175,6 +176,57 @@ mod tests {
             partition_route: PartitionRoute::for_primary(PartitionKey("linear".to_owned())),
             host_api_version: causlane_core::CAUSLANE_HOST_API_VERSION.to_owned(),
         }
+    }
+
+    #[test]
+    fn linear_dispatcher_rejects_invalid_host_context() {
+        let mut ctx = ctx();
+        ctx.correlation_id = String::new();
+        let mut dispatcher = LinearHostDispatcher::new();
+
+        assert!(matches!(
+            dispatcher.submit(&ctx, task("bad-context", Vec::new(), Some("bad-context"))),
+            Err(HostDispatchError::InvalidContext {
+                field: "correlation_id",
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn linear_dispatcher_rejects_hard_effect_without_idempotency() {
+        let ctx = ctx();
+        let mut dispatcher = LinearHostDispatcher::new();
+        let mut task = task("hard-effect", Vec::new(), None);
+        task.effect_class = HostEffectClass::HardEffect;
+
+        assert!(matches!(
+            dispatcher.submit(&ctx, task),
+            Err(HostDispatchError::InvalidTask {
+                field: "idempotency_key",
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn linear_dispatcher_validates_drain_context() -> Result<(), HostDispatchError> {
+        let good_ctx = ctx();
+        let mut bad_ctx = ctx();
+        bad_ctx.actor_ref = String::new();
+        let mut dispatcher = LinearHostDispatcher::new();
+        let mut handler = RecordingHandler::default();
+
+        let _task = dispatcher.submit(&good_ctx, task("root", Vec::new(), Some("root")))?;
+
+        assert!(matches!(
+            dispatcher.drain_once(&bad_ctx, &mut handler),
+            Err(HostDispatchError::InvalidContext {
+                field: "actor_ref",
+                ..
+            })
+        ));
+        Ok(())
     }
 
     #[test]

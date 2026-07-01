@@ -15,7 +15,7 @@ use std::{
 };
 
 use causlane_core::{
-    validate_host_task, HostDispatchContext, HostDispatchError, HostDispatchTicket,
+    validate_host_submission, HostDispatchContext, HostDispatchError, HostDispatchTicket,
     HostDispatcherCapabilities, HostEffectOutcome, HostTaskSpec, CAUSLANE_HOST_API_VERSION,
 };
 use tokio::{
@@ -471,10 +471,11 @@ impl InProcessRuntime {
         task: HostTaskSpec,
         mode: InProcessBackpressureMode,
     ) -> Result<HostDispatchTicket, InProcessRuntimeError> {
+        self.validate_submission_for_partition(partition, &ctx, &task)?;
         let sender = self.sender_for(partition, &task)?;
         let route = task.partition_route.clone();
         let (response_sender, response_receiver) = oneshot::channel();
-        let command = self.build_command(partition, ctx, task, response_sender)?;
+        let command = self.build_command(ctx, task, response_sender);
         let task_id = command.task_id().to_owned();
         match mode {
             InProcessBackpressureMode::Wait => {
@@ -558,22 +559,14 @@ impl InProcessRuntime {
             })
     }
 
-    fn build_command(
+    fn validate_submission_for_partition(
         &self,
         partition: &PartitionKey,
-        ctx: HostDispatchContext,
-        task: HostTaskSpec,
-        response: oneshot::Sender<Result<HostDispatchTicket, InProcessRuntimeError>>,
-    ) -> Result<PartitionCommand, InProcessRuntimeError> {
-        if let Err(error) = validate_host_task(&task) {
-            publish(
-                &self.events,
-                InProcessRuntimeEvent::Rejected {
-                    partition: partition.clone(),
-                    task_id: non_empty_task_id(&task),
-                    error: error.clone(),
-                },
-            );
+        ctx: &HostDispatchContext,
+        task: &HostTaskSpec,
+    ) -> Result<(), InProcessRuntimeError> {
+        if let Err(error) = validate_host_submission(ctx, task) {
+            self.publish_rejection(partition, task, error.clone());
             return Err(error.into());
         }
         if task.partition_route.primary != *partition {
@@ -584,30 +577,47 @@ impl InProcessRuntime {
                     partition.0, task.partition_route.primary.0
                 ),
             };
-            publish(
-                &self.events,
-                InProcessRuntimeEvent::Rejected {
-                    partition: partition.clone(),
-                    task_id: Some(task.task_id.clone()),
-                    error: error.clone(),
-                },
-            );
+            self.publish_rejection(partition, task, error.clone());
             return Err(error.into());
         }
+        Ok(())
+    }
 
+    fn publish_rejection(
+        &self,
+        partition: &PartitionKey,
+        task: &HostTaskSpec,
+        error: HostDispatchError,
+    ) {
+        publish(
+            &self.events,
+            InProcessRuntimeEvent::Rejected {
+                partition: partition.clone(),
+                task_id: non_empty_task_id(task),
+                error,
+            },
+        );
+    }
+
+    fn build_command(
+        &self,
+        ctx: HostDispatchContext,
+        task: HostTaskSpec,
+        response: oneshot::Sender<Result<HostDispatchTicket, InProcessRuntimeError>>,
+    ) -> PartitionCommand {
         let ticket = HostDispatchTicket {
             ticket_id: self.next_ticket_id(&ctx),
             task_id: task.task_id.clone(),
             api_version: CAUSLANE_HOST_API_VERSION.to_owned(),
         };
 
-        Ok(PartitionCommand::Submit {
+        PartitionCommand::Submit {
             ctx,
             task,
             ticket,
             admission_guards: Vec::new(),
             response,
-        })
+        }
     }
 
     fn next_ticket_id(&self, ctx: &HostDispatchContext) -> String {

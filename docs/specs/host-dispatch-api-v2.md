@@ -12,6 +12,11 @@ Hosts submit a `HostTaskSpec` that names a `PartitionRoute`; Causlane validates
 the route and the in-process runtime coordinates admission for every partition in
 the route without turning the runtime into a durable distributed scheduler.
 
+This is a generic crates.io-style library boundary. Product projects map their
+own contracts into `HostDispatchContext` and `HostTaskSpec` outside `causlane`;
+`causlane` does not depend on Hopium-specific DTOs, schemas, contracts, or
+business vocabulary.
+
 ## Stable interface
 
 The v2 surface consists of:
@@ -19,7 +24,9 @@ The v2 surface consists of:
 ```text
 CAUSLANE_HOST_API_VERSION = causlane.host-dispatch.v2
 HostDispatchContext
+HostDispatchContextBuilder
 HostTaskSpec
+HostTaskSpecBuilder
 PartitionKey
 PartitionRoute
 HostEffectClass
@@ -31,7 +38,9 @@ HostEffectOutcome
 HostDispatchError
 HostEffectHandler
 HostDispatchPort
+validate_host_context
 validate_host_task
+validate_host_submission
 ```
 
 `HostTaskSpec` carries a required `partition_route`. `PartitionRoute::primary`
@@ -43,12 +52,15 @@ task.
 A host dispatch implementation must:
 
 1. reject any `HostTaskSpec.host_api_version` other than `causlane.host-dispatch.v2`;
-2. reject empty task ids, forbidden effects, and empty primary or participant partition keys;
-3. use `PartitionRoute::acquisition_order()` for cross-partition admission ordering;
-4. dedupe and sort `primary + participants` through that single helper;
-5. reject explicit submits whose supplied partition differs from `partition_route.primary`;
-6. keep host authorization, idempotency policy, effect execution, and secret handling outside the dispatcher core;
-7. advertise whether multi-partition admission coordination is supported.
+2. reject empty required context refs and empty optional context refs when supplied;
+3. reject empty task ids, action ids, predicate ids, subject refs, optional task refs when supplied, forbidden effects, and empty primary or participant partition keys;
+4. reject empty dependency ids, self-dependencies, and duplicate dependency ids;
+5. reject `HardEffect` tasks without a non-empty host task idempotency key;
+6. use `PartitionRoute::acquisition_order()` for cross-partition admission ordering;
+7. dedupe and sort `primary + participants` through that single helper;
+8. reject explicit submits whose supplied partition differs from `partition_route.primary`;
+9. keep host authorization, durable idempotency policy, effect execution, secret handling, and product DTO translation outside the dispatcher core;
+10. advertise whether multi-partition admission coordination is supported.
 
 ## In-process coordinator semantics
 

@@ -35,4 +35,4 @@ pub use crate::domain::tracing::{
 pub use crate::domain::why_not_parallel::{
     pair_conflict, reason_from_frontier, why_not_parallel, why_not_parallel_from_index,
 };
-pub use crate::integration::validate_host_task;
+pub use crate::integration::{validate_host_context, validate_host_submission, validate_host_task};

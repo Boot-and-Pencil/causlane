@@ -51,7 +51,8 @@ pub use crate::domain::why_not_parallel::{
     WhyNotParallelInputs,
 };
 pub use crate::integration::{
-    HostDispatchContext, HostDispatchError, HostDispatchTicket, HostDispatcherCapabilities,
-    HostDrainOutcome, HostEffectClass, HostEffectOutcome, HostRuntimeProfile, HostTaskSpec,
-    PartitionKey, PartitionRoute, CAUSLANE_HOST_API_VERSION,
+    HostDispatchContext, HostDispatchContextBuilder, HostDispatchError, HostDispatchTicket,
+    HostDispatcherCapabilities, HostDrainOutcome, HostEffectClass, HostEffectOutcome,
+    HostRuntimeProfile, HostTaskSpec, HostTaskSpecBuilder, PartitionKey, PartitionRoute,
+    CAUSLANE_HOST_API_VERSION,
 };

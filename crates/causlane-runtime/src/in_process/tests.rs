@@ -30,6 +30,7 @@ use crate::shadow::{
 mod backpressure;
 mod recovery;
 mod retention;
+mod validation;
 
 type TestResult = Result<(), TestError>;
 
@@ -238,36 +239,6 @@ async fn expect_executed(
         ))
         .await?,
         InProcessRuntimeEvent::Executed { .. }
-    ));
-    Ok(())
-}
-
-#[tokio::test(flavor = "current_thread")]
-async fn in_process_runtime_rejects_invalid_host_task() -> TestResult {
-    let partition = partition("p1");
-    let runtime = runtime(
-        InProcessRuntimeConfig::new(2, 1),
-        vec![partition.clone()],
-        RecordingAsyncHandler::new(),
-    )?;
-    let mut events = runtime.subscribe();
-    let mut invalid = task("bad", Vec::new(), Some("bad"));
-    invalid.host_api_version = "causlane.host-dispatch.v0".to_owned();
-
-    let result = runtime.submit(&partition, ctx(), invalid).await;
-
-    assert!(matches!(
-        result,
-        Err(InProcessRuntimeError::HostRejected {
-            error: HostDispatchError::UnsupportedApiVersion { .. }
-        })
-    ));
-    assert!(matches!(
-        recv_event(&mut events).await?,
-        InProcessRuntimeEvent::Rejected {
-            error: HostDispatchError::UnsupportedApiVersion { .. },
-            ..
-        }
     ));
     Ok(())
 }

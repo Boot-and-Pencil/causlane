@@ -115,6 +115,83 @@ pub struct HostDispatchContext {
     pub created_at: Timestamp,
 }
 
+/// Builder for [`HostDispatchContext`] values accepted by the host API.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HostDispatchContextBuilder {
+    actor_ref: String,
+    trace_id: String,
+    correlation_id: String,
+    request_id: Option<String>,
+    config_snapshot_ref: String,
+    idempotency_key: Option<String>,
+    runtime_profile: HostRuntimeProfile,
+    created_at: Timestamp,
+}
+
+impl HostDispatchContextBuilder {
+    /// Start a host dispatch context with all required references.
+    #[must_use]
+    pub fn new(
+        actor_ref: impl Into<String>,
+        trace_id: impl Into<String>,
+        correlation_id: impl Into<String>,
+        config_snapshot_ref: impl Into<String>,
+        created_at: Timestamp,
+    ) -> Self {
+        Self {
+            actor_ref: actor_ref.into(),
+            trace_id: trace_id.into(),
+            correlation_id: correlation_id.into(),
+            request_id: None,
+            config_snapshot_ref: config_snapshot_ref.into(),
+            idempotency_key: None,
+            runtime_profile: HostRuntimeProfile::LinearOnly,
+            created_at,
+        }
+    }
+
+    /// Attach a host request id.
+    #[must_use]
+    pub fn with_request_id(mut self, request_id: impl Into<String>) -> Self {
+        self.request_id = Some(request_id.into());
+        self
+    }
+
+    /// Attach a host idempotency key.
+    #[must_use]
+    pub fn with_idempotency_key(mut self, idempotency_key: impl Into<String>) -> Self {
+        self.idempotency_key = Some(idempotency_key.into());
+        self
+    }
+
+    /// Select the runtime profile advertised for this dispatch path.
+    #[must_use]
+    pub fn with_runtime_profile(mut self, runtime_profile: HostRuntimeProfile) -> Self {
+        self.runtime_profile = runtime_profile;
+        self
+    }
+
+    /// Build and validate the context.
+    ///
+    /// # Errors
+    /// Returns [`HostDispatchError`] when any required host reference is empty.
+    #[must_use = "host dispatch context builder result must be handled"]
+    pub fn build(self) -> Result<HostDispatchContext, HostDispatchError> {
+        let context = HostDispatchContext {
+            actor_ref: self.actor_ref,
+            trace_id: self.trace_id,
+            correlation_id: self.correlation_id,
+            request_id: self.request_id,
+            config_snapshot_ref: self.config_snapshot_ref,
+            idempotency_key: self.idempotency_key,
+            runtime_profile: self.runtime_profile,
+            created_at: self.created_at,
+        };
+        validate_host_context(&context)?;
+        Ok(context)
+    }
+}
+
 /// Host task specification accepted by the stable dispatch seam.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HostTaskSpec {
@@ -140,6 +217,103 @@ pub struct HostTaskSpec {
     pub partition_route: PartitionRoute,
     /// Expected host API version; must equal [`CAUSLANE_HOST_API_VERSION`].
     pub host_api_version: String,
+}
+
+/// Builder for [`HostTaskSpec`] values accepted by the host API.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HostTaskSpecBuilder {
+    task_id: String,
+    action_id: ActionId,
+    predicate_id: PredicateId,
+    subject_ref: String,
+    plan_hash: Option<PlanHash>,
+    effect_class: HostEffectClass,
+    payload_ref: Option<String>,
+    dependencies: Vec<String>,
+    idempotency_key: Option<String>,
+    partition_route: PartitionRoute,
+}
+
+impl HostTaskSpecBuilder {
+    /// Start a host task with all required semantic fields.
+    #[must_use]
+    pub fn new(
+        task_id: impl Into<String>,
+        action_id: ActionId,
+        predicate_id: PredicateId,
+        subject_ref: impl Into<String>,
+        effect_class: HostEffectClass,
+        partition_route: PartitionRoute,
+    ) -> Self {
+        Self {
+            task_id: task_id.into(),
+            action_id,
+            predicate_id,
+            subject_ref: subject_ref.into(),
+            plan_hash: None,
+            effect_class,
+            payload_ref: None,
+            dependencies: Vec::new(),
+            idempotency_key: None,
+            partition_route,
+        }
+    }
+
+    /// Attach a precomputed plan hash.
+    #[must_use]
+    pub fn with_plan_hash(mut self, plan_hash: PlanHash) -> Self {
+        self.plan_hash = Some(plan_hash);
+        self
+    }
+
+    /// Attach a host-owned payload or object reference.
+    #[must_use]
+    pub fn with_payload_ref(mut self, payload_ref: impl Into<String>) -> Self {
+        self.payload_ref = Some(payload_ref.into());
+        self
+    }
+
+    /// Replace the dependency task id list.
+    #[must_use]
+    pub fn with_dependencies<I, S>(mut self, dependencies: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.dependencies = dependencies.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Attach a host task idempotency key.
+    #[must_use]
+    pub fn with_idempotency_key(mut self, idempotency_key: impl Into<String>) -> Self {
+        self.idempotency_key = Some(idempotency_key.into());
+        self
+    }
+
+    /// Build and validate the task.
+    ///
+    /// # Errors
+    /// Returns [`HostDispatchError`] when the task does not satisfy the current
+    /// host API contract.
+    #[must_use = "host task spec builder result must be handled"]
+    pub fn build(self) -> Result<HostTaskSpec, HostDispatchError> {
+        let task = HostTaskSpec {
+            task_id: self.task_id,
+            action_id: self.action_id,
+            predicate_id: self.predicate_id,
+            subject_ref: self.subject_ref,
+            plan_hash: self.plan_hash,
+            effect_class: self.effect_class,
+            payload_ref: self.payload_ref,
+            dependencies: self.dependencies,
+            idempotency_key: self.idempotency_key,
+            partition_route: self.partition_route,
+            host_api_version: CAUSLANE_HOST_API_VERSION.to_owned(),
+        };
+        validate_host_task(&task)?;
+        Ok(task)
+    }
 }
 
 /// Capabilities advertised by a host dispatcher implementation.
@@ -229,6 +403,22 @@ pub enum HostDispatchError {
     },
     /// The supplied task id was empty.
     MissingTaskId,
+    /// The supplied dispatch context is malformed.
+    InvalidContext {
+        /// Invalid context field name.
+        field: &'static str,
+        /// Human-readable reason.
+        reason: String,
+    },
+    /// The supplied host task is malformed.
+    InvalidTask {
+        /// Rejected task id, when one was supplied.
+        task_id: Option<String>,
+        /// Invalid task field name.
+        field: &'static str,
+        /// Human-readable reason.
+        reason: String,
+    },
     /// The task was a duplicate according to host idempotency.
     DuplicateSuppressed {
         /// Suppressed task id.
@@ -289,6 +479,21 @@ pub trait HostDispatchPort {
     ) -> Result<HostDrainOutcome, HostDispatchError>;
 }
 
+/// Validate a host dispatch context against the versioned host API contract.
+///
+/// # Errors
+/// Returns [`HostDispatchError`] if the context is missing required host refs.
+#[must_use = "host context validation result must be handled"]
+pub fn validate_host_context(ctx: &HostDispatchContext) -> Result<(), HostDispatchError> {
+    validate_context_ref("actor_ref", &ctx.actor_ref)?;
+    validate_context_ref("trace_id", &ctx.trace_id)?;
+    validate_context_ref("correlation_id", &ctx.correlation_id)?;
+    validate_context_ref("config_snapshot_ref", &ctx.config_snapshot_ref)?;
+    validate_optional_context_ref("request_id", ctx.request_id.as_ref())?;
+    validate_optional_context_ref("idempotency_key", ctx.idempotency_key.as_ref())?;
+    Ok(())
+}
+
 /// Validate a host task against the versioned host API contract.
 ///
 /// # Errors
@@ -304,10 +509,23 @@ pub fn validate_host_task(task: &HostTaskSpec) -> Result<(), HostDispatchError> 
             got: task.host_api_version.clone(),
         });
     }
+    validate_task_ref(task, "action_id", &task.action_id.0)?;
+    validate_task_ref(task, "predicate_id", &task.predicate_id.0)?;
+    validate_task_ref(task, "subject_ref", &task.subject_ref)?;
+    validate_optional_task_ref(task, "payload_ref", task.payload_ref.as_ref())?;
+    validate_optional_task_ref(task, "idempotency_key", task.idempotency_key.as_ref())?;
+    validate_task_dependencies(task)?;
     if task.effect_class == HostEffectClass::Forbidden {
         return Err(HostDispatchError::ForbiddenEffect {
             task_id: task.task_id.clone(),
         });
+    }
+    if task.effect_class == HostEffectClass::HardEffect && task.idempotency_key.is_none() {
+        return Err(invalid_task(
+            task,
+            "idempotency_key",
+            "hard effects require a host task idempotency key",
+        ));
     }
     if let Some(reason) = task.partition_route.invalid_reason() {
         return Err(HostDispatchError::InvalidPartitionRoute {
@@ -318,99 +536,100 @@ pub fn validate_host_task(task: &HostTaskSpec) -> Result<(), HostDispatchError> 
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Validate a context and task as one host dispatch submission.
+///
+/// # Errors
+/// Returns [`HostDispatchError`] if either the context or task is malformed.
+#[must_use = "host submission validation result must be handled"]
+pub fn validate_host_submission(
+    ctx: &HostDispatchContext,
+    task: &HostTaskSpec,
+) -> Result<(), HostDispatchError> {
+    validate_host_context(ctx)?;
+    validate_host_task(task)
+}
 
-    fn task(effect_class: HostEffectClass) -> HostTaskSpec {
-        HostTaskSpec {
-            task_id: "task-1".to_owned(),
-            action_id: ActionId("foundation.task.enqueue".to_owned()),
-            predicate_id: PredicateId("foundation.task.enqueue".to_owned()),
-            subject_ref: "host://subject/demo".to_owned(),
-            plan_hash: None,
-            effect_class,
-            payload_ref: Some("object://payload/demo".to_owned()),
-            dependencies: Vec::new(),
-            idempotency_key: Some("idem-1".to_owned()),
-            partition_route: PartitionRoute::for_primary(PartitionKey("partition-1".to_owned())),
-            host_api_version: CAUSLANE_HOST_API_VERSION.to_owned(),
+fn validate_context_ref(field: &'static str, value: &str) -> Result<(), HostDispatchError> {
+    if value.is_empty() {
+        return Err(invalid_context(field, "must be non-empty"));
+    }
+    Ok(())
+}
+
+fn validate_optional_context_ref(
+    field: &'static str,
+    value: Option<&String>,
+) -> Result<(), HostDispatchError> {
+    if value.is_some_and(String::is_empty) {
+        return Err(invalid_context(field, "must be non-empty when supplied"));
+    }
+    Ok(())
+}
+
+fn validate_task_ref(
+    task: &HostTaskSpec,
+    field: &'static str,
+    value: &str,
+) -> Result<(), HostDispatchError> {
+    if value.is_empty() {
+        return Err(invalid_task(task, field, "must be non-empty"));
+    }
+    Ok(())
+}
+
+fn validate_optional_task_ref(
+    task: &HostTaskSpec,
+    field: &'static str,
+    value: Option<&String>,
+) -> Result<(), HostDispatchError> {
+    if value.is_some_and(String::is_empty) {
+        return Err(invalid_task(task, field, "must be non-empty when supplied"));
+    }
+    Ok(())
+}
+
+fn validate_task_dependencies(task: &HostTaskSpec) -> Result<(), HostDispatchError> {
+    let mut seen = BTreeSet::new();
+    for dependency in &task.dependencies {
+        if dependency.is_empty() {
+            return Err(invalid_task(
+                task,
+                "dependencies",
+                "dependency task id must be non-empty",
+            ));
+        }
+        if dependency == &task.task_id {
+            return Err(invalid_task(
+                task,
+                "dependencies",
+                "task cannot depend on itself",
+            ));
+        }
+        if !seen.insert(dependency.as_str()) {
+            return Err(invalid_task(
+                task,
+                "dependencies",
+                &format!("duplicate dependency task id {dependency}"),
+            ));
         }
     }
+    Ok(())
+}
 
-    #[test]
-    fn host_api_rejects_wrong_version() {
-        let mut bad = task(HostEffectClass::SoftWrite);
-        bad.host_api_version = "causlane.host-dispatch.v0".to_owned();
-        assert!(matches!(
-            validate_host_task(&bad),
-            Err(HostDispatchError::UnsupportedApiVersion { .. })
-        ));
-    }
-
-    #[test]
-    fn host_api_rejects_forbidden_effect() {
-        assert_eq!(
-            validate_host_task(&task(HostEffectClass::Forbidden)),
-            Err(HostDispatchError::ForbiddenEffect {
-                task_id: "task-1".to_owned(),
-            })
-        );
-    }
-
-    #[test]
-    fn linear_reference_capability_keeps_parallelism_disabled() {
-        let capabilities = HostDispatcherCapabilities::linear_reference();
-        assert_eq!(capabilities.api_version, CAUSLANE_HOST_API_VERSION);
-        assert!(!capabilities.supports_parallelism);
-        assert!(!capabilities.supports_partition_coordination);
-        assert!(capabilities.requires_external_authz);
-    }
-
-    #[test]
-    fn partition_route_acquisition_order_is_sorted_and_deduped() {
-        let route = PartitionRoute::new(
-            PartitionKey("tenant:b".to_owned()),
-            vec![
-                PartitionKey("tenant:c".to_owned()),
-                PartitionKey("tenant:a".to_owned()),
-                PartitionKey("tenant:b".to_owned()),
-            ],
-        );
-
-        assert_eq!(
-            route.acquisition_order(),
-            vec![
-                PartitionKey("tenant:a".to_owned()),
-                PartitionKey("tenant:b".to_owned()),
-                PartitionKey("tenant:c".to_owned()),
-            ]
-        );
-    }
-
-    #[test]
-    fn partition_route_rejects_empty_primary_and_participant() {
-        let mut bad_primary = task(HostEffectClass::SoftWrite);
-        bad_primary.partition_route = PartitionRoute::for_primary(PartitionKey(String::new()));
-        assert_eq!(
-            validate_host_task(&bad_primary),
-            Err(HostDispatchError::InvalidPartitionRoute {
-                task_id: "task-1".to_owned(),
-                reason: "primary partition key is empty".to_owned(),
-            })
-        );
-
-        let mut bad_participant = task(HostEffectClass::SoftWrite);
-        bad_participant.partition_route = PartitionRoute::new(
-            PartitionKey("partition-1".to_owned()),
-            vec![PartitionKey(String::new())],
-        );
-        assert_eq!(
-            validate_host_task(&bad_participant),
-            Err(HostDispatchError::InvalidPartitionRoute {
-                task_id: "task-1".to_owned(),
-                reason: "participant partition key is empty".to_owned(),
-            })
-        );
+fn invalid_context(field: &'static str, reason: &str) -> HostDispatchError {
+    HostDispatchError::InvalidContext {
+        field,
+        reason: reason.to_owned(),
     }
 }
+
+fn invalid_task(task: &HostTaskSpec, field: &'static str, reason: &str) -> HostDispatchError {
+    HostDispatchError::InvalidTask {
+        task_id: (!task.task_id.is_empty()).then(|| task.task_id.clone()),
+        field,
+        reason: reason.to_owned(),
+    }
+}
+
+#[cfg(test)]
+mod tests;
