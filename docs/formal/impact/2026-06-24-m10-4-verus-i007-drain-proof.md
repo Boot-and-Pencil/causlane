@@ -29,7 +29,7 @@ regenerated. No new invariant is activated and no runtime semantics change.
 
 ## Validation
 
-- Verus no-cheating tool run through `formal-verify-all`
+- Verus no-cheating tool run through `check-verification-full`
 - stale-check for generated artifacts and receipts
 - receipt-derived coverage matrix drift check
 - formal discipline check

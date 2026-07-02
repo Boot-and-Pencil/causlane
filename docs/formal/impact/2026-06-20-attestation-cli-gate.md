@@ -15,7 +15,7 @@
 crates/causlane-replay/src/trace.rs          (mint_capability_attestations)
 crates/causlane-cli/src/cli_parse.rs
 crates/causlane-cli/src/main.rs
-tools/formal-verify-all
+scripts/check-verification-full.sh
 docs/formal/dispatcher-012-tz-status.md
 ```
 
@@ -32,7 +32,7 @@ the gate did not exercise it. This wires it into a checkable gate:
   `ReplayTrace::mint_capability_attestations` (lower each capability DTO to the core
   `ExecutionCapability`, `attest(secret, &cap.attestation_message())`), so a positive
   attested fixture is produced without a separate minting tool.
-- `tools/formal-verify-all` gains an attestation block: a minted capability passes
+- `scripts/check-verification-full.sh` gains an attestation block: a minted capability passes
   attested verify; a missing attestation (emitted without a secret) and a wrong one
   (minted under a different secret) both refute with `CapabilityMismatch`.
 
@@ -90,7 +90,7 @@ Alloy/P/Kani/Verus/Lean4 unchanged; attestation is a replay/runtime evidence che
 ## Acceptance commands
 
 ```bash
-just formal-verify-all
+just verification-full
 causlane scenario emit-trace --scenario … --bundle … --kernel-secret S --out t.json
 causlane replay verify --bundle … --trace t.json --kernel-secret S
 ```

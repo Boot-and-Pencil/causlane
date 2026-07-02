@@ -1,4 +1,4 @@
-# Formal Impact Record: M12.5 runtime guarded fuzz/property slice
+# Formal Impact Record: M12.5 runtime guarded verification/fuzz/property slice
 
 ## Change metadata
 
@@ -11,7 +11,7 @@
 ## Touched protocol-critical paths
 
 ```text
-fuzz/
+verification/fuzz/
 docs/product-track/api-validation-loop-plan.json
 docs/product-track/milestones/m12.5-api-validation-loop.md
 ```
@@ -71,7 +71,7 @@ classification remains part of the M12.5 evidence loop.
 ## Acceptance commands
 
 ```bash
-REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
+REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/
 ./tools/api-validation-loop-plan-check
 ./tools/formal-discipline-check --profile base --from-git origin/main...HEAD

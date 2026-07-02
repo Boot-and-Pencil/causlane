@@ -4,7 +4,7 @@
 > and "partial" rows predate the P0-004/005/006, Formal IR v2, three-lane
 > attestation, and authz policy/freshness/formal-lane work. See
 > [`formal-readiness-status.md`](formal-readiness-status.md) for the current,
-> machine-derived status; the live authority is `just formal-verify-all`.
+> machine-derived status; the live authority is `just verification-full`.
 
 Status date: 2026-06-05.
 

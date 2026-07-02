@@ -30,7 +30,8 @@ pub(super) fn write_generation(
     input: GenerationWrite<'_>,
 ) -> Result<(), FormalServiceError> {
     write_file(io, input.ir_path, input.ir_json)?;
-    let core_model_hash = optional_file_hash(io, "formal/alloy/core/causlane_core.als");
+    let core_model_hash =
+        optional_file_hash(io, "verification/formal-full/alloy/core/causlane_core.als");
     for plan in input.plans {
         write_file(io, &plan.artifact_path, &plan.artifact.text)?;
         write_codegen_receipt(

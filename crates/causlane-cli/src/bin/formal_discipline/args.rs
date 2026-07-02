@@ -2,7 +2,8 @@
 
 use core::fmt;
 
-pub(crate) const DEFAULT_MANIFEST: &str = "formal/obligations/lifecycle_product_obligations.yaml";
+pub(crate) const DEFAULT_MANIFEST: &str =
+    "verification/formal-full/obligations/lifecycle_product_obligations.yaml";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum Profile {
@@ -155,7 +156,7 @@ fn usage() -> String {
         "usage:",
         "  tools/formal-discipline-check --profile base|rust|ci|proof|all \\",
         "    [--changed-files path.txt | --from-git base...head | --no-diff] \\",
-        "    [--manifest formal/obligations/lifecycle_product_obligations.yaml] [--json]",
+        "    [--manifest verification/formal-full/obligations/lifecycle_product_obligations.yaml] [--json]",
     ]
     .join("\n")
 }

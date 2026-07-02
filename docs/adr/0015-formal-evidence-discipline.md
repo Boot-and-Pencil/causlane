@@ -42,12 +42,12 @@ Lean4/Verus proofs must be connected to generated facts or code-facing contracts
 
 Current repo 010 enforcement:
 
-1. `tools/formal-verify-all` remains the main evidence gate.
+1. `scripts/check-verification-full.sh` remains the main evidence gate.
 2. `tools/coverage-matrix --check` prevents coverage docs drift.
 3. `tools/formal-exceptions-check` prevents expired waivers.
 4. Proof profiles forbid cheating constructs through the active proof gate.
 5. New invariants require negative controls or explicit not-applicable reasoning.
-6. `tools/formal-discipline-check` is mandatory inside `tools/formal-verify-all`
+6. `tools/formal-discipline-check` is mandatory inside `scripts/check-verification-full.sh`
    after fresh coverage derivation and coverage-matrix checking.
 
 Provider-specific CI may additionally run `tools/formal-discipline-check` with

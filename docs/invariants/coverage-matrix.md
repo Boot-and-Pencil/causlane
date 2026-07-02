@@ -3,7 +3,7 @@
 The authoritative, machine-derived matrix is
 [`coverage-matrix.json`](coverage-matrix.json), regenerated from the formal
 coverage report (`target/causlane/formal-coverage-report.json`) by
-`just formal-coverage-matrix`. `just formal-verify-all` runs
+`just formal-coverage-matrix`. `just verification-full` runs
 `tools/coverage-matrix --check`, which **fails the gate** if this documentation
 overclaims a lane the report does not back (P0-012). Do not hand-edit the lane
 cells below; regenerate them.
@@ -14,7 +14,7 @@ the invariant on that lane; `pending_tool_run` means the generated check exists
 but the current receipt has not recorded a passing run; `not_applicable` means
 that lane does not model the invariant and another lane covers it. The
 always-on Verus/Lean4 proof lanes read `passed` like the other lanes (they
-gate every formal-verify-all run). An invariant is `covered` when at least one lane proves it.
+gate every check-verification-full run). An invariant is `covered` when at least one lane proves it.
 
 | ID | Invariant | replay | alloy | p | kani | verus | lean4 | Status |
 |---|---|---|---|---|---|---|---|---|

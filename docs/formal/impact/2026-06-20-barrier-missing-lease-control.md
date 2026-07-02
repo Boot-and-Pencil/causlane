@@ -13,7 +13,7 @@
 
 ```text
 contracts/scenarios/barrier_missing_lease_invalid.scenario.yaml   (new)
-formal/obligations/lifecycle_product_obligations.yaml
+verification/formal-full/obligations/lifecycle_product_obligations.yaml
 docs/formal/dispatcher-012-tz-status.md
 ```
 
@@ -75,7 +75,7 @@ Alloy/P/Kani/Verus/Lean4 unchanged; claim coverage is a replay/runtime check.
 ## Acceptance commands
 
 ```bash
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

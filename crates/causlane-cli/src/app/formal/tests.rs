@@ -110,8 +110,8 @@ fn generate_all_then_stale_check_all_covers_every_target() -> Result<(), TestErr
         GenerateAllRequest {
             bundle_path: &bundle_path,
             scenario_path: Some(SCENARIO_PATH),
-            artifact_dir: "formal",
-            receipt_dir: "formal/receipts",
+            artifact_dir: "verification/formal-full",
+            receipt_dir: "verification/formal-full/receipts",
         },
     )?;
     require(generated.contains("alloy=sha256:"))?;
@@ -122,8 +122,8 @@ fn generate_all_then_stale_check_all_covers_every_target() -> Result<(), TestErr
         StaleCheckAllRequest {
             bundle_path: &bundle_path,
             scenario_path: Some(SCENARIO_PATH),
-            artifact_dir: "formal",
-            receipt_dir: "formal/receipts",
+            artifact_dir: "verification/formal-full",
+            receipt_dir: "verification/formal-full/receipts",
         },
     )?;
     require(checked.contains("all generated targets fresh"))?;
@@ -138,8 +138,8 @@ fn verify_all_then_coverage_rederive_writes_report() -> Result<(), TestError> {
         VerifyAllRequest {
             bundle_path: &bundle_path,
             scenario_path: SCENARIO_PATH,
-            artifact_dir: "formal",
-            receipt_dir: "formal/receipts",
+            artifact_dir: "verification/formal-full",
+            receipt_dir: "verification/formal-full/receipts",
             coverage_path: "target/coverage.json",
         },
     )?;
@@ -150,8 +150,8 @@ fn verify_all_then_coverage_rederive_writes_report() -> Result<(), TestError> {
         CoverageRequest {
             bundle_path: &bundle_path,
             scenario_path: SCENARIO_PATH,
-            artifact_dir: "formal",
-            receipt_dir: "formal/receipts",
+            artifact_dir: "verification/formal-full",
+            receipt_dir: "verification/formal-full/receipts",
             coverage_path: "target/coverage.json",
         },
     )?;

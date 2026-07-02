@@ -30,8 +30,8 @@ minio/**
 objectstore/**
 objectstore-data/**
 run-cache/**
-formal/receipts/*.json
-formal/*/generated/*
+verification/formal-full/receipts/*.json
+verification/formal-full/*/generated/*
 target/**
 ```
 
@@ -45,8 +45,8 @@ continuing work.
 
 A context pack is a **source-and-docs** snapshot, not a buildable checkout. The
 `target/**` exclusion above means **no compiled binaries are ever in a pack** —
-including the `causlane-formal` executable. Likewise `formal/*/generated/*` keeps
-generated Alloy/P/Kani/Verus/Lean4 artifacts and `formal/receipts/*.json` out.
+including the `causlane-formal` executable. Likewise `verification/formal-full/*/generated/*` keeps
+generated Alloy/P/Kani/Verus/Lean4 artifacts and `verification/formal-full/receipts/*.json` out.
 
 This is by design, and it has a recurring consequence for **static reviewers**:
 
@@ -54,11 +54,11 @@ This is by design, and it has a recurring consequence for **static reviewers**:
 > but a pack contains **no compiled binary** for it (excluded via `target/**`).
 > This is **not** a "missing binary" blocker. The binary's source,
 > `crates/causlane-cli/src/bin/causlane-formal.rs`, **is** tracked in git and
-> present in the repository; `tools/formal-verify-all` builds and runs it. A
+> present in the repository; `scripts/check-verification-full.sh` builds and runs it. A
 > reviewer who only sees the `[[bin]]` declaration in a pack must verify against
 > the live checkout / gate, never infer "the binary is missing" from the pack.
 
 More generally: do not treat the absence of a build artifact, a generated formal
 artifact, or a receipt in a pack as evidence that the corresponding source or
 toolchain step is broken. The authority chain is the gate
-(`just formal-verify-all`) run against the real checkout, not the pack contents.
+(`just verification-full`) run against the real checkout, not the pack contents.

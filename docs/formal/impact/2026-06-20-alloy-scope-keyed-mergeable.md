@@ -19,8 +19,8 @@ crates/causlane-codegen/src/alloy_bindings_tests.rs
 crates/causlane-cli/src/scenario_facts.rs
 contracts/examples/release_promote_merge.registry.yaml                       (new)
 contracts/scenarios/unrelated_merge_protocol_does_not_allow_conflict_invalid.scenario.yaml  (new)
-formal/obligations/lifecycle_product_obligations.yaml
-tools/formal-verify-all
+verification/formal-full/obligations/lifecycle_product_obligations.yaml
+scripts/check-verification-full.sh
 ```
 
 ## Summary
@@ -115,7 +115,7 @@ No P/Kani/Verus/Lean4 change; they already model the merge rule at the algebra l
 ## Acceptance commands
 
 ```bash
-just formal-verify-all
+just verification-full
 ./tools/cargo-dev test -p causlane-codegen
 ```
 

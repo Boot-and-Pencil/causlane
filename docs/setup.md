@@ -86,7 +86,7 @@ rustc +1.95.0 --version
 `bootstrap-full --profile proof` ensures this toolchain; `full-doctor --profile
 proof` requires it.
 
-Lean4 is required for the full `formal-verify-all` gate and is installed
+Lean4 is required for the full `check-verification-full` gate and is installed
 repo-locally through `elan`:
 
 ```bash
@@ -101,7 +101,7 @@ family as `5.0.0`. Treat a `5.0.0-src+...` report as matching the pinned Lake
 5.0.0 line, not as a toolchain drift.
 
 `bootstrap-full --profile proof` ensures this toolchain; `full-doctor --profile
-proof` requires it. `formal/proof-lanes.json` marks Verus and Lean4 as
+proof` requires it. `verification/formal-full/proof-lanes.json` marks Verus and Lean4 as
 always-blocking proof lanes, so the executable formal exceptions policy rejects
 attempts to skip them.
 
@@ -199,15 +199,15 @@ just test-build
 just test
 just coverage
 just formal-ready
-just formal-verify-all
-tools/formal-verify-all --profile proof   # in a proof-capable environment
+just verification-full
+scripts/check-verification-full.sh --profile proof   # in a proof-capable environment
 ```
 
 `just coverage` enforces workspace line coverage >=85% while still writing the
 LCOV summary consumed by devinfra.
 
 `tools/full-doctor --with-gates` will additionally shell out to
-`just rust-full-check` and `just formal-verify-all`; this is **off by default**
+`just rust-full-check` and `just verification-full`; this is **off by default**
 because `doctor-full` is meant to be a fast presence/version gate.
 
 ## Outputs

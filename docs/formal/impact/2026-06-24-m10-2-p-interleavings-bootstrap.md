@@ -16,7 +16,7 @@ formal evidence expansion: replay semantics and active coverage remain unchanged
   - `NoDuplicateHardExecutionForSameIdempotencyKey`
   - `AuthzRevocationBeforeBarrierBlocksExecution`
   - `NoStaleConstraintEpochAdmission`
-- `tools/formal-verify-all` runs three P-only controls under
+- `scripts/check-verification-full.sh` runs three P-only controls under
   `contracts/scenarios/p_controls/`.
 
 ## Affected Invariants

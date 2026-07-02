@@ -4,9 +4,9 @@ use core::fmt;
 use std::path::Path;
 
 /// Default root for generated formal artifacts.
-pub const DEFAULT_FORMAL_ARTIFACT_DIR: &str = "formal";
+pub const DEFAULT_FORMAL_ARTIFACT_DIR: &str = "verification/formal-full";
 /// Default root for generated formal receipts.
-pub const DEFAULT_FORMAL_RECEIPT_DIR: &str = "formal/receipts";
+pub const DEFAULT_FORMAL_RECEIPT_DIR: &str = "verification/formal-full/receipts";
 /// Default path for the derived formal coverage report.
 pub const DEFAULT_FORMAL_COVERAGE_REPORT: &str = "target/causlane/formal-coverage-report.json";
 /// Default formal-doctor lane for local checks.

@@ -3,7 +3,7 @@
 ## Change metadata
 
 - Change ID: FIR-2026-06-26-pub1-core-property-coverage
-- PR/issue: PUB1 fuzz/property adoption follow-up
+- PR/issue: PUB1 verification/fuzz/property adoption follow-up
 - Owner: repo maintainers
 - Date: 2026-06-26
 - Impact class: F1 (test/tooling only)

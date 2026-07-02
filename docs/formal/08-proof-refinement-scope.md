@@ -25,22 +25,22 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - ID: `verus-code-adjacent-proofs`
 - Lanes: `verus`
 - Claim: Verus proves preservation and rule lemmas over generated Rust-like proof artifacts under the always-on no-cheating profile.
-- Authority surface: formal/verus/generated plus Verus codegen/tool-run receipts
+- Authority surface: verification/formal-full/verus/generated plus Verus codegen/tool-run receipts
 - Scope: Pure kernel/rule preservation lemmas that are generated from Formal IR and credited by the coverage report.
 - Limits: Verus does not by itself prove external adapters, concrete storage, network IO or all parser behavior.
-- Verification: verus --no-cheating inside tools/formal-verify-all
-- Source links: `formal/verus`, `formal/proof-lanes.json`, `docs/formal/03-lean4-verus-proof-obligations.md`
+- Verification: verus --no-cheating inside scripts/check-verification-full.sh
+- Source links: `verification/formal-full/verus`, `verification/formal-full/proof-lanes.json`, `docs/formal/03-lean4-verus-proof-obligations.md`
 
 ### Lean4 abstract theorem applications
 
 - ID: `lean4-abstract-theorem-applications`
 - Lanes: `lean4`
 - Claim: Lean4 proves generated scenario-bound theorem applications over the abstract protocol vocabulary and generated facts.
-- Authority surface: formal/lean core package, formal/lean4/generated and Lean4 receipts
+- Authority surface: verification/formal-full/lean core package, verification/formal-full/lean4/generated and Lean4 receipts
 - Scope: Abstract protocol theorem applications connected to generated Formal IR payloads and credited by the coverage report.
 - Limits: Lean4 alone does not claim Rust implementation correctness; that connection comes from replay, Kani and Verus evidence.
-- Verification: lake build plus lake env lean inside tools/formal-verify-all
-- Source links: `formal/lean`, `formal/lean4/generated`, `docs/formal/03-lean4-verus-proof-obligations.md`
+- Verification: lake build plus lake env lean inside scripts/check-verification-full.sh
+- Source links: `verification/formal-full/lean`, `verification/formal-full/lean4/generated`, `docs/formal/03-lean4-verus-proof-obligations.md`
 
 
 ## bounded
@@ -50,11 +50,11 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - ID: `kani-bounded-rust-rules`
 - Lanes: `kani`
 - Claim: Kani checks Rust-facing pure reducers and validators over bounded nondeterministic input spaces configured by the lane profile.
-- Authority surface: formal/kani/profile.json plus generated Kani harnesses and tool-run receipts
+- Authority surface: verification/formal-full/kani/profile.json plus generated Kani harnesses and tool-run receipts
 - Scope: Bounded executable confirmation that selected Rust predicates match intended rules for active coverage cells.
 - Limits: Kani is not an unbounded proof and does not cover external IO or adapter behavior outside the harness shape.
-- Verification: Kani lane in tools/formal-verify-all and schema validation of formal/kani/profile.json
-- Source links: `formal/kani/profile.json`, `contracts/schema/formal_kani_profile.schema.json`, `docs/adr/0028-m10-3-kani-profile-bootstrap.md`
+- Verification: Kani lane in scripts/check-verification-full.sh and schema validation of verification/formal-full/kani/profile.json
+- Source links: `verification/formal-full/kani/profile.json`, `contracts/schema/formal_kani_profile.schema.json`, `docs/adr/0028-m10-3-kani-profile-bootstrap.md`
 
 
 ## simulated
@@ -64,22 +64,22 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - ID: `alloy-structural-models`
 - Lanes: `alloy`
 - Claim: Alloy gives small-scope structural counterexample search over generated bundle/scenario facts.
-- Authority surface: formal/alloy/core plus formal/alloy/generated and Alloy tool-run receipts
+- Authority surface: verification/formal-full/alloy/core plus verification/formal-full/alloy/generated and Alloy tool-run receipts
 - Scope: Structural lifecycle, anchor, witness, lease, authz and drain relations where the generated model has facts and assertions.
 - Limits: Alloy cells are not evidence for time/freshness, overlay, routing or constraint-update behavior unless the generated model explicitly carries that obligation.
-- Verification: AlloyRunner blocks and Alloy negative controls inside tools/formal-verify-all
-- Source links: `formal/alloy`, `formal/tools/AlloyRunner.java`, `docs/invariants/coverage-matrix.json`
+- Verification: AlloyRunner blocks and Alloy negative controls inside scripts/check-verification-full.sh
+- Source links: `verification/formal-full/alloy`, `verification/formal-full/tools/AlloyRunner.java`, `docs/invariants/coverage-matrix.json`
 
 ### P generated monitors
 
 - ID: `p-generated-monitors`
 - Lanes: `p`
 - Claim: P checks generated protocol monitors and bounded interleaving controls for modeled event streams.
-- Authority surface: formal/p/generated and P tool-run receipts
+- Authority surface: verification/formal-full/p/generated and P tool-run receipts
 - Scope: Event-order monitors, payload-grounding monitors, drain/race controls and planned interleaving hooks that are explicitly run by the gate.
 - Limits: P does not prove Rust implementation paths or lanes not represented by generated monitors.
-- Verification: P protocol run and P monitor-firing negative controls inside tools/formal-verify-all
-- Source links: `formal/p`, `docs/adr/0027-m10-2-p-interleavings-bootstrap.md`, `tools/formal-verify-all`
+- Verification: P protocol run and P monitor-firing negative controls inside scripts/check-verification-full.sh
+- Source links: `verification/formal-full/p`, `docs/adr/0027-m10-2-p-interleavings-bootstrap.md`, `scripts/check-verification-full.sh`
 
 
 ## tested
@@ -92,7 +92,7 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - Authority surface: target/causlane/formal-coverage-report.json plus docs/invariants/coverage-matrix.json
 - Scope: Per-lane status, check_id credit and covered/not_applicable cells for active invariants.
 - Limits: This scope artifact describes evidence strength only; it does not create or upgrade coverage.
-- Verification: tools/formal-verify-all and tools/coverage-matrix --check
+- Verification: scripts/check-verification-full.sh and tools/coverage-matrix --check
 - Source links: `docs/invariants/coverage-matrix.json`, `docs/invariants/coverage-matrix.md`, `tools/coverage-matrix`
 
 ### Replay concrete oracle
@@ -103,7 +103,7 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - Authority surface: causlane-replay plus contracts/scenarios negative controls
 - Scope: Concrete trace semantics, payload binding, authz freshness/policy checks and executable negative controls.
 - Limits: Replay is not an exhaustive interleaving or abstract proof of every possible runtime execution.
-- Verification: tools/formal-verify-all replay prerequisite and replay negative-control blocks
+- Verification: scripts/check-verification-full.sh replay prerequisite and replay negative-control blocks
 - Source links: `crates/causlane-replay/src`, `contracts/scenarios`, `docs/formal-readiness-status.md`
 
 
@@ -143,4 +143,4 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - Scope: Target-state formal surface that is documented but not current coverage.
 - Limits: Catalog mentions are not coverage and must remain out of current proof claims until the coverage matrix credits them.
 - Verification: formal-discipline-check, coverage-matrix drift check and generated proof/refinement scope check
-- Source links: `docs/formal/01-formal-model-catalog.md`, `docs/formal/02-protocol-catalog.md`, `formal/obligations/lifecycle_product_obligations.yaml`
+- Source links: `docs/formal/01-formal-model-catalog.md`, `docs/formal/02-protocol-catalog.md`, `verification/formal-full/obligations/lifecycle_product_obligations.yaml`

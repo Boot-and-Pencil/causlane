@@ -31,7 +31,7 @@ The runs executed on host `ci-dispatcher.lan` with:
 
 Both targets completed with status 0 and produced no crash/reproducer artifact
 in either their explicit `/tmp/causlane-fuzz-artifacts/` artifact directories or
-the default `fuzz/artifacts/<target>/` directories.
+the default `verification/fuzz/artifacts/<target>/` directories.
 
 ## Run results
 

@@ -17,7 +17,7 @@ crates/causlane-replay/tests/multi_action_reference.rs              (new)
 contracts/examples/multi_action_reference.registry.yaml            (new)
 contracts/scenarios/multi_action_reference.scenario.yaml           (new)
 tools/formal-ready
-tools/formal-verify-all
+scripts/check-verification-full.sh
 docs/formal/dispatcher-012-tz-status.md
 ```
 
@@ -51,7 +51,7 @@ The same two-action fixture is the input that exercises the P interleaving lane
 ## Non-vacuity proof (anti-theatre)
 
 - **Positive:** `multi_action_reference` replay-verifies with `--require-bundle-hash`
-  (8 events, two actions). Added to `tools/formal-ready` and `tools/formal-verify-all`.
+  (8 events, two actions). Added to `tools/formal-ready` and `scripts/check-verification-full.sh`.
 - **Generalization is load-bearing** (`tests/multi_action_reference.rs`): dropping
   `act_ref_b`'s `admit`+`plan` leaves it starting at `dispatch.logged` — a forbidden
   `New → DispatchLogged` transition. The new per-action reducer **rejects** it with
@@ -102,7 +102,7 @@ No Alloy/Kani/Verus/Lean4 change.
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

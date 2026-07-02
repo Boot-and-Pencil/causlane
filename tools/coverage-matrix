@@ -58,7 +58,7 @@ def derived(report, meta):
         [
             ("schema_version", 2),
             ("authority", "compiled_bundle_plus_scenario_plus_formal_ir"),
-            ("gate", "just formal-verify-all"),
+            ("gate", "just verification-full"),
             (
                 "derived_from",
                 "target/causlane/formal-coverage-report.json (P0-006: per-lane status is machine-derived, never hand-asserted)",
@@ -132,7 +132,7 @@ def markdown(doc):
         "The authoritative, machine-derived matrix is",
         "[`coverage-matrix.json`](coverage-matrix.json), regenerated from the formal",
         "coverage report (`target/causlane/formal-coverage-report.json`) by",
-        "`just formal-coverage-matrix`. `just formal-verify-all` runs",
+        "`just formal-coverage-matrix`. `just verification-full` runs",
         "`tools/coverage-matrix --check`, which **fails the gate** if this documentation",
         "overclaims a lane the report does not back (P0-012). Do not hand-edit the lane",
         "cells below; regenerate them.",
@@ -143,7 +143,7 @@ def markdown(doc):
         "but the current receipt has not recorded a passing run; `not_applicable` means",
         "that lane does not model the invariant and another lane covers it. The",
         "always-on Verus/Lean4 proof lanes read `passed` like the other lanes (they",
-        "gate every formal-verify-all run). An invariant is `covered` when at least one lane proves it.",
+        "gate every check-verification-full run). An invariant is `covered` when at least one lane proves it.",
         "",
         "| ID | Invariant | replay | alloy | p | kani | verus | lean4 | Status |",
         "|---|---|---|---|---|---|---|---|---|",
@@ -210,7 +210,7 @@ def main(argv):
         report = json.load(open(REPORT))
     except FileNotFoundError:
         sys.stderr.write(
-            f"{REPORT} not found; run `just formal-verify-all` first\n"
+            f"{REPORT} not found; run `just verification-full` first\n"
         )
         return 1
     existing = json.load(open(DOC))

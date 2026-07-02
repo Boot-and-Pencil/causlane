@@ -89,7 +89,7 @@ exhaustive-bounded harnesses and replay negative controls.
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:
@@ -110,4 +110,4 @@ Additional commands:
   DrainSemantics, CapabilityIssuer, TruthAnchorResolver — bounded spaces already
   Kani-covered); and pre-existing clippy debt in
   `crates/causlane-codegen/src/lean4_target.rs` (from commit db5381b, surfaced by a
-  newer clippy; `just clippy` is not part of the mandatory `formal-verify-all` gate).
+  newer clippy; `just clippy` is not part of the mandatory `check-verification-full` gate).

@@ -33,7 +33,7 @@ This workstream is not secondary. It prevents the project from becoming unverifi
 
 - Fast PR: fmt/check/test, replay small corpus, formal stale-check, docs links.
 - Formal PR: generated Alloy/P/Kani smoke, receipts, coverage matrix.
-- Nightly: larger scopes/unwind/interleavings, benchmark suite, fuzz/mutation tests.
+- Nightly: larger scopes/unwind/interleavings, benchmark suite, verification/fuzz/mutation tests.
 - Release: proof/all profile, adapter certification, docs/security gates.
 
 ## Documentation cleanup cadence

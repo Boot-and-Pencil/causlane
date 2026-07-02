@@ -3,7 +3,7 @@
 ## Change metadata
 
 - Change ID: FIR-2026-06-26-pub1-ci-fuzz-long-run
-- PR/issue: PUB1 fuzz/property adoption follow-up
+- PR/issue: PUB1 verification/fuzz/property adoption follow-up
 - Owner: repo maintainers
 - Date: 2026-06-26
 - Impact class: F1 (test/tooling evidence only)
@@ -11,14 +11,14 @@
 ## Touched protocol-critical paths
 
 ```text
-fuzz/
+verification/fuzz/
 docs/release/refactor-before-publication-gate.md
 ```
 
 ## Summary
 
 Records the required PUB1 long-running fuzz execution for the three protocol
-targets that were added earlier in the PUB1 fuzz/property adoption track.
+targets that were added earlier in the PUB1 verification/fuzz/property adoption track.
 
 The runs executed on host `dispatcher` with:
 
@@ -27,7 +27,7 @@ The runs executed on host `dispatcher` with:
 - `rustc 1.93.0-nightly (53732d5e0 2025-11-20)`.
 
 Each target completed with status 0 and produced no crash/reproducer artifact in
-its `fuzz/artifacts/<target>/` directory.
+its `verification/fuzz/artifacts/<target>/` directory.
 
 ## Run results
 
@@ -40,7 +40,7 @@ its `fuzz/artifacts/<target>/` directory.
 ## Affected invariants
 
 No invariant semantics change. This record closes the execution-evidence part of
-the PUB1 fuzz/property adoption prerequisite for the existing parse-boundary and
+the PUB1 verification/fuzz/property adoption prerequisite for the existing parse-boundary and
 numeric-boundary targets.
 
 ## Affected formal models
@@ -77,7 +77,7 @@ be committed.
 ## Acceptance commands
 
 ```bash
-REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins
+REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 fuzz run replay_trace_json -- -max_total_time=900 -print_final_stats=1
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 fuzz run replay_scenario_yaml -- -max_total_time=900 -print_final_stats=1
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 fuzz run registry_yaml_compile -- -max_total_time=900 -print_final_stats=1

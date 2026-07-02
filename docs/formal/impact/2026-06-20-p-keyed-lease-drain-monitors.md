@@ -13,7 +13,7 @@
 
 ```text
 crates/causlane-codegen/src/targets.rs
-tools/formal-verify-all
+scripts/check-verification-full.sh
 contracts/scenarios/lease_during_drain_invalid.scenario.yaml   (new)
 docs/formal/dispatcher-012-tz-status.md
 ```
@@ -108,7 +108,7 @@ No Alloy/Kani/Verus/Lean4 change.
 ## Acceptance commands
 
 ```bash
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

@@ -1,0 +1,16 @@
+schema_version = 1
+
+[[lanes]]
+id = "formal-profile-smoke"
+command = "./tools/cargo-dev test -p causlane-formal --test proptest_smoke --locked"
+authority = "crate-local property smoke for causlane-formal"
+
+[[lanes]]
+id = "core-protocol-properties"
+command = "./tools/cargo-dev test -p causlane-core --test proptest_protocol_properties --locked"
+authority = "KernelContracts property checks against reducer/constraint authorities"
+
+[[lanes]]
+id = "replay-parse-boundaries"
+command = "./tools/cargo-dev test -p causlane-replay --test proptest_parse_boundaries --locked"
+authority = "Replay/registry parse and numeric boundary property checks"

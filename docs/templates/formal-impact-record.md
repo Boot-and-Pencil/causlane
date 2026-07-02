@@ -78,7 +78,7 @@ For every not-applicable lane, explain why the lane does not model this behavior
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:

@@ -81,7 +81,7 @@ No generated-model change; claim coverage is a replay/core runtime check.
 
 ```bash
 ./tools/cargo-dev test -p causlane-core -p causlane-replay
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

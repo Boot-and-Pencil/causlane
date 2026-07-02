@@ -1,9 +1,9 @@
-# Formal Impact Record: PUB1 parse-boundary fuzz/property slice
+# Formal Impact Record: PUB1 parse-boundary verification/fuzz/property slice
 
 ## Change metadata
 
 - Change ID: FIR-2026-06-25-pub1-parse-boundary-fuzz-property
-- PR/issue: PUB1 fuzz/property adoption
+- PR/issue: PUB1 verification/fuzz/property adoption
 - Owner: repo maintainers
 - Date: 2026-06-25
 - Impact class: F1 (test/tooling only)
@@ -11,14 +11,14 @@
 ## Touched protocol-critical paths
 
 ```text
-fuzz/
+verification/fuzz/
 crates/causlane-replay/tests/proptest_parse_boundaries.rs
 docs/release/refactor-before-publication-gate.md
 ```
 
 ## Summary
 
-Adds the first real PUB1 fuzz/property slice after the smoke scaffold:
+Adds the first real PUB1 verification/fuzz/property slice after the smoke scaffold:
 
 - cargo-fuzz targets for replay trace JSON, replay scenario YAML and registry
   YAML compilation;
@@ -71,7 +71,7 @@ host.
 ```bash
 ./tools/cargo-dev test -p causlane-replay --test proptest_parse_boundaries --locked
 ./tools/cargo-dev test -p causlane-replay --test mutation_fuzz --locked
-cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins
+cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins
 python3 tools/pre-publication-review-gate --json
 just refactor-readiness
 tools/product-track-status-check --json

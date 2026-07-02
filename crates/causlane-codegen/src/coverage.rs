@@ -14,7 +14,7 @@
 //! Provenance (H5/M6): the receipts this report derives from are **not
 //! cryptographically signed**, so this report is evidence of "the last real tool
 //! run on a formal-capable host reported X", not a signed proof. The publication
-//! authority is re-deriving it by re-running `tools/formal-verify-all` on a
+//! authority is re-deriving it by re-running `scripts/check-verification-full.sh` on a
 //! formal-capable host; a committed/loaded receipt must not be presented as proof
 //! on its own. See `docs/formal/09-formal-evidence-provenance-and-trust-policy.md`.
 
@@ -579,10 +579,10 @@ mod tests {
         ArtifactFacts {
             target,
             artifact_kind: "facts",
-            path: "formal/x.als",
+            path: "verification/formal-full/x.als",
             artifact_hash: "sha256:cc",
-            codegen_receipt_path: "formal/receipts/x.codegen.json",
-            tool_run_receipt_path: "formal/receipts/x.tool-run.json",
+            codegen_receipt_path: "verification/formal-full/receipts/x.codegen.json",
+            tool_run_receipt_path: "verification/formal-full/receipts/x.tool-run.json",
             tool_run: receipt,
             receipt_parse_failed: false,
             on_disk_hash,

@@ -35,7 +35,7 @@ Formal discipline covers both. Product lifecycle gates prevent humans from codin
 | L5 Tool execution | tool-run receipts | Run real tools. A lane cannot be marked passed by docs or `jq` patching. | tool exit code + parsed result |
 | L6 Implementation | Rust code | Code must implement the already-modeled contract. New behavior cannot appear first in `crates/*`. | PR path trigger + impact record |
 | L7 Runtime integration | guarded executor / adapters | Adapters must satisfy port contracts; they do not weaken kernel proofs. | adapter simulation/port tests |
-| L8 Release | coverage report | Release requires derived coverage to match docs and no expired exception. | `just formal-verify-all` |
+| L8 Release | coverage report | Release requires derived coverage to match docs and no expired exception. | `just verification-full` |
 | L9 Operations | receipts, incidents, drift reports | Operational fixes must add failing scenario/control first when they affect protocol behavior. | incident formal impact gate |
 | L10 Migration/deprecation | migration plan | Compatibility/refinement proof obligations must exist before removing or renaming protocol fields. | migration model check |
 

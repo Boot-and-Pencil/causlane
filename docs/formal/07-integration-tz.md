@@ -24,7 +24,7 @@ The current line already contains:
 ```text
 Formal IR v2
 Alloy/P/Kani/Verus/Lean4 generation surface
-formal-verify-all gate
+check-verification-full gate
 receipts v2
 stale-check-all
 derived coverage report
@@ -40,7 +40,7 @@ The main open governance gap is no longer the executable itself:
 `tools/formal-discipline-check` exists and can run local/PR-diff discipline
 checks, including strict check-id adequacy across obligations, generated
 artifacts, receipts, coverage and docs. It is now wired into the mandatory
-`tools/formal-verify-all` repo gate after fresh coverage derivation and
+`scripts/check-verification-full.sh` repo gate after fresh coverage derivation and
 coverage-matrix plus proof/refinement-scope drift checking. Provider-specific
 PR CI wiring is outside this repository because no workflow config is present
 here.
@@ -50,9 +50,9 @@ here.
 | ID | Original item | Status in repo 010 | Notes / next action |
 |---|---|---|---|
 | INT-FM-001 | accept lifecycle docs and ADR | done | ADR-0015 and `docs/formal/00..07` exist. |
-| INT-FM-002 | obligation manifest + schema | done | `formal/obligations/lifecycle_product_obligations.yaml` and schema exist. |
+| INT-FM-002 | obligation manifest + schema | done | `verification/formal-full/obligations/lifecycle_product_obligations.yaml` and schema exist. |
 | INT-FM-003 | implement `tools/formal-discipline-check` | done | Executable wrapper and `causlane-formal-discipline` binary exist with focused tests. |
-| INT-FM-004 | integrate discipline check into gates | done | `tools/formal-verify-all` runs discipline after derived coverage, coverage-matrix checking and proof/refinement-scope checking. |
+| INT-FM-004 | integrate discipline check into gates | done | `scripts/check-verification-full.sh` runs discipline after derived coverage, coverage-matrix checking and proof/refinement-scope checking. |
 | INT-FM-005 | Lean4 toolchain profile | done | `elan`/`lean`/`lake` are in proof/all profile; install/doctor scripts know Lean4. |
 | INT-FM-006 | Lean4 codegen target | done | `formal generate lean4` and `FormalTarget::Lean4` exist. |
 | INT-FM-007 | Lean4 generic core + generated theorem applications | done/partial | Core package and generated scenario-bound theorem applications exist; current covered cells and theorem `check_id`s are the generated coverage matrix/report. |
@@ -67,8 +67,8 @@ Currently enforceable from repo 010:
 ```bash
 just rust-full-check
 just formal-ready
-just formal-verify-all
-tools/formal-verify-all --profile proof
+just verification-full
+scripts/check-verification-full.sh --profile proof
 tools/formal-exceptions-check --profile rust
 tools/coverage-matrix --check
 tools/formal-discipline-check --profile rust --no-diff --json
@@ -96,7 +96,7 @@ Minimum acceptance:
 
 ```bash
 test -x tools/formal-discipline-check
-tools/formal-discipline-check --profile rust --no-diff --manifest formal/obligations/lifecycle_product_obligations.yaml --json
+tools/formal-discipline-check --profile rust --no-diff --manifest verification/formal-full/obligations/lifecycle_product_obligations.yaml --json
 ```
 
 Synthetic negative acceptance:
@@ -109,7 +109,7 @@ Synthetic negative acceptance:
 
 ### DONE-FM-002 — wire discipline check into the mandatory repo gate
 
-`tools/formal-verify-all` runs:
+`scripts/check-verification-full.sh` runs:
 
 ```bash
 tools/formal-discipline-check --profile "$PROFILE" --no-diff --json
@@ -167,7 +167,7 @@ This file can be retired or replaced by a current `formal-governance-status.md`
 when:
 
 1. `tools/formal-discipline-check` exists and has tests.
-2. The command is wired into `tools/formal-verify-all` or an equivalent gate.
+2. The command is wired into `scripts/check-verification-full.sh` or an equivalent gate.
 3. All docs describing it distinguish mandatory repo-gate integration from
    provider-specific PR CI adoption.
 4. The status table above is reflected in a machine-readable governance report.

@@ -40,7 +40,7 @@ source_paths:
   - crates/causlane-core/src/domain/example.rs
 acceptance:
   commands:
-    - just formal-verify-all
+    - just verification-full
 owner: team/formal
 status: declared|generated|tool_passed|covered
 ```

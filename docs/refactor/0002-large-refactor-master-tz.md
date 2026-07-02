@@ -116,7 +116,7 @@ Responsibilities:
 Acceptance:
 
 - `causlane-formal` calls the service directly;
-- `tools/formal-verify-all` keeps one stable binary boundary;
+- `scripts/check-verification-full.sh` keeps one stable binary boundary;
 - coverage JSON remains derived from receipts and exit codes.
 
 ### WP-004: Public API narrowing
@@ -215,7 +215,7 @@ just formal-ready
 Before merging authority-changing refactors:
 
 ```bash
-just formal-verify-all
+just verification-full
 just formal-coverage-matrix-check
 ```
 

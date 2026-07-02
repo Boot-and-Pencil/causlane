@@ -39,11 +39,11 @@ causlane-cli     : bundle compile, bundle validate,
 Generated layout:
 
 ```text
-formal/alloy/generated/*.als
-formal/p/generated/*.p
-formal/kani/generated/*.rs
-formal/verus/generated/*.rs
-formal/receipts/*.json
+verification/formal-full/alloy/generated/*.als
+verification/formal-full/p/generated/*.p
+verification/formal-full/kani/generated/*.rs
+verification/formal-full/verus/generated/*.rs
+verification/formal-full/receipts/*.json
 ```
 
 Every generated file MUST carry a header:
@@ -56,8 +56,8 @@ Every generated file MUST carry a header:
 A receipt MUST record `tool`, `bundle_hash`, `generated_artifact_hash`,
 `command`, `status`, `checked_at`, and `scope`.
 
-The existing hand-written `formal/alloy/causlane_core.als` and
-`formal/p/DispatcherProtocol.p` remain GENERIC EXPLORATORY sketches only. They
+The existing hand-written `verification/formal-full/alloy/causlane_core.als` and
+`verification/formal-full/p/DispatcherProtocol.p` remain GENERIC EXPLORATORY sketches only. They
 are NOT authoritative and MUST NOT be extended into bundle-specific facts.
 
 READINESS GATE: real Alloy/P/Kani/Verus modeling work is DEFERRED until the
@@ -96,7 +96,7 @@ be checked mechanically — exactly the failure ADR-0006 warns against.
 
 - Docs: `docs/05-formal-modeling-strategy.md` records the deferral and the
   readiness gate; `docs/11-contract-hardening-plan.md` defines the gate criteria.
-- Formal: `formal/README.md` marks the current hand-written files as exploratory
+- Formal: `verification/formal-full/README.md` marks the current hand-written files as exploratory
   and non-authoritative; generated artifacts MUST carry the GENERATED header.
 - Replay: `causlane replay verify` checks generated artifacts against the
   bundle they claim as source.

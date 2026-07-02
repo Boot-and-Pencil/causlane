@@ -225,7 +225,7 @@ def check_formal_provenance_policy(findings: list[Finding]) -> None:
                 "error",
                 rel(policy),
                 "formal-evidence provenance & trust-boundary policy is missing",
-                "document that receipts are unsigned and re-derived by formal-verify-all; "
+                "document that receipts are unsigned and re-derived by check-verification-full; "
                 "publication authority is CI re-derivation on the formal-capable host (H5/M6)",
             )
         )

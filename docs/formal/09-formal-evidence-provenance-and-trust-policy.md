@@ -15,8 +15,8 @@ signed proof.
   receipt (finding **H4**), and codegen identifiers are collision-checked
   (finding **H3/M4**).
 - **Tool-run receipts** record the **real tool's** parsed result and process exit
-  code. `tools/formal-verify-all` runs Alloy / Z3 / P / Kani / Verus / Lean4 and
-  writes `formal/receipts/*.tool-run.json`.
+  code. `scripts/check-verification-full.sh` runs Alloy / Z3 / P / Kani / Verus / Lean4 and
+  writes `verification/formal-full/receipts/*.tool-run.json`.
 - The **coverage report** is **derived** from those receipts — never authored or
   upgraded. A non-zero exit code can never become a pass (P0-FM-002), and a proof
   containing `sorry`/`admit`/`assume`/`axiom` is not counted as a pass.
@@ -32,19 +32,19 @@ signed proof.
 
 ## The trust anchor: re-derivation (CI re-derivation)
 
-The authority is **re-running `tools/formal-verify-all` on a formal-capable host**
+The authority is **re-running `scripts/check-verification-full.sh` on a formal-capable host**
 — `ci-dispatcher.lan` carries the full toolchain (Alloy/Z3/P/Kani/Verus/Lean4).
 That run regenerates the artifacts, re-runs the real tools and **rewrites** the
 receipts, so a hand-edited receipt is overwritten by the next real run and cannot
 survive re-derivation.
 
-- **Publication (PUB5) requires a fresh `formal-verify-all` run on the
+- **Publication (PUB5) requires a fresh `check-verification-full` run on the
   formal-capable CI machine.** Committed receipts are evidence for review, not the
   publication authority.
 - Read coverage as *"the last real tool run on a formal-capable host reported X"*,
   not *"this is proven / signed"*. Public-facing claims use the honest-ladder
   vocabulary (`present → compiled → checked → payload-bound → discriminating →
-  authoritative`); see `formal/README.md` and
+  authoritative`); see `verification/formal-full/README.md` and
   `docs/formal/04-formal-discipline-and-anti-theatre.md`.
 
 ## Enforcement

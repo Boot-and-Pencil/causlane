@@ -64,10 +64,10 @@ fn usage() -> String {
     [
         "causlane-formal helper",
         "usage:",
-        "  causlane-formal verify-all --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir formal] [--receipt-dir formal/receipts] [--coverage target/causlane/formal-coverage-report.json]",
-        "  causlane-formal coverage   --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir formal] [--receipt-dir formal/receipts] [--coverage target/causlane/formal-coverage-report.json]",
-        "  causlane-formal generate-all --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir formal] [--receipt-dir formal/receipts]",
-        "  causlane-formal stale-check-all --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir formal] [--receipt-dir formal/receipts]",
+        "  causlane-formal verify-all --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir verification/formal-full] [--receipt-dir verification/formal-full/receipts] [--coverage target/causlane/formal-coverage-report.json]",
+        "  causlane-formal coverage   --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir verification/formal-full] [--receipt-dir verification/formal-full/receipts] [--coverage target/causlane/formal-coverage-report.json]",
+        "  causlane-formal generate-all --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir verification/formal-full] [--receipt-dir verification/formal-full/receipts]",
+        "  causlane-formal stale-check-all --bundle <bundle.json> --scenario <scenario.yaml> [--artifact-dir verification/formal-full] [--receipt-dir verification/formal-full/receipts]",
         "",
         "verify-all generates artifacts + receipts and writes a derived (preliminary) coverage report.",
         "coverage re-derives the report from the tool-run receipts on disk after the tools have run.",
@@ -189,7 +189,7 @@ mod tests {
     fn verify_all_then_coverage_rederive_writes_report() -> Result<(), TestError> {
         let root = PathBuf::from("../../target/causlane-cli-tests/causlane-formal");
         let bundle = root.join("release_promote.bundle.json");
-        let artifacts = root.join("formal").display().to_string();
+        let artifacts = root.join("verification/formal-full").display().to_string();
         let receipts = root.join("receipts").display().to_string();
         let coverage = root.join("coverage.json").display().to_string();
         let scenario = "../../contracts/scenarios/release_promote_success.scenario.yaml";
@@ -229,7 +229,7 @@ mod tests {
     fn generate_all_then_stale_check_all_uses_shared_service() -> Result<(), TestError> {
         let root = PathBuf::from("../../target/causlane-cli-tests/causlane-formal-generate-all");
         let bundle = root.join("release_promote.bundle.json");
-        let artifacts = root.join("formal").display().to_string();
+        let artifacts = root.join("verification/formal-full").display().to_string();
         let receipts = root.join("receipts").display().to_string();
         let scenario = "../../contracts/scenarios/release_promote_success.scenario.yaml";
         write_demo_bundle(&bundle)?;

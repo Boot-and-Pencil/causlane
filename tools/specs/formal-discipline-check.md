@@ -5,13 +5,13 @@
 This command is **implemented in repo 010** as `tools/formal-discipline-check`,
 backed by the `causlane-formal-discipline` CLI binary. It is usable as a local
 or PR-diff discipline check, and is wired into the mandatory repo strict gate:
-`tools/formal-verify-all` runs it after receipt-derived coverage and
+`scripts/check-verification-full.sh` runs it after receipt-derived coverage and
 `tools/coverage-matrix --check` plus `tools/proof-refinement-scope --check`.
 
 Provider-specific CI may run the same command with `--from-git` or
 `--changed-files` for PR-diff enforcement. This repository does not define a
 provider workflow; the mandatory in-repo integration point is
-`tools/formal-verify-all`.
+`scripts/check-verification-full.sh`.
 
 ## Purpose
 
@@ -23,7 +23,7 @@ provider workflow; the mandatory in-repo integration point is
 tools/formal-discipline-check \
   --profile rust|base|ci|proof|all \
   [--changed-files path.txt | --from-git base...head | --no-diff] \
-  [--manifest formal/obligations/lifecycle_product_obligations.yaml] \
+  [--manifest verification/formal-full/obligations/lifecycle_product_obligations.yaml] \
   [--json]
 ```
 
@@ -64,7 +64,7 @@ generated artifacts and receipts, when present
 14. Verify tool-run receipts record `actual_result` and `exit_code`.
 15. Refuse to count `non_blocking_skipped` as pass. It is allowed only as a
     warning with `exit_code: 0` in non-proof profiles for lanes not forbidden by
-    `formal/proof-lanes.json`; it fails in proof/all.
+    `verification/formal-full/proof-lanes.json`; it fails in proof/all.
 
 ## Protocol-critical path globs
 
@@ -90,14 +90,14 @@ docs/invariants/**
 docs/formal/proof-refinement-scope.json
 docs/formal/08-proof-refinement-scope.md
 docs/formal-exceptions.*
-formal/**
+verification/formal-full/**
 ```
 
 Generated ignored paths may be excluded from diff classification but not from stale-check:
 
 ```text
-formal/*/generated/**
-formal/receipts/*.json
+verification/formal-full/*/generated/**
+verification/formal-full/receipts/*.json
 ```
 
 ## Output JSON
@@ -136,7 +136,7 @@ formal/receipts/*.json
 
 ## Current documentation rule
 
-Docs may reference this command as mandatory inside `tools/formal-verify-all`
+Docs may reference this command as mandatory inside `scripts/check-verification-full.sh`
 and available for local/PR-diff enforcement. Do not claim provider-specific CI
 enforcement unless an external workflow explicitly runs it with a changed-file
 source such as `--from-git` or `--changed-files`.

@@ -68,7 +68,7 @@ under [`formal/`](formal/):
 
 Machine-readable catalog/seed files are
 [`formal/formal_model_catalog.yaml`](formal/formal_model_catalog.yaml) and
-[`../formal/obligations/lifecycle_product_obligations.yaml`](../formal/obligations/lifecycle_product_obligations.yaml).
+[`../verification/formal-full/obligations/lifecycle_product_obligations.yaml`](../verification/formal-full/obligations/lifecycle_product_obligations.yaml).
 The discipline checker contract is documented in
 [`../tools/specs/formal-discipline-check.md`](../tools/specs/formal-discipline-check.md).
 

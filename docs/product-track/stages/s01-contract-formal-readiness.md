@@ -78,4 +78,4 @@
 
 ## Exit gate
 
-`just formal-ready` и `just formal-verify-all` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
+`just formal-ready` и `just verification-full` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.

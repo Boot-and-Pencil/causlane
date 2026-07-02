@@ -168,7 +168,7 @@ mod tests {
     fn generate_all_then_stale_check_all_covers_every_target() -> Result<(), TestError> {
         let dir = output_dir("formal-generate-all-targets");
         let bundle = dir.join("release_promote.bundle.json");
-        let artifact_dir = dir.join("formal");
+        let artifact_dir = dir.join("verification/formal-full");
         let receipt_dir = dir.join("receipts");
 
         let bundle_path = bundle.display().to_string();

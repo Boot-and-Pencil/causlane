@@ -100,14 +100,14 @@ tools/formal-*
 tools/coverage-matrix
 docs/invariants/**
 docs/formal-exceptions.*
-formal/** except generated outputs ignored by context packs
+verification/formal-full/** except generated outputs ignored by context packs
 ```
 
 ## Machine enforcement requirements
 
 **Implementation status for repo 010:** `tools/formal-discipline-check` is
 implemented for local and PR-diff checks and is mandatory inside the
-`tools/formal-verify-all` repo gate. Provider-specific CI enforcement is a
+`scripts/check-verification-full.sh` repo gate. Provider-specific CI enforcement is a
 separate workflow concern; this repository currently exposes the gate but does
 not define a CI provider workflow.
 
@@ -116,7 +116,7 @@ not define a CI provider workflow.
 1. reads changed files;
 2. detects protocol-critical changes;
 3. requires a Formal Impact Record for such changes;
-4. validates `formal/obligations/*.yaml` manifest shape and safety fields;
+4. validates `verification/formal-full/obligations/*.yaml` manifest shape and safety fields;
 5. checks every `required` / `proof_profile_required` lane has `check_ids` and every `not_applicable` lane has a reason;
 6. fails if a manifest-required `check_id` is missing from coverage/docs or if docs/coverage count a non-required check;
 7. binds non-replay checks to generated artifact text plus codegen/tool-run receipt obligations;
@@ -147,5 +147,5 @@ If the answer is unclear, the PR is not ready.
 Receipts are **not cryptographically signed**, so neither a committed receipt nor
 the derived coverage report is a signed proof on its own — they are evidence of the
 last real tool run. The publication authority is **re-deriving** the evidence by
-re-running `tools/formal-verify-all` on a formal-capable host (CI re-derivation).
+re-running `scripts/check-verification-full.sh` on a formal-capable host (CI re-derivation).
 See `09-formal-evidence-provenance-and-trust-policy.md` (review finding H5/M6).

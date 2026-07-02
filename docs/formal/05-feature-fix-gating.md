@@ -7,7 +7,7 @@
 
 > **Implementation note for repo 010:** `tools/formal-discipline-check` is
 > implemented for local and PR-diff checks and is mandatory inside
-> `tools/formal-verify-all` after fresh coverage and coverage-matrix drift
+> `scripts/check-verification-full.sh` after fresh coverage and coverage-matrix drift
 > checks. Provider-specific CI workflow adoption is outside this repo.
 
 ## Rule
@@ -68,7 +68,7 @@ If no scenario can reproduce the bug, explain why and add a different discrimina
 Every F2+ change must update at least one of:
 
 ```text
-formal/obligations/lifecycle_product_obligations.yaml
+verification/formal-full/obligations/lifecycle_product_obligations.yaml
 docs/formal/formal_model_catalog.yaml
 docs/invariants/coverage-matrix.json via generated report
 docs/formal/proof-refinement-scope.json when claim strength changes
@@ -81,7 +81,7 @@ Protocol-critical PRs currently must pass the implemented mandatory gates:
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Available PR-diff discipline check for provider CI or local review:
@@ -98,7 +98,7 @@ For proof-lane PRs:
 
 ```bash
 tools/full-doctor --json --profile proof
-just formal-verify-all --profile proof
+just verification-full --profile proof
 ```
 
 ## Merge-blocking examples
@@ -119,6 +119,6 @@ Emergency production fixes may merge behind an explicit exception only if:
 
 1. exception is in executable JSON policy;
 2. expiry is short and concrete;
-3. the skipped lane is not forbidden by `formal/proof-lanes.json`;
+3. the skipped lane is not forbidden by `verification/formal-full/proof-lanes.json`;
 4. a follow-up issue names the missing model/control;
 5. the gate records `non_blocking_skipped`, never `passed`.

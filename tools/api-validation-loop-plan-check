@@ -186,7 +186,7 @@ def validate_evidence(
         expect(
             isinstance(target, str) and target in fuzz_target_ids,
             errors,
-            f"{context}: fuzz_target must exist in fuzz/Cargo.toml and fuzz/fuzz_targets",
+            f"{context}: fuzz_target must exist in verification/fuzz/Cargo.toml and verification/fuzz/fuzz_targets",
         )
         return kind
 

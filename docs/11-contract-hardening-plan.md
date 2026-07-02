@@ -43,7 +43,7 @@ started; **pending** = specified by an ADR but not yet built.
 | TZ-007 | Merge protocol v0.1 (`MergeProtocolSpec`, `mergeable()`, default none) | P0 (for I-006) | **partial** — `MergeProtocolSpec`/status/algebra in bundle schema; default-none `mergeable() == false` and conflict replay enforced; verified merge protocols pending |
 | TZ-008 | Authz default policy (deny-by-default, `AuthzPolicy`/`AuthzMode`) | P0 | **done** — registry/bundle carry explicit `authz_policy`; bundle replay validates typed allow/deny authz evidence post-hoc; live enforcement via core `authz_gate` + `causlane-runtime::authz::AuthzGuard`, wired into `guarded_executor::GuardedExecutor::spend_barrier` (authorizes before deriving/spending a capability; a test proves a barrier cannot be spent without authorization) |
 | TZ-009 | Replay verifier hardening (per `action_id+plan_hash`; I-001/I-002/I-003/I-006/I-008; JSON loader) | P0 | **done** — structural replay plus bundle-bound lifecycle, barrier payload, witness, lease, authz-ref and claim-coverage checks |
-| TZ-010 | Formal codegen path (`causlane-codegen`, bundle → Alloy/P/Kani/Verus/Lean4, receipts) | P0 (before models) | **done** — generated Alloy/P/Kani/Verus/Lean4 artifacts and receipts exist; all five lanes run (always-on, blocking) in `formal-verify-all` (the Verus/Lean4 non-blocking exceptions were dropped 2026-06-21) |
+| TZ-010 | Formal codegen path (`causlane-codegen`, bundle → Alloy/P/Kani/Verus/Lean4, receipts) | P0 (before models) | **done** — generated Alloy/P/Kani/Verus/Lean4 artifacts and receipts exist; all five lanes run (always-on, blocking) in `check-verification-full` (the Verus/Lean4 non-blocking exceptions were dropped 2026-06-21) |
 | TZ-011 | Scenario catalog v0.1 (`*.scenario.yaml`) | P1 | **done** — `contracts/scenarios/*.scenario.yaml`, JSON Schema, `scenario emit-trace`, replay tests and CLI E2E landed |
 | TZ-012 | Type hardening (typed ids/newtypes over stringly fields) | P1 | **partial** — added `LifecycleClass`, `RouteId`, `FactKind`, `BundleHash`, `ContentHash`, `ImpactSetHash`, `EventHash`, `ConstraintEpoch`, `WitnessRef`, `ExecutionBarrier`, `ExecutionCapability`, `CapabilityId`; further hardening ongoing |
 | TZ-013 | Docs/ADR updates | P0 | **done** — ADR-0009…0014; updated docs 05/07/10, glossary, coverage matrix, formal READMEs |
@@ -114,7 +114,7 @@ Per the formal-models TZ, the P0 readiness stage is partly landed:
 | P0-001 `formal doctor` | **done** — `causlane formal doctor [--json] [--require ...]` (`causlane-formal` crate, pure; CLI gathers env) + `just formal-doctor`/`-json`/`-smoke` |
 | P0-002 toolchain source of truth | **done** — `rust-toolchain.toml` canonical (stable + components); `tool-versions.json` records observed 1.93.1 |
 | Tool install | **done** — z3 4.12.5 from the pinned Verus distribution, Alloy 6.2.0 (jar), P 3.1.0, cargo-kani 0.67.0 installed; Verus downloaded (needs Rust 1.95.0 toolchain); `tool-versions.json` `formal_tools` enabled + pinned |
-| FM-001 Alloy lane | **real** — headless `AlloyRunner.java` (Alloy API + SAT4J) runs `formal/alloy/core/causlane_core.als`; I-001/I-002/I-003 hold, a negative control is correctly refuted, receipt written |
+| FM-001 Alloy lane | **real** — headless `AlloyRunner.java` (Alloy API + SAT4J) runs `verification/formal-full/alloy/core/causlane_core.als`; I-001/I-002/I-003 hold, a negative control is correctly refuted, receipt written |
 | P0-003 bundle → formal input v0.3 | **done** — `BundleBody` v3 carries route, barrier/projection/authz/truth/constraint policies, selector schemas, claim templates, scenario refs and formal obligations |
 | P0-004 typed `WitnessRef` + resolver | **done** — typed refs + exact selector resolution for kind/fact/scope/action/plan/impact |
 | P0-005 typed `ExecutionBarrier` + capability + trace JSON | **done** — core structs, `ExecutionCapability::derive_from_barrier`, executor port capability and normalized trace JSON |
@@ -122,7 +122,7 @@ Per the formal-models TZ, the P0 readiness stage is partly landed:
 | P0-007 `AuthzPolicy` types + deny-by-default enforcement | **done** — manifest/bundle types + replay (post-hoc) enforcement; live enforcement via the pure core `authz_gate` (ADR-0011, fail-closed) wrapped by `causlane-runtime`'s `AuthzGuard::authorize_barrier` and wired into `GuardedExecutor::spend_barrier`, which authorizes before deriving/spending the capability (missing/denied/wrong-binding/expired all refuse; a runtime test proves no op runs under an unauthorized barrier) |
 | P0-008 `mergeable()` predicate | **done (replay path)** — the replay oracle resolves merge **per-protocol**: a verified `MergeProtocolSpec` applicable to an effect's `op_kind` makes that effect's conflict-domain scopes mergeable (`resolve_mergeable_scopes` → `LeaseTable::with_mergeable_scopes`), relaxing the I-006 exclusive-lease conflict; fail-closed when no verified protocol applies. Core `mergeable()` remains the global fail-closed default for callers without a bundle. Runtime/provider enforcement still pending |
 | P0-009 scenario catalog (`*.scenario.yaml`) | **done** — catalog, schema, trace emitter and replay tests |
-| P0-010 `causlane-codegen` (bundle → Alloy/P/Kani/Verus/Lean4) | **done** — Alloy/P/Kani/Verus/Lean4 artifacts generated from Formal IR; all five lanes run (always-on, blocking) in `formal-verify-all` (Verus/Lean4 non-blocking exceptions dropped 2026-06-21) |
+| P0-010 `causlane-codegen` (bundle → Alloy/P/Kani/Verus/Lean4) | **done** — Alloy/P/Kani/Verus/Lean4 artifacts generated from Formal IR; all five lanes run (always-on, blocking) in `check-verification-full` (Verus/Lean4 non-blocking exceptions dropped 2026-06-21) |
 | FM-002 P / FM-003 Kani / FM-004 Verus | **partial** — P and Kani executable lanes exist for the current generated slice; Verus remains optional proof hardening |
 | FM-005 stale-check + receipts | **done** — `formal generate alloy --receipt` writes receipt schema v2 and `formal stale-check` validates bundle/artifact/scenario hashes |
 
@@ -141,8 +141,8 @@ enrichment toward bundle-bound formal input). **done** this iteration:
 | T-002 tool provisioning | **done** — `tools/formal-install <alloy\|verus\|z3\|p\|kani\|all>`, SHA-verified against `tool-versions.json`, installs into `.tools/` (git-ignored) |
 | B-002 tool source-of-truth | **done** — Alloy jar SHA pinned; z3 added; Verus archive URL+SHA+version pinned (`enabled:false` until its Rust 1.95.0 toolchain) |
 | B-005 / T-003 bundle_id in manifest | **done** — `RegistryManifest.bundle_id`; `compile(manifest)` uses it; `compile_with_bundle_id` is tests/dev override; CLI no longer injects `causlane.cli`; pinned plan hash unchanged |
-| B-014 Alloy file dedup | **done** — exploratory moved to `formal/alloy/sketches/`; `alloy/core` is a generic support model, while compiled bundle + generated facts + receipts are authoritative |
-| B-015 receipts policy | **done** — live receipts git-ignored; committed sample at `formal/receipts/examples/alloy-core.sample.json` |
+| B-014 Alloy file dedup | **done** — exploratory moved to `verification/formal-full/alloy/sketches/`; `alloy/core` is a generic support model, while compiled bundle + generated facts + receipts are authoritative |
+| B-015 receipts policy | **done** — live receipts git-ignored; committed sample at `verification/formal-full/receipts/examples/alloy-core.sample.json` |
 | B-017 canonical serialization policy | **done** — Canonical Serialization v1 is specified and used by bundle/formal IR hash material |
 
 **done/partial** this iteration: T-004/B-004 `BundleBody` v2 enrichment;
@@ -215,5 +215,5 @@ stable error codes survive).
 
 **Genuinely out of scope** (the I/O layer the §7 split pushes to runners/CLI, not
 a pure contract): 7.10 `FormalToolRunner` (invokes Java/P/Kani/Verus — lives in
-the shell gate `tools/formal-verify-all`) and 7.11 `ReceiptWriter` (filesystem
+the shell gate `scripts/check-verification-full.sh`) and 7.11 `ReceiptWriter` (filesystem
 writes — the CLI owns them; codegen only builds receipt values).

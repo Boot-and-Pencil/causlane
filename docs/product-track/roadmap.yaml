@@ -60,7 +60,7 @@ stages:
   - id: M01.7
     title: Receipts/stale-check v2
     status: exists_harden
-  gate: '`just formal-ready` и `just formal-verify-all` проходят в чистой среде; coverage
+  gate: '`just formal-ready` и `just verification-full` проходят в чистой среде; coverage
     matrix выводится из receipts, а не из prose.'
 - id: S02
   slug: formal-models-v1

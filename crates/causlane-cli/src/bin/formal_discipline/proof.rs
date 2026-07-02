@@ -12,7 +12,7 @@ pub(crate) struct ReceiptResult {
 
 pub(crate) fn check_proof_cheating(profile: Profile) -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
-    for path in files_with_ext(Path::new("formal/lean"), "lean") {
+    for path in files_with_ext(Path::new("verification/formal-full/lean"), "lean") {
         if path
             .components()
             .any(|component| component.as_os_str().to_str() == Some(".lake"))
@@ -21,11 +21,14 @@ pub(crate) fn check_proof_cheating(profile: Profile) -> Result<(), Vec<String>> 
         }
         scan_file_for_tokens(&path, CommentKind::Lean, &lean_tokens(), &mut errors);
     }
-    for path in files_with_ext(Path::new("formal/lean4/generated"), "lean") {
+    for path in files_with_ext(
+        Path::new("verification/formal-full/lean4/generated"),
+        "lean",
+    ) {
         scan_file_for_tokens(&path, CommentKind::Lean, &lean_tokens(), &mut errors);
     }
     if profile.is_proof() {
-        for path in files_with_ext(Path::new("formal/verus"), "rs") {
+        for path in files_with_ext(Path::new("verification/formal-full/verus"), "rs") {
             scan_file_for_tokens(&path, CommentKind::Rust, &verus_tokens(), &mut errors);
         }
     }
@@ -39,11 +42,11 @@ pub(crate) fn check_proof_cheating(profile: Profile) -> Result<(), Vec<String>> 
 pub(crate) fn check_generated_artifacts() -> Result<(), Vec<String>> {
     let mut errors = Vec::new();
     for (dir, extension) in [
-        ("formal/alloy/generated", "als"),
-        ("formal/p/generated", "p"),
-        ("formal/kani/generated", "rs"),
-        ("formal/verus/generated", "rs"),
-        ("formal/lean4/generated", "lean"),
+        ("verification/formal-full/alloy/generated", "als"),
+        ("verification/formal-full/p/generated", "p"),
+        ("verification/formal-full/kani/generated", "rs"),
+        ("verification/formal-full/verus/generated", "rs"),
+        ("verification/formal-full/lean4/generated", "lean"),
     ] {
         for path in files_with_ext(Path::new(dir), extension) {
             match std::fs::read_to_string(&path) {
@@ -79,7 +82,7 @@ pub(crate) fn check_receipts(profile: Profile, findings: &mut Findings) -> Recei
         failed: false,
         warned: false,
     };
-    for path in direct_receipt_files(Path::new("formal/receipts")) {
+    for path in direct_receipt_files(Path::new("verification/formal-full/receipts")) {
         check_receipt_file(profile, &path, findings, &mut result);
     }
     result

@@ -36,13 +36,13 @@ IR="$TARGET_DIR/release_promote.formal-ir.json"
 python3 tools/validate-json-schema --schema contracts/schema/formal_ir.schema.json "$IR"
 
 echo "== Kani profile validates against formal_kani_profile.schema.json =="
-python3 tools/validate-json-schema --schema contracts/schema/formal_kani_profile.schema.json formal/kani/profile.json
+python3 tools/validate-json-schema --schema contracts/schema/formal_kani_profile.schema.json verification/formal-full/kani/profile.json
 
 echo "== Formal exceptions validate against formal_exceptions.schema.json =="
 python3 tools/validate-json-schema --schema contracts/schema/formal_exceptions.schema.json docs/formal-exceptions.json
 
 echo "== Proof lanes validate against formal_proof_lanes.schema.json =="
-python3 tools/validate-json-schema --schema contracts/schema/formal_proof_lanes.schema.json formal/proof-lanes.json
+python3 tools/validate-json-schema --schema contracts/schema/formal_proof_lanes.schema.json verification/formal-full/proof-lanes.json
 
 echo "== Proof/refinement scope validates against formal_proof_refinement_scope.schema.json =="
 python3 tools/validate-json-schema --schema contracts/schema/formal_proof_refinement_scope.schema.json docs/formal/proof-refinement-scope.json

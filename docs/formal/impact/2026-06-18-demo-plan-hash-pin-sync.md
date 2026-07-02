@@ -84,7 +84,7 @@ unchanged, so no lane's assertions move.
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:

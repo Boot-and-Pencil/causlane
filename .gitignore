@@ -30,15 +30,15 @@ __pycache__/
 
 # BEGIN causlane formal tooling
 /.tools/
-formal/alloy/classes/
-formal/alloy/generated/*.als
-formal/ir/generated/*.json
-formal/kani/generated/*.rs
-formal/lean/.lake/
-formal/lean4/generated/*.lean
-formal/p/generated/*.p
-formal/verus/generated/*.rs
-formal/receipts/*.json
+verification/formal-full/alloy/classes/
+verification/formal-full/alloy/generated/*.als
+verification/formal-full/ir/generated/*.json
+verification/formal-full/kani/generated/*.rs
+verification/formal-full/lean/.lake/
+verification/formal-full/lean4/generated/*.lean
+verification/formal-full/p/generated/*.p
+verification/formal-full/verus/generated/*.rs
+verification/formal-full/receipts/*.json
 PCheckerOutput/
 minio/
 objectstore/

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "authority": "compiled_bundle_plus_scenario_plus_formal_ir",
-  "gate": "just formal-verify-all",
+  "gate": "just verification-full",
   "derived_from": "target/causlane/formal-coverage-report.json (P0-006: per-lane status is machine-derived, never hand-asserted)",
   "note": "Each lane cell is the reconciled status from the coverage report; `tools/coverage-matrix --check` fails if this file drifts from a fresh report. A lane is 'passed' only when a concrete check_id backs it; 'not_applicable' means that lane does not model the invariant (other lanes cover it).",
   "invariants": [

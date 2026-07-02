@@ -19,7 +19,7 @@ Add M10.2 as a P-first bootstrap:
   epoch;
 - add P monitors for duplicate retry execution, authz Deny-before-barrier and
   stale constraint-epoch admission;
-- add P-only control scenarios that are explicitly run by `tools/formal-verify-all`;
+- add P-only control scenarios that are explicitly run by `scripts/check-verification-full.sh`;
 - keep those scenarios out of replay-negative coverage by avoiding the
   `*_invalid.scenario.yaml` suffix;
 - keep `I-012`, `I-014` and `I-018` planned until replay/proof/coverage

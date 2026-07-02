@@ -11,10 +11,10 @@
 ## Touched protocol-critical paths
 
 ```text
-formal/alloy/core/causlane_core.als
+verification/formal-full/alloy/core/causlane_core.als
 crates/causlane-codegen/src/obligations.rs
-formal/obligations/lifecycle_product_obligations.yaml
-tools/formal-verify-all
+verification/formal-full/obligations/lifecycle_product_obligations.yaml
+scripts/check-verification-full.sh
 tools/coverage-matrix
 docs/invariants/coverage-matrix.json
 docs/invariants/coverage-matrix.md
@@ -40,7 +40,7 @@ because the generated `.als` already carries `LifecycleClosed` events with full
   `Enforced`) now covers I-008. `obligations.rs` adds
   `("I-008", "GeneratedTraceSatisfiesCore")`; the manifest sets I-008's alloy lane
   `required` with that check_id.
-- `tools/formal-verify-all` adds `event_after_closed_invalid` to the Alloy
+- `scripts/check-verification-full.sh` adds `event_after_closed_invalid` to the Alloy
   negative-control set; coverage/docs/inventory updated (derived, not hand-asserted).
 
 ## Non-vacuity proof (anti-theatre)
@@ -103,14 +103,14 @@ emit drain-scope→lease bindings — a separate increment.
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:
 
 ```bash
 java -cp .tools/alloy/alloy.jar:.tools/alloy/classes AlloyRunner \
-  formal/alloy/generated/event_after_closed_invalid.als   # status=fail (refuted)
+  verification/formal-full/alloy/generated/event_after_closed_invalid.als   # status=fail (refuted)
 tools/coverage-matrix --check
 ```
 

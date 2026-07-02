@@ -11,12 +11,12 @@ SCENARIO="contracts/scenarios/release_promote_success.scenario.yaml"
 TARGET_DIR="target/causlane"
 BUNDLE="$TARGET_DIR/release_promote.bundle.json"
 EMITTED_TRACE="$TARGET_DIR/release_promote_success.trace.json"
-GENERATED="formal/alloy/generated/release_promote_success.als"
-RECEIPT="formal/receipts/release_promote_success.codegen.json"
+GENERATED="verification/formal-full/alloy/generated/release_promote_success.als"
+RECEIPT="verification/formal-full/receipts/release_promote_success.codegen.json"
 REPORT="$TARGET_DIR/formal-readiness-report.json"
 DOCTOR_REPORT="$TARGET_DIR/formal-doctor.json"
 
-mkdir -p "$TARGET_DIR" formal/alloy/generated formal/receipts
+mkdir -p "$TARGET_DIR" verification/formal-full/alloy/generated verification/formal-full/receipts
 
 echo "== formal doctor =="
 python3 tools/formal-doctor --json --profile base --lane local_smoke > "$DOCTOR_REPORT"
@@ -48,7 +48,7 @@ MULTI_TRACE="$TARGET_DIR/multi_action_reference.trace.json"
 "${CLI[@]}" replay verify --bundle "$MULTI_BUNDLE" --trace "$MULTI_TRACE" --require-bundle-hash
 
 echo "== formal smoke =="
-bash formal/smoke.sh
+bash verification/formal-full/smoke.sh
 
 BUNDLE_HASH="$(jq -r .bundle_hash "$BUNDLE")"
 SCENARIO_HASH="$(jq -r .scenario_hash "$RECEIPT")"

@@ -9,27 +9,27 @@ Accepted
 ## Context
 
 The Kani lane already runs real generated harnesses under `cargo-kani`, but the
-runner shape lived partly as shell literals in `tools/formal-verify-all`. M10.3
+runner shape lived partly as shell literals in `scripts/check-verification-full.sh`. M10.3
 needs a foundation for lane-specific bounds and future CI/nightly split without
 duplicating Kani invocation policy across scripts and docs.
 
 ## Decision
 
-Introduce `formal/kani/profile.json` as the machine-readable source for:
+Introduce `verification/formal-full/kani/profile.json` as the machine-readable source for:
 
 - the generated fixture stem;
 - the temporary Kani package name;
 - the Kani output format;
 - default unwind bounds per formal lane.
 
-`tools/formal-verify-all` reads this profile with `jq` and fails closed for an
+`scripts/check-verification-full.sh` reads this profile with `jq` and fails closed for an
 unknown lane or missing field. `tools/schema-validate-all` validates the profile
 against `contracts/schema/formal_kani_profile.schema.json`.
 
-Add `tools/formal-verify-lane` as the provider-neutral lane entrypoint. It reads
+Add `scripts/check-verification-full.sh --depth` as the provider-neutral lane entrypoint. It reads
 the same profile, validates the requested lane, reports the lane's Kani unwind
 and output format in `--dry-run`, and delegates real execution to
-`tools/formal-verify-all --lane`. CI providers should call this wrapper instead
+`scripts/check-verification-full.sh --lane`. CI providers should call this wrapper instead
 of duplicating Kani invocation policy.
 
 ## Consequences

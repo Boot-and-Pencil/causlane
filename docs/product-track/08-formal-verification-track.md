@@ -85,7 +85,7 @@ Proofs:
 ## Lean4 v1
 
 Keep generated and narrow. Lean4 is now release-blocking inside
-`formal-verify-all`; broader theorem applications must still be grounded in
+`check-verification-full`; broader theorem applications must still be grounded in
 generated artifacts, receipts and coverage rows before they are claimed.
 
 ## Formal anti-theatre rules

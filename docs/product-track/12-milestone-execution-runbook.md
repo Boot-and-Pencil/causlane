@@ -81,7 +81,7 @@ just check
 just clippy
 just test
 just contract-test
-just formal-verify-all
+just verification-full
 ```
 
 If a command cannot run locally, record the reason and the required environment

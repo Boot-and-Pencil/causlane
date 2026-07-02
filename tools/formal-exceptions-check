@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Executable formal-lane exceptions policy enforcement (P1-FM-012).
 #
-# Reads docs/formal-exceptions.json and formal/proof-lanes.json, then:
+# Reads docs/formal-exceptions.json and verification/formal-full/proof-lanes.json, then:
 #   * fails if any exception is past its allowed_until date;
 #   * fails if the exception policy tries to skip an always-blocking proof lane;
 #   * with --skipped-target <lane>, fails unless a non-expired exception permits
@@ -15,7 +15,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 POLICY="docs/formal-exceptions.json"
-PROOF_LANES="formal/proof-lanes.json"
+PROOF_LANES="verification/formal-full/proof-lanes.json"
 PROFILE=""
 SKIPPED_TARGET=""
 

@@ -31,7 +31,7 @@ The run executed on host `ci-dispatcher.lan` with:
 The target completed with status 0 and produced no crash/reproducer artifact in
 either the explicit `/tmp/causlane-fuzz-artifacts/runtime-guarded-20260629T131329Z/`
 artifact directory or the default
-`fuzz/artifacts/runtime_guarded_audit_projection/` directory.
+`verification/fuzz/artifacts/runtime_guarded_audit_projection/` directory.
 
 ## Run results
 

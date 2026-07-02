@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "_comment": "Executable formal-lane exceptions policy (P1-FM-012). Canonical, machine-readable source of truth for any formal lane that is not yet a real, passing, discriminating, authoritative check. Enforced by tools/formal-exceptions-check (jq), invoked from tools/formal-verify-all and just doctor-full. Keep in sync with docs/formal-exceptions.md prose and the lane tiers in formal/README.md. JSON (not YAML) is used so jq can enforce it with no extra runtime deps.",
-  "_exceptions_note": "Empty since 2026-06-21: the Verus and Lean4 proof lanes are now ALWAYS run and blocking in tools/formal-verify-all (the LANE_REALITY_{VERUS,LEAN4}_NON_BLOCKING time-boxed exceptions were dropped once the generated proofs were confirmed to pass `verus --no-cheating` and `lake build`/`lake env lean`). New lanes that are not yet real/passing/authoritative go here with an allowed_until date.",
+  "_comment": "Executable formal-lane exceptions policy (P1-FM-012). Canonical, machine-readable source of truth for any formal lane that is not yet a real, passing, discriminating, authoritative check. Enforced by tools/formal-exceptions-check (jq), invoked from scripts/check-verification-full.sh and just doctor-full. Keep in sync with docs/formal-exceptions.md prose and the lane tiers in verification/formal-full/README.md. JSON (not YAML) is used so jq can enforce it with no extra runtime deps.",
+  "_exceptions_note": "Empty since 2026-06-21: the Verus and Lean4 proof lanes are now ALWAYS run and blocking in scripts/check-verification-full.sh (the LANE_REALITY_{VERUS,LEAN4}_NON_BLOCKING time-boxed exceptions were dropped once the generated proofs were confirmed to pass `verus --no-cheating` and `lake build`/`lake env lean`). New lanes that are not yet real/passing/authoritative go here with an allowed_until date.",
   "exceptions": [],
   "scope_notes": [
     {

@@ -20,7 +20,7 @@ snapshot) · ◑ partial · ⏸ out of scope (model-deepening / deferred)
 | P0-005 | Alloy `mergeable` semantics + unrelated-merge control | ✅ done | `07caf36` (part 1: shared resolver) + `5d95eda` (part 2: scope-keyed assertion + control) · FIRs mergeable-scope-resolver, alloy-scope-keyed-mergeable |
 | P0-006 | legacy `AuditEvent.witnesses` reconciliation | ✅ done | `b922f2f` · FIR legacy-witness-reconciliation |
 | P0-007 | coverage/obligations honesty (I-010 not overclaimed) | ✔ already-resolved | coverage derived from receipts; I-010 not_applicable on replay/alloy |
-| P0-008 | schema validation as a mandatory gate | ✅ done | `3a1233a` · `causlane scenario validate` + check-json-no-duplicate-keys + schema-validate-all wired into formal-verify-all |
+| P0-008 | schema validation as a mandatory gate | ✅ done | `3a1233a` · `causlane scenario validate` + check-json-no-duplicate-keys + schema-validate-all wired into check-verification-full |
 | P0-009 | manual_core vs bundle_generated receipts | ✔ already-resolved | source_bundle_hash=null only for manual-core; not counted as bundle coverage |
 
 ## P1 — important before extending formal models
@@ -40,7 +40,7 @@ snapshot) · ◑ partial · ⏸ out of scope (model-deepening / deferred)
 | P2-001 | remove small dups / dead code | ✔ not-applicable | the cited dups are intentional: `mergeable()->false` is referenced by the Kani harness (`kani_target.rs`); `read_bundle` is per-subcommand by design; the other cited dups/legacy fields do not exist. clippy `-D warnings` green and gated |
 | P2-002 | docs honest about status | ✔ already-resolved | coverage-matrix + READMEs carry honest rungs/markers |
 | P2-003 | expand negative scenario corpus (15 desired) | ✅ done (replayable) | 11/15 pre-existed; added `barrier_legacy_witness_extra_invalid` (`b922f2f`), `unrelated_merge_protocol_does_not_allow_conflict_invalid` (`5d95eda`), `barrier_missing_lease_invalid` (this increment). The other 2 are **not replayable**: `constraint_update_rewrites_truth` (no constraint-update event kind in the trace schema; I-010 is P/Kani only) and `projection_anchor_wrong_event_kind` (already subsumed by `AnchorNotObservedTruth`) |
-| P2-004 | multi-action reference scenario | ✅ done | a replay-valid two-action history on an `EvidenceMeta` (non-RuntimeExecution) bundle (`multi_action_reference.{registry,scenario}`); `validate_lifecycle` now reduces each action's own substream, and `causlane-replay` tests prove a broken secondary-action lifecycle is rejected. Wired into `formal-ready` + `formal-verify-all`. FIR `2026-06-21-multi-action-replay-reference` |
+| P2-004 | multi-action reference scenario | ✅ done | a replay-valid two-action history on an `EvidenceMeta` (non-RuntimeExecution) bundle (`multi_action_reference.{registry,scenario}`); `validate_lifecycle` now reduces each action's own substream, and `causlane-replay` tests prove a broken secondary-action lifecycle is rejected. Wired into `formal-ready` + `check-verification-full`. FIR `2026-06-21-multi-action-replay-reference` |
 
 ## Definition of Done §9 — status: closed
 - [x] Cargo binary targets exist (P0-001, pre-existing)
@@ -54,8 +54,8 @@ snapshot) · ◑ partial · ⏸ out of scope (model-deepening / deferred)
 - [x] Coverage matrix does not overclaim I-010 or others (P0-007, pre-existing)
 - [x] Receipts separate manual_core and bundle_generated (P0-009, pre-existing)
 - [x] Toolchain doctor/provisioning reproducible (P0-002, pre-existing)
-- [x] `formal/smoke.sh` passes in clean checkout (gate)
-- [x] `tools/formal-verify-all --profile base` passes (gate)
+- [x] `verification/formal-full/smoke.sh` passes in clean checkout (gate)
+- [x] `scripts/check-verification-full.sh --profile base` passes (gate)
 - [x] Docs reflect actual status (P2-002, pre-existing)
 
 ## Commits (this fix-stage)

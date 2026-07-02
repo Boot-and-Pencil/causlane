@@ -32,7 +32,7 @@ just formal-ready
 For protocol-critical work, also run:
 
 ```bash
-just formal-verify-all
+just verification-full
 just contract-test
 ```
 

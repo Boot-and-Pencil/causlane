@@ -40,7 +40,7 @@ tools/context-pack-scan: pass, 715 files scanned
 tools/product-track-bundle --check: pass
 tools/product-track-status-check: pass
 tools/schema-validate-all: pass
-tools/formal-verify-all: pass, coverage status=pass
+scripts/check-verification-full.sh: pass, coverage status=pass
 ```
 
 Package file-list inspection:

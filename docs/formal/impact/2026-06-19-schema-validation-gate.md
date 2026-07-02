@@ -19,7 +19,7 @@ crates/causlane-cli/src/main.rs
 tools/check-json-no-duplicate-keys   (new)
 tools/validate-json-schema           (new)
 tools/schema-validate-all            (new)
-tools/formal-verify-all
+scripts/check-verification-full.sh
 ```
 
 ## Summary
@@ -51,7 +51,7 @@ can no longer hide.
   - `tools/validate-json-schema` (Python stdlib `json`+`re`) validates the emitted
     Formal IR against `formal_ir.schema.json`;
   - `tools/schema-validate-all` orchestrates these and is wired into
-    `tools/formal-verify-all`.
+    `scripts/check-verification-full.sh`.
 
 The validator lives in Python/bash by design: the workspace is intentionally
 dependency-lean (serde only) and the Rust discipline forbids dynamic
@@ -111,7 +111,7 @@ artifacts and their receipts/coverage are unaffected.
 ```bash
 tools/schema-validate-all
 python3 tools/check-json-no-duplicate-keys contracts/schema/*.json
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

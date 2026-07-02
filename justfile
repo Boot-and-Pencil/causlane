@@ -137,16 +137,25 @@ formal-doctor-json:
   ./tools/cargo-dev run -q -p causlane-cli --bin causlane -- formal doctor --json
 
 formal-smoke:
-  bash formal/smoke.sh
+  bash verification/formal-full/smoke.sh
 
 formal-ready:
   tools/formal-ready
 
-formal-run-all:
-  tools/formal-verify-all
+verification-full *args:
+  scripts/check-verification-full.sh {{args}}
+
+verification-formal:
+  scripts/check-verification-full.sh --suite formal --profile all --depth fast_ci
+
+verification-property:
+  scripts/check-verification-full.sh --suite property
+
+verification-fuzz:
+  scripts/check-verification-full.sh --suite fuzz --fuzz-runs 1
 
 formal-coverage:
-  if [ ! -f target/causlane/formal-coverage-report.json ]; then tools/formal-verify-all; fi
+  if [ ! -f target/causlane/formal-coverage-report.json ]; then scripts/check-verification-full.sh --suite formal --profile all --depth fast_ci; fi
   jq -e '.status == "pass"' target/causlane/formal-coverage-report.json >/dev/null
   jq -r '.invariant_coverage[] | "\(.invariant_id): \(.status)"' target/causlane/formal-coverage-report.json
 
@@ -165,12 +174,6 @@ formal-proof-refinement-scope:
 # Fail if the generated proof/refinement scope Markdown has drifted.
 formal-proof-refinement-scope-check:
   tools/proof-refinement-scope --check
-
-formal-verify-all:
-  tools/formal-verify-all
-
-formal-verify-lane lane *args:
-  tools/formal-verify-lane {{lane}} {{args}}
 
 # Enforce the executable formal-lane exceptions policy (expiry + profile rules).
 formal-exceptions-check *args:

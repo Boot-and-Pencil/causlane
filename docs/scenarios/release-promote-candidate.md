@@ -15,7 +15,7 @@ see [`../11-contract-hardening-plan.md`](../11-contract-hardening-plan.md)):
 - scenario catalog: [`contracts/scenarios/release_promote_success.scenario.yaml`](../../contracts/scenarios/release_promote_success.scenario.yaml) plus invalid fixtures → emitted by `causlane scenario emit-trace`;
 - scenario schema: [`contracts/schema/scenario.schema.json`](../../contracts/schema/scenario.schema.json);
 - CLI: `causlane bundle validate …` / `causlane scenario emit-trace …` / `causlane replay verify …` / `causlane formal generate alloy --scenario …`;
-- formal smoke: `just formal-smoke` regenerates the success and selected negative Alloy facts and runs them against `formal/alloy/core/causlane_core.als`.
+- formal smoke: `just formal-smoke` regenerates the success and selected negative Alloy facts and runs them against `verification/formal-full/alloy/core/causlane_core.als`.
 
 ## ActionCall
 

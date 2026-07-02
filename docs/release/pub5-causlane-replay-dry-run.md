@@ -41,7 +41,7 @@ RUSTUP_TOOLCHAIN=1.85.0 ./tools/cargo-dev check -p causlane-replay --all-targets
 ./tools/cargo-dev deny check: pass, with duplicate-version warnings accepted as M11.5 backlog
 tools/product-track-bundle --check: pass
 tools/product-track-status-check: pass
-tools/formal-verify-all: pass, coverage status=pass
+scripts/check-verification-full.sh: pass, coverage status=pass
 ```
 
 Package file-list inspection:

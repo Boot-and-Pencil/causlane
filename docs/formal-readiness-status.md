@@ -2,7 +2,7 @@
 
 Status date: 2026-06-24. Supersedes [`formal-readiness-final.md`](formal-readiness-final.md).
 
-**The authority is the machine gate, not this prose.** `tools/formal-verify-all`
+**The authority is the machine gate, not this prose.** `scripts/check-verification-full.sh`
 derives `target/causlane/formal-coverage-report.json` from generated artifacts,
 real tool-run receipts and real exit codes; [`docs/invariants/coverage-matrix.json`](invariants/coverage-matrix.json)
 is a machine-derived projection, and `tools/coverage-matrix --check` fails if
@@ -48,12 +48,12 @@ formal exceptions policy
 discipline enforcement**, backed by the `causlane-formal-discipline` CLI binary.
 It now enforces strict check-id adequacy across the obligation manifest,
 generated artifact text or replay negative controls, receipts, coverage and docs.
-It is mandatory inside the repo strict gate: `tools/formal-verify-all` runs it
+It is mandatory inside the repo strict gate: `scripts/check-verification-full.sh` runs it
 after receipt-derived coverage and `tools/coverage-matrix --check`. Provider
 CI can also run it in PR-diff mode with `--from-git` or `--changed-files`, but
 no provider workflow is checked into this repository.
 
-Current gate note (2026-06-21): the default `just formal-verify-all` gate passes
+Current gate note (2026-06-21): the default `just verification-full` gate passes
 locally with receipt-derived coverage `status=pass`, all generated targets fresh,
 and the coverage matrix drift check clean. The Verus and Lean4 proof lanes are now
 **always run and blocking** on every gate run (their time-boxed exceptions were
@@ -130,7 +130,7 @@ structural requirement that a `RuntimeExecution` barrier references a bound
 
 ## Verus status
 
-Verus is an **always-on, blocking** proof lane: `tools/formal-verify-all` runs
+Verus is an **always-on, blocking** proof lane: `scripts/check-verification-full.sh` runs
 `verus --no-cheating` over the generated proof artifact on **every** run (the
 `LANE_REALITY_VERUS_NON_BLOCKING` exception was dropped 2026-06-21) and records the
 real exit code in the tool-run receipt; a non-zero exit fails the gate. The current
@@ -144,8 +144,8 @@ receipt.
 
 Lean4 is now part of the generated proof contour, not merely a future ambition.
 `FormalTarget::Lean4` emits scenario-bound theorem applications from Formal IR
-into `formal/lean4/generated/*.lean`, imported by the repo-local Lake package
-under `formal/lean`.
+into `verification/formal-full/lean4/generated/*.lean`, imported by the repo-local Lake package
+under `verification/formal-full/lean`.
 
 Current implemented Lean4 coverage is intentionally not listed here by hand.
 Use the generated [`coverage-matrix.md`](invariants/coverage-matrix.md),
@@ -153,13 +153,13 @@ Use the generated [`coverage-matrix.md`](invariants/coverage-matrix.md),
 report as the authority for covered invariant cells and named theorem
 `check_id`s.
 
-This lane is **always run and blocking**: `tools/formal-verify-all` runs both
+This lane is **always run and blocking**: `scripts/check-verification-full.sh` runs both
 commands below on **every** run (the `LANE_REALITY_LEAN4_NON_BLOCKING` exception was
 dropped 2026-06-21), and a non-zero exit fails the gate:
 
 ```bash
-(cd formal/lean && ../../tools/lean4-env lake build CauslaneFormal)
-(cd formal/lean && ../../tools/lean4-env lake env lean ../lean4/generated/release_promote_success.lean)
+(cd verification/formal-full/lean && ../../../tools/lean4-env lake build CauslaneFormal)
+(cd verification/formal-full/lean && ../../../tools/lean4-env lake env lean ../lean4/generated/release_promote_success.lean)
 ```
 
 The tool-run receipt, not this paragraph, is the authority for whether the
@@ -169,10 +169,10 @@ models are target-state obligations, not current coverage.
 ## Deliberately not yet claimed
 
 - **Provider-specific PR CI enforcement:** `tools/formal-discipline-check` is
-  mandatory inside `formal-verify-all`; external CI still needs a workflow that
+  mandatory inside `check-verification-full`; external CI still needs a workflow that
   supplies `--from-git` or `--changed-files` for PR-diff checks. For formal
   lane execution, external CI should call the repo-local
-  `tools/formal-verify-lane <lane>` wrapper rather than duplicating Kani runner
+  `scripts/check-verification-full.sh --depth <lane>` wrapper rather than duplicating Kani runner
   policy.
 - **Authz provider strict-mode:** provider identity / dev-exemption expiry are
   deferred because the current decision/policy payloads do not yet carry enough
@@ -198,7 +198,7 @@ models are target-state obligations, not current coverage.
 Default implementation gate:
 
 ```bash
-just formal-verify-all
+just verification-full
 just formal-coverage
 just formal-coverage-matrix-check
 tools/formal-discipline-check --profile rust --no-diff --json
@@ -208,7 +208,7 @@ Proof-capable gate:
 
 ```bash
 tools/full-doctor --json --profile proof
-tools/formal-verify-all --profile proof
+scripts/check-verification-full.sh --profile proof
 ```
 
 Lean4 quick probe when debugging the proof lane:
@@ -216,6 +216,6 @@ Lean4 quick probe when debugging the proof lane:
 ```bash
 tools/formal-install lean4
 tools/lean4-env lake --version
-(cd formal/lean && ../../tools/lean4-env lake build CauslaneFormal)
-(cd formal/lean && ../../tools/lean4-env lake env lean ../lean4/generated/release_promote_success.lean)
+(cd verification/formal-full/lean && ../../../tools/lean4-env lake build CauslaneFormal)
+(cd verification/formal-full/lean && ../../../tools/lean4-env lake env lean ../lean4/generated/release_promote_success.lean)
 ```

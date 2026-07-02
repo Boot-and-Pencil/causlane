@@ -62,17 +62,17 @@ pub(crate) fn is_protocol_critical(path: &str) -> bool {
         || is_formal_tool(&path)
         || path.starts_with("docs/invariants/")
         || path.starts_with("docs/formal-exceptions.")
-        || path.starts_with("formal/")
+        || path.starts_with("verification/formal-full/")
 }
 
 // Source/receipt extensions are conventionally lower-case; case-sensitive
 // extension matching is intentional here.
 #[allow(clippy::case_sensitive_file_extension_comparisons)]
 fn is_generated_exemption(path: &str) -> bool {
-    (path.starts_with("formal/") && path.contains("/generated/"))
-        || (path.starts_with("formal/receipts/")
-            && path.ends_with(".json")
-            && path.matches('/').count() == 2)
+    (path.starts_with("verification/formal-full/") && path.contains("/generated/"))
+        || path
+            .strip_prefix("verification/formal-full/receipts/")
+            .is_some_and(|tail| path.ends_with(".json") && !tail.contains('/'))
 }
 
 #[allow(clippy::case_sensitive_file_extension_comparisons)]
@@ -117,13 +117,13 @@ mod tests {
     #[test]
     fn formal_discipline_exempts_generated_outputs() {
         assert!(!is_protocol_critical(
-            "formal/lean4/generated/release_promote_success.lean"
+            "verification/formal-full/lean4/generated/release_promote_success.lean"
         ));
         assert!(!is_protocol_critical(
-            "formal/receipts/release_promote_success.lean4.tool-run.json"
+            "verification/formal-full/receipts/release_promote_success.lean4.tool-run.json"
         ));
         assert!(is_protocol_critical(
-            "formal/receipts/examples/alloy-core.sample.json"
+            "verification/formal-full/receipts/examples/alloy-core.sample.json"
         ));
     }
 

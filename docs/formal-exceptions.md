@@ -20,10 +20,10 @@ enforces the policy with `jq` (no extra runtime deps):
   non-expired exception lists the active profile in `allowed_profiles` and not in
   `forbidden_profiles`.
 
-`tools/formal-verify-all` calls it up front to catch any expired exception. The
+`scripts/check-verification-full.sh` calls it up front to catch any expired exception. The
 Verus and Lean4 lanes are now **always run and blocking**, so there is no
 `non_blocking_skipped` path to justify. The machine-readable contract for that
-reality is `formal/proof-lanes.json`; `tools/formal-exceptions-check` rejects
+reality is `verification/formal-full/proof-lanes.json`; `tools/formal-exceptions-check` rejects
 any exception or skipped-target request for a proof lane marked
 `exception_allowed: false`.
 
@@ -31,10 +31,10 @@ any exception or skipped-target request for a proof lane marked
 
 **None.** The `LANE_REALITY_{VERUS,LEAN4}_NON_BLOCKING` exceptions were dropped on
 2026-06-21: both proof lanes are now **always run and blocking** in
-`tools/formal-verify-all` (confirmed passing `verus --no-cheating` and
+`scripts/check-verification-full.sh` (confirmed passing `verus --no-cheating` and
 `lake build CauslaneFormal` + `lake env lean`).
 
-So every `just formal-verify-all` run executes the Alloy, P, Kani, **Verus and
+So every `just verification-full` run executes the Alloy, P, Kani, **Verus and
 Lean4** lanes, derives coverage from real tool-run receipts + exit codes, runs the
 replay-backed negative controls, and requires the derived coverage report to be
 `pass`. The fast dev loop (`just formal-ready`, `cargo test`, `clippy`) does not run

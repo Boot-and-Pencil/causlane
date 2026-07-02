@@ -21,7 +21,7 @@ crates/causlane-contracts/src/bundle.rs
 crates/causlane-codegen/src/ir.rs
 crates/causlane-codegen/src/obligations.rs
 crates/causlane-cli/src/bin/formal_discipline/manifest.rs
-formal/obligations/lifecycle_product_obligations.yaml
+verification/formal-full/obligations/lifecycle_product_obligations.yaml
 tools/validate-json-schema
 ```
 

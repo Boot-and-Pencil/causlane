@@ -103,6 +103,6 @@ Deliverables:
 Exit:
 
 ```bash
-just formal-verify-all
+just verification-full
 just formal-coverage-matrix-check
 ```

@@ -131,7 +131,7 @@ bounded harness.
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:

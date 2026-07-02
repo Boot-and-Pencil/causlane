@@ -27,7 +27,7 @@ regenerated. No new invariant is activated and no runtime semantics change.
 
 ## Validation
 
-- Lean4 Lake package build and generated theorem check through `formal-verify-all`
+- Lean4 Lake package build and generated theorem check through `check-verification-full`
 - stale-check for generated artifacts and receipts
 - receipt-derived coverage matrix drift check
 - formal discipline check

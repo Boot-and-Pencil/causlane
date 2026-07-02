@@ -152,26 +152,32 @@ mod tests {
     fn formal_paths_share_one_layout() {
         let stem = "release_promote_success";
         assert_eq!(
-            ir_path_for("formal", stem).display().to_string(),
-            "formal/ir/generated/release_promote_success.formal_ir.json"
-        );
-        assert_eq!(
-            artifact_path_for("formal", FormalTarget::Lean4, stem)
+            ir_path_for("verification/formal-full", stem)
                 .display()
                 .to_string(),
-            "formal/lean4/generated/release_promote_success.lean"
+            "verification/formal-full/ir/generated/release_promote_success.formal_ir.json"
         );
         assert_eq!(
-            codegen_receipt_path_for("formal/receipts", FormalTarget::P, stem)
+            artifact_path_for("verification/formal-full", FormalTarget::Lean4, stem)
                 .display()
                 .to_string(),
-            "formal/receipts/release_promote_success.p.codegen.json"
+            "verification/formal-full/lean4/generated/release_promote_success.lean"
         );
         assert_eq!(
-            tool_run_receipt_path_for("formal/receipts", FormalTarget::Kani, stem)
+            codegen_receipt_path_for("verification/formal-full/receipts", FormalTarget::P, stem)
                 .display()
                 .to_string(),
-            "formal/receipts/release_promote_success.kani.tool-run.json"
+            "verification/formal-full/receipts/release_promote_success.p.codegen.json"
+        );
+        assert_eq!(
+            tool_run_receipt_path_for(
+                "verification/formal-full/receipts",
+                FormalTarget::Kani,
+                stem
+            )
+            .display()
+            .to_string(),
+            "verification/formal-full/receipts/release_promote_success.kani.tool-run.json"
         );
     }
 }

@@ -37,7 +37,7 @@ For external host projects, the stabilized integration seam is `causlane.host-di
 
 ```text
 docs/                     Normative docs, ADRs, concepts, scenarios.
-formal/                   Generated/bound Alloy, P, Kani and optional Verus artifacts.
+verification/formal-full/                   Generated/bound Alloy, P, Kani and optional Verus artifacts.
 contracts/                Registry and compiled bundle example shapes.
 crates/causlane/          Public facade crate.
 crates/causlane-core/     Pure domain/application kernel.

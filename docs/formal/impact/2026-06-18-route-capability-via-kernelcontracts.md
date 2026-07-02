@@ -82,8 +82,8 @@ derived, only the call surface.
 
 | Scenario | Expected lane | Expected error/monitor/check | Status |
 |---|---|---|---|
-| `capability_binding_rule_is_fail_closed` | Kani | derivation rejects an op/lease not covered by the barrier (`formal/kani/generated/release_promote_success.rs:87`) | existing |
-| `capability_binding_is_exact_conjunction_nondet` | Kani | derived capability binds exactly action/plan/op/barrier/lease (`formal/kani/generated/release_promote_success.rs:257`) | existing |
+| `capability_binding_rule_is_fail_closed` | Kani | derivation rejects an op/lease not covered by the barrier (`verification/formal-full/kani/generated/release_promote_success.rs:87`) | existing |
+| `capability_binding_is_exact_conjunction_nondet` | Kani | derived capability binds exactly action/plan/op/barrier/lease (`verification/formal-full/kani/generated/release_promote_success.rs:257`) | existing |
 | `barrier_cannot_be_spent_without_authorization` | runtime test | unauthorized barrier returns `Unauthorized`, op never runs (`crates/causlane-runtime/src/guarded_executor.rs:183`) | existing |
 | `authorized_barrier_runs_the_op` | runtime test | bound, non-expired allow runs the op exactly once through the routed derivation (`crates/causlane-runtime/src/guarded_executor.rs:202`) | existing |
 
@@ -115,7 +115,7 @@ change what those lanes assert. Verus/Lean4 capability facets remain
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:

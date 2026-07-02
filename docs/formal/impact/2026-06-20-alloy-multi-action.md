@@ -95,7 +95,7 @@ No P/Kani/Verus/Lean4 change.
 
 ```bash
 ./tools/cargo-dev test -p causlane-codegen --all-targets
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

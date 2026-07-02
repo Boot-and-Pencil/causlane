@@ -31,7 +31,7 @@
 - `M01.6` — **Replay oracle strict bundle mode** (`exists_expand`): Replay проверяет trace against bundle, plan_hash, witnesses, anchors, leases, lifecycle, authz, claims.
 - `M01.7` — **Receipts/stale-check v2** (`exists_harden`): Codegen/tool-run receipts, generated artifact hashes, stale-check-all, coverage derivation.
 
-**Exit gate:** `just formal-ready` и `just formal-verify-all` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
+**Exit gate:** `just formal-ready` и `just verification-full` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
 
 ## S02 — Формальные модели v1
 

@@ -55,15 +55,15 @@ Required outcomes:
 - diagnostics are stable enough for pre-alpha users;
 - AI-agent instructions document naming and authority-boundary pitfalls;
 - code comments explain invariants and edge cases, not historical accidents;
-- real fuzz/property coverage is adopted — the smoke scaffold is replaced or
+- real verification/fuzz/property coverage is adopted — the smoke scaffold is replaced or
   extended with protocol-meaningful targets (see "Fuzz & property adoption").
 
 ## Fuzz & property adoption (after PUB0 refactor, before PUB5 publication)
 
 Before PUB1 began, a **minimal smoke scaffold** existed only to keep the
-fuzz/property CI pipeline exercised on the `ci-dispatcher` machine:
+verification/fuzz/property CI pipeline exercised on the `ci-dispatcher` machine:
 
-- `fuzz/` — one cargo-fuzz target (`requirement_from_tokens`);
+- `verification/fuzz/` — one cargo-fuzz target (`requirement_from_tokens`);
 - `crates/causlane-formal/tests/proptest_smoke.rs` — one proptest property.
 
 That scaffold alone is explicitly **not** real coverage. After the PUB0 refactor

@@ -124,7 +124,7 @@ header comment fields and never compared the artifact body hash, so a hand-edite
 body with an intact header passed. The receipt-present path already compares
 `generated_artifact_hash` against the artifact (and the header is part of the
 hashed text), so requiring a receipt closes the hole. All real callers already
-supply receipts (`tools/formal-ready` passes `--receipt`; `tools/formal-verify-all`
+supply receipts (`tools/formal-ready` passes `--receipt`; `scripts/check-verification-full.sh`
 generates receipts before `stale-check-all`). Regression tests cover: no-receipt
 rejected, body-edit-without-receipt rejected, and a matching receipt accepted.
 At that point, M2 remained open.
@@ -158,16 +158,16 @@ Two parts:
 2. **Formal toolchain installed on `ci-dispatcher.lan`** (Alloy 6.2.0 / Z3 / P
    3.1.0 / Kani 0.67.0 / Verus 0.2026.05.31 under Rust 1.95 / Lean4 4.31.0);
    `tools/formal-doctor` passes. This **enables CI re-derivation** — re-running
-   `tools/formal-verify-all` regenerates artifacts and rewrites receipts from real
+   `scripts/check-verification-full.sh` regenerates artifacts and rewrites receipts from real
    tool runs, so a hand-edited receipt cannot survive a fresh run.
 
    **Follow-up (tracked, not blocking the formal mitigation):** the z3/P
    environment caveat is resolved for the formal gate. `.devinfra/tool-versions.json`
    now pins z3 to the Verus-bundled `.tools/verus_dist/verus-x86-linux/z3`
-   (4.12.5), and `tools/formal-doctor`/`tools/formal-verify-all` resolve that
+   (4.12.5), and `tools/formal-doctor`/`scripts/check-verification-full.sh` resolve that
    configured binary instead of whichever system z3 appears first on `PATH`.
    Fresh local and `ci-dispatcher.lan` runs of
-   `tools/formal-verify-all --profile all --lane local_smoke` pass with derived
+   `scripts/check-verification-full.sh --profile all --lane local_smoke` pass with derived
    coverage `status=pass`. The remaining out-of-band `cli-checker` artifact
    (empty `archive_url` in `.devinfra/tool-versions.json`) is still a devinfra
    bootstrap P0, not a formal re-derivation blocker.

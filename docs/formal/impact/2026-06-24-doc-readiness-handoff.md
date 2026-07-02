@@ -95,7 +95,7 @@ just test
 just contract-test
 just refactor-readiness
 just formal-ready
-just formal-verify-all
+just verification-full
 just formal-coverage-matrix-check
 ./tools/formal-discipline-check --profile base --changed-files /tmp/causlane-patch-pack-015-changed-files.txt
 ```

@@ -27,22 +27,22 @@ A Lean theorem is evidence for Causlane only when either:
 1. it is a generic theorem about the protocol calculus and generated instance facts instantiate it; or
 2. it is connected to code by a Verus/Kani/replay obligation recorded in the coverage report.
 
-A Verus proof is evidence only when run with `verus --no-cheating` under the always-blocking proof-lane contract. Future non-authoritative proof lanes must be recorded in `formal/proof-lanes.json` and governed by `docs/formal-exceptions.json` before they can be skipped.
+A Verus proof is evidence only when run with `verus --no-cheating` under the always-blocking proof-lane contract. Future non-authoritative proof lanes must be recorded in `verification/formal-full/proof-lanes.json` and governed by `docs/formal-exceptions.json` before they can be skipped.
 
 ## Lean4 lane: operational scope
 
 Lean4 is introduced as `FormalTarget::Lean4` with generated theorem
 applications over Formal IR. It is **always run and blocking** for the obligations
-currently emitted by the generator: `tools/formal-verify-all` runs it on every run
+currently emitted by the generator: `scripts/check-verification-full.sh` runs it on every run
 (the base/rust/ci non-blocking exception was dropped 2026-06-21).
 
 Generated layout:
 
 ```text
-formal/lean/CauslaneFormal/*.lean # generic reusable protocol calculus; not bundle authority alone
-formal/lean4/generated/*.lean     # generated bundle/scenario theorem applications
-formal/receipts/*.lean4.codegen.json
-formal/receipts/*.lean4.tool-run.json
+verification/formal-full/lean/CauslaneFormal/*.lean # generic reusable protocol calculus; not bundle authority alone
+verification/formal-full/lean4/generated/*.lean     # generated bundle/scenario theorem applications
+verification/formal-full/receipts/*.lean4.codegen.json
+verification/formal-full/receipts/*.lean4.tool-run.json
 ```
 
 Tooling:
@@ -50,8 +50,8 @@ Tooling:
 ```text
 elan/lake/lean pinned in .devinfra/tool-versions.json
 tools/formal-install lean4
-(cd formal/lean && ../../tools/lean4-env lake build CauslaneFormal)
-(cd formal/lean && ../../tools/lean4-env lake env lean ../lean4/generated/<scenario>.lean)
+(cd verification/formal-full/lean && ../../../tools/lean4-env lake build CauslaneFormal)
+(cd verification/formal-full/lean && ../../../tools/lean4-env lake env lean ../lean4/generated/<scenario>.lean)
 causlane formal generate lean4 --bundle ... --scenario ...
 causlane formal stale-check-all includes Lean4 artifacts
 ```
@@ -159,9 +159,9 @@ Verus proves preservation properties for pure kernel rules and validators. It is
 Generated layout stays:
 
 ```text
-formal/verus/generated/*.rs
-formal/receipts/*.verus.codegen.json
-formal/receipts/*.verus.tool-run.json
+verification/formal-full/verus/generated/*.rs
+verification/formal-full/receipts/*.verus.codegen.json
+verification/formal-full/receipts/*.verus.tool-run.json
 ```
 
 Verus artifacts must be generated from Formal IR where scenario-bound. Generic Verus support modules may exist but cannot be counted without generated instance proof or explicit receipt.

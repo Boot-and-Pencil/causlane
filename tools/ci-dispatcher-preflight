@@ -6,7 +6,7 @@ REPO="${CI_DISPATCHER_REPO:-/workspace/repo}"
 CONNECT_TIMEOUT="${CI_DISPATCHER_CONNECT_TIMEOUT:-10}"
 FUZZ_TOOLCHAIN="${CI_DISPATCHER_FUZZ_TOOLCHAIN:-nightly-2025-11-21}"
 FUZZ_TARGET="${CI_DISPATCHER_FUZZ_TARGET:-requirement_from_tokens}"
-FUZZ_ARTIFACTS="${CI_DISPATCHER_FUZZ_ARTIFACTS:-/tmp/causlane-fuzz-artifacts}"
+FUZZ_ARTIFACTS="${CI_DISPATCHER_FUZZ_ARTIFACTS:-target/causlane/fuzz-artifacts}"
 SYNC=1
 
 usage() {
@@ -172,12 +172,12 @@ step "property smoke"
 
 step "fuzz compile"
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
-  ./tools/cargo +"$fuzz_toolchain" test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
+  rustup run "$fuzz_toolchain" cargo test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
 
 step "fuzz one-run smoke"
 mkdir -p "$fuzz_artifacts"
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
-  ./tools/cargo +"$fuzz_toolchain" fuzz run "$fuzz_target" -- \
+  rustup run "$fuzz_toolchain" cargo fuzz run "$fuzz_target" -- \
   -runs=1 -artifact_prefix="${fuzz_artifacts%/}/"
 
 step "post-run cleanliness"

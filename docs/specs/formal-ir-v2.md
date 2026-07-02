@@ -61,15 +61,15 @@ The acceptance gate is:
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
-`formal-verify-all` writes:
+`check-verification-full` writes:
 
-- `formal/ir/generated/*.formal_ir.json`
-- `formal/alloy/generated/*.als`
-- `formal/p/generated/*.p`
-- `formal/kani/generated/*.rs`
-- `formal/verus/generated/*.rs`
-- target codegen/tool-run receipts under `formal/receipts/`
+- `verification/formal-full/ir/generated/*.formal_ir.json`
+- `verification/formal-full/alloy/generated/*.als`
+- `verification/formal-full/p/generated/*.p`
+- `verification/formal-full/kani/generated/*.rs`
+- `verification/formal-full/verus/generated/*.rs`
+- target codegen/tool-run receipts under `verification/formal-full/receipts/`
 - `target/causlane/formal-coverage-report.json`

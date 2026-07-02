@@ -65,7 +65,7 @@ validation now shares the canonical predicate but emits identical facts.
 | Check | Input | Expected | Status |
 |---|---|---|---|
 | `is_canonical_sha256_token` unit test | `SHA256:…`, `sha256:ABC…`, `sha256:TODO`, 63-char, 65-char, no prefix | all rejected; lowercase 64-hex accepted | new — verified |
-| `just formal-verify-all` | live tree (all lowercase) | green | re-verified |
+| `just verification-full` | live tree (all lowercase) | green | re-verified |
 
 ## Required proof/model changes
 
@@ -82,7 +82,7 @@ No formal lane change; the validators feed the same generated artifacts unchange
 
 ```bash
 ./tools/cargo-dev test -p causlane-contracts
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

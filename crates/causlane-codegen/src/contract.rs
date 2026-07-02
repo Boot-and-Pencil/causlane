@@ -371,7 +371,7 @@ mod tests {
             source_bundle_hash: ir.source_bundle_hash.clone(),
             formal_ir_hash: ir.formal_ir_hash.clone(),
             scenario_hash: None,
-            formal_ir_path: "formal/ir.json".to_owned(),
+            formal_ir_path: "verification/formal-full/ir.json".to_owned(),
         };
         let report = CodegenContracts.build_coverage_report(
             &meta,

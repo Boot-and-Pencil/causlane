@@ -93,7 +93,7 @@ const KANI: &[(&str, &str)] = &[
 
 // Verus proof fns. The Verus lane is now always run and blocking (the
 // LANE_REALITY exception was dropped 2026-06-21), so these gate every
-// formal-verify-all run; they are grounded in concrete proof fns so the matrix
+// check-verification-full run; they are grounded in concrete proof fns so the matrix
 // reports `passed` only where Verus actually carries a proof.
 const VERUS: &[(&str, &str)] = &[
     ("I-001", "execution_started_requires_prior_barrier"),
@@ -109,7 +109,7 @@ const VERUS: &[(&str, &str)] = &[
 ];
 
 // Lean4 theorem applications generated from the scenario-bound Formal IR. The
-// Lean4 lane is always run and blocking in formal-verify-all, and every credited
+// Lean4 lane is always run and blocking in check-verification-full, and every credited
 // row is grounded in a named theorem that must compile under `lake env lean`.
 const LEAN4: &[(&str, &str)] = &[
     ("I-001", "valid_trace_execution_started_has_prior_barrier"),

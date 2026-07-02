@@ -3,7 +3,7 @@
 //! This is a minimal scaffold whose only job is to exercise the property-test
 //! pipeline (proptest) on the CI machine. Real, protocol-meaningful properties
 //! are a tracked pre-publication stage — see
-//! `docs/release/refactor-before-publication-gate.md` (PUB1: fuzz/property
+//! `docs/release/refactor-before-publication-gate.md` (PUB1: verification/fuzz/property
 //! adoption).
 
 use causlane_formal::{FormalProfile, Requirement};

@@ -134,7 +134,7 @@ Runtime adapters decide how to physically execute already-authorized work.
 - formal doctor/install/smoke tooling;
 - hexagonal crate layout.
 
-Формальные модели v1 уже образуют рабочий verification contour (generated artifacts + receipts + stale-check + negative controls, `formal-verify-all` зелёный под default-профилем). Reference kernel (S03), сценарии/replay/contract testing (S04), constraint plane / frontier scheduler (S05), AuthZ/approval/capability plane (S06) и Observability/explainability/DX (S07) закреплены — `KernelContracts` единая runtime/replay authority; tiers/lanes, constraints/frontier, drain/fence, why-not-parallel, authz policy, approvals, scoped execution capabilities, projection redaction, tracing, support bundles and cookbook recipes кодифицированы чистыми модулями/docs с tests/replay coverage. Product engineering continues through S08/S09/S10; the current release-preparation track is S11/PUB5 staged crates.io publication after the public baseline and package file-list review.
+Формальные модели v1 уже образуют рабочий verification contour (generated artifacts + receipts + stale-check + negative controls, `check-verification-full` зелёный под default-профилем). Reference kernel (S03), сценарии/replay/contract testing (S04), constraint plane / frontier scheduler (S05), AuthZ/approval/capability plane (S06) и Observability/explainability/DX (S07) закреплены — `KernelContracts` единая runtime/replay authority; tiers/lanes, constraints/frontier, drain/fence, why-not-parallel, authz policy, approvals, scoped execution capabilities, projection redaction, tracing, support bundles and cookbook recipes кодифицированы чистыми модулями/docs с tests/replay coverage. Product engineering continues through S08/S09/S10; the current release-preparation track is S11/PUB5 staged crates.io publication after the public baseline and package file-list review.
 
 ## Product stages
 
@@ -240,7 +240,7 @@ Beta можно выпускать, когда:
 - `M01.6` — **Replay oracle strict bundle mode** (`exists_expand`): Replay проверяет trace against bundle, plan_hash, witnesses, anchors, leases, lifecycle, authz, claims.
 - `M01.7` — **Receipts/stale-check v2** (`exists_harden`): Codegen/tool-run receipts, generated artifact hashes, stale-check-all, coverage derivation.
 
-**Exit gate:** `just formal-ready` и `just formal-verify-all` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
+**Exit gate:** `just formal-ready` и `just verification-full` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
 
 ## S02 — Формальные модели v1
 
@@ -1243,7 +1243,7 @@ Lean4  -> generated theorem applications/proof facet.
 
 ### S01 — Контрактный фундамент и formal readiness
 
-`just formal-ready` и `just formal-verify-all` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
+`just formal-ready` и `just verification-full` проходят в чистой среде; coverage matrix выводится из receipts, а не из prose.
 
 ### S02 — Формальные модели v1
 
@@ -1307,7 +1307,7 @@ Post-1.0 расширения не ломают small-core principle и не п�
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 tools/coverage-matrix --check
 tools/formal-exceptions-check
 ```
@@ -1465,7 +1465,7 @@ This workstream is not secondary. It prevents the project from becoming unverifi
 
 - Fast PR: fmt/check/test, replay small corpus, formal stale-check, docs links.
 - Formal PR: generated Alloy/P/Kani smoke, receipts, coverage matrix.
-- Nightly: larger scopes/unwind/interleavings, benchmark suite, fuzz/mutation tests.
+- Nightly: larger scopes/unwind/interleavings, benchmark suite, verification/fuzz/mutation tests.
 - Release: proof/all profile, adapter certification, docs/security gates.
 
 ## Documentation cleanup cadence
@@ -1569,7 +1569,7 @@ Proofs:
 ## Lean4 v1
 
 Keep generated and narrow. Lean4 is now release-blocking inside
-`formal-verify-all`; broader theorem applications must still be grounded in
+`check-verification-full`; broader theorem applications must still be grounded in
 generated artifacts, receipts and coverage rows before they are claimed.
 
 ## Formal anti-theatre rules
@@ -1830,7 +1830,7 @@ just formal-ready
 For protocol-critical work, also run:
 
 ```bash
-just formal-verify-all
+just verification-full
 just contract-test
 ```
 
@@ -2002,7 +2002,7 @@ just check
 just clippy
 just test
 just contract-test
-just formal-verify-all
+just verification-full
 ```
 
 If a command cannot run locally, record the reason and the required environment

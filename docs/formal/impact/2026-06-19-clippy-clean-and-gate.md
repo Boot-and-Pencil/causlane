@@ -18,7 +18,7 @@ crates/causlane-cli/src/bin/formal_discipline/args.rs
 crates/causlane-cli/src/bin/formal_discipline/manifest.rs
 crates/causlane-cli/src/bin/formal_discipline/mod.rs
 crates/causlane-cli/src/bin/formal_discipline/paths.rs
-tools/formal-verify-all
+scripts/check-verification-full.sh
 tools/formal-ready
 ```
 
@@ -26,7 +26,7 @@ tools/formal-ready
 
 The workspace configures clippy `pedantic` lints + per-crate `#![deny(warnings)]`,
 but `just clippy` was RED and clippy was NOT part of the mandatory gate
-(`formal-verify-all`/`formal-ready` ran `fmt --check` + `check` + `test`, not
+(`check-verification-full`/`formal-ready` ran `fmt --check` + `check` + `test`, not
 clippy) — so pedantic clippy debt accumulated unnoticed. This clears ALL of it and
 wires clippy into the gate so it cannot regress.
 
@@ -45,7 +45,7 @@ Behavior-preserving fixes (all pre-existing debt, surfaced by clippy 1.96.0):
   `assert!(false,…)` without using `panic!`/`expect`, per the repo hooks); a
   justified `#[allow(clippy::case_sensitive_file_extension_comparisons)]` on the two
   path matchers (source extensions are intentionally lower-case / case-sensitive).
-- **Gate wiring**: `tools/formal-verify-all` and `tools/formal-ready` now run
+- **Gate wiring**: `scripts/check-verification-full.sh` and `tools/formal-ready` now run
   `clippy --workspace --all-targets --all-features --locked -- -D warnings` after
   `fmt --check`; `formal-ready`'s report `gates` array gains `cargo-clippy`.
 
@@ -92,7 +92,7 @@ Lean4 generator's emitted bytes are unchanged, so every lane's inputs are identi
 ```bash
 just clippy
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

@@ -11,8 +11,8 @@
 ## Touched protocol-critical paths
 
 ```text
-fuzz/fuzz_targets/facade_kernel_frontier.rs
-fuzz/Cargo.toml
+verification/fuzz/fuzz_targets/facade_kernel_frontier.rs
+verification/fuzz/Cargo.toml
 docs/product-track/
 docs/ci-dispatcher.md
 ```
@@ -35,7 +35,7 @@ The run executed on host `ci-dispatcher.lan` at
 The target completed with status 0 and produced no crash/reproducer artifact in
 either the explicit
 `/tmp/causlane-fuzz-artifacts/facade-kernel-20260629T191504Z/` artifact
-directory or the default `fuzz/artifacts/facade_kernel_frontier/` directory.
+directory or the default `verification/fuzz/artifacts/facade_kernel_frontier/` directory.
 
 ## Run results
 

@@ -92,7 +92,7 @@ controls already exist and are re-verified through the shared classifier.
 | `bundle_mode_attested_requires_valid_authz_attestation` | replay unit | unsigned/forged Allow refused when PDP secret configured | existing — replay-only layer unchanged |
 
 All six authz controls re-refute with the exact same error codes through the new
-classifier path (confirmed in `just formal-verify-all`). No new control required.
+classifier path (confirmed in `just verification-full`). No new control required.
 
 ## Required proof/model changes
 
@@ -116,7 +116,7 @@ division of labor — it only removes the duplicated structural+temporal core.
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 Additional commands:

@@ -17,7 +17,7 @@ scope without creating a second coverage inventory.
   artifact in the schema gate.
 - `tools/proof-refinement-scope --check` fails if the generated Markdown
   projection drifts from the JSON.
-- `tools/formal-verify-all` runs the proof/refinement scope drift check after
+- `scripts/check-verification-full.sh` runs the proof/refinement scope drift check after
   the coverage-matrix check.
 - Active formal docs now point to the generated scope projection for
   proved/bounded/simulated/tested/assumed/out-of-scope classification.

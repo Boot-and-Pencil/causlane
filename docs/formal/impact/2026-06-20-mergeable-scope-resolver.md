@@ -81,7 +81,7 @@ No generated-model change in this part.
 
 ```bash
 ./tools/cargo-dev test -p causlane-replay
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

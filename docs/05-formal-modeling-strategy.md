@@ -11,7 +11,7 @@ The acceptance gate is:
 
 ```bash
 just formal-ready
-just formal-verify-all
+just verification-full
 ```
 
 The contract for the target-neutral input is documented in

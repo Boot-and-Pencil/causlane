@@ -10,7 +10,7 @@ silently treating either proof lane as non-authoritative.
 
 ## Changed Surface
 
-- `formal/proof-lanes.json` records the always-blocking proof-lane contract.
+- `verification/formal-full/proof-lanes.json` records the always-blocking proof-lane contract.
 - `contracts/schema/formal_proof_lanes.schema.json` validates the contract.
 - `tools/formal-exceptions-check` rejects exceptions or skipped-target requests
   for lanes that the contract marks as non-skippable.
@@ -27,5 +27,5 @@ from real tool-run receipts and generated proof artifacts.
 - proof-lane schema validation
 - formal-exceptions policy checks, including negative controls for protected lanes
 - `schema-validate-all`
-- `formal-verify-all`
+- `check-verification-full`
 - coverage-matrix check

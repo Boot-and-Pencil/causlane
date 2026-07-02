@@ -35,7 +35,7 @@ The preflight is deliberately fail-closed:
 - sync is `git fetch origin main`, `git checkout -B main origin/main`,
   `git reset --hard origin/main`, then `git clean -ffd`;
 - ignored local tool/cache directories such as `.tools/`, `target/` and
-  `fuzz/artifacts/` are preserved by design;
+  `verification/fuzz/artifacts/` are preserved by design;
 - the final `HEAD`, `origin/main` and `git ls-remote origin refs/heads/main`
   values must match;
 - pass `--no-sync` only for diagnostics against an already-clean checkout.
@@ -56,7 +56,7 @@ python3 tools/formal-doctor --json --profile all --lane local_smoke
 Portable cargo-fuzz equivalents:
 
 ```bash
-cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
+cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
 cargo +nightly-2025-11-21 fuzz run requirement_from_tokens -- \
   -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/
 ```
@@ -65,7 +65,7 @@ The repository-local wrapper form used by the preflight is:
 
 ```bash
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
-  ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
+  ./tools/cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   ./tools/cargo +nightly-2025-11-21 fuzz run requirement_from_tokens -- \
   -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/

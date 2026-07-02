@@ -13,7 +13,7 @@
 ```text
 crates/causlane-core/src/domain/lifecycle.rs
 crates/causlane-codegen/src/kani_target.rs
-tools/formal-verify-all
+scripts/check-verification-full.sh
 docs/invariants/**
 ```
 
@@ -72,7 +72,7 @@ plus the replay negative control.
 ## Acceptance commands
 
 ```bash
-tools/formal-verify-all --profile rust --lane local_smoke
+scripts/check-verification-full.sh --profile rust --lane local_smoke
 tools/formal-discipline-check --profile rust --no-diff --json
 ```
 

@@ -15,7 +15,7 @@
 crates/causlane-replay/src/lib.rs
 crates/causlane-replay/src/error.rs
 contracts/scenarios/barrier_legacy_witness_extra_invalid.scenario.yaml   (new)
-formal/obligations/lifecycle_product_obligations.yaml
+verification/formal-full/obligations/lifecycle_product_obligations.yaml
 ```
 
 ## Summary
@@ -89,7 +89,7 @@ binding the formal lanes model is unchanged).
 ## Acceptance commands
 
 ```bash
-just formal-verify-all
+just verification-full
 ./tools/cargo-dev test -p causlane-replay
 ```
 

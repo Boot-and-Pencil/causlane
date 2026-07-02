@@ -14,7 +14,7 @@
 docs/product-track/api-validation-loop-plan.json
 docs/product-track/
 examples/facade-kernel-operator-workflow/
-fuzz/fuzz_targets/facade_kernel_frontier.rs
+verification/fuzz/fuzz_targets/facade_kernel_frontier.rs
 tools/examples-check
 ```
 
@@ -91,7 +91,7 @@ claims from the classified evidence rather than prose-only assertions.
 
 ```bash
 python3 tools/examples-check
-REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins --locked
+REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 fuzz run facade_kernel_frontier -- -max_total_time=900 -print_final_stats=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/facade-kernel-20260629T191504Z/
 ./tools/cargo-dev bench -p causlane --bench dispatch_baseline_bench_suite --locked -- "frontier_conflict_selection|lease_grant_exclusive"
 ./tools/api-validation-loop-plan-check

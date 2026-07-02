@@ -13,7 +13,7 @@
 
 ```text
 crates/causlane-codegen/src/targets.rs
-tools/formal-verify-all
+scripts/check-verification-full.sh
 docs/formal/dispatcher-012-tz-status.md
 ```
 
@@ -46,7 +46,7 @@ coverage matrix are unaffected.
 
 - `p compile` + `p check` of `release_promote_success` **passes** with the keyed
   monitors (rc=0).
-- Four new lifecycle P negative controls are wired into `tools/formal-verify-all`
+- Four new lifecycle P negative controls are wired into `scripts/check-verification-full.sh`
   and each **refutes** (the keyed monitor fires, rc=1):
   `execution_without_barrier_invalid` (I-001), `observed_without_execution_invalid`
   (I-002), `projection_without_anchor_invalid` (I-003),
@@ -97,7 +97,7 @@ No Alloy/Kani/Verus/Lean4 change.
 ## Acceptance commands
 
 ```bash
-just formal-verify-all
+just verification-full
 ```
 
 ## Exception request

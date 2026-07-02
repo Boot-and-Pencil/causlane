@@ -26,7 +26,7 @@ Optional tools that are missing produce a "warn", never a failure, unless
 --require-optional is passed (then drifted/missing optionals become failures).
 
 This is a presence/version gate ONLY. It does NOT run the heavy repo gates
-(rust-full-check / formal-verify-all) unless --with-gates is given.
+(rust-full-check / verification-full) unless --with-gates is given.
 """
 from __future__ import annotations
 
@@ -358,7 +358,7 @@ def run_gates(status: str):
     gates = []
     gate_specs = [
         ("rust-full-check", ["just", "rust-full-check"]),
-        ("formal-verify-all", ["just", "formal-verify-all"]),
+        ("verification-full", ["scripts/check-verification-full.sh", "--suite", "all", "--profile", "all", "--depth", "fast_ci", "--fuzz-runs", "1"]),
     ]
     for gname, cmd in gate_specs:
         exe = shutil.which(cmd[0])
@@ -392,7 +392,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--with-gates", action="store_true",
-        help="ALSO run heavy repo gates (rust-full-check/formal-verify-all); "
+        help="ALSO run heavy repo gates (rust-full-check/verification-full); "
              "off by default — doctor-full is a fast presence gate",
     )
     args = parser.parse_args()

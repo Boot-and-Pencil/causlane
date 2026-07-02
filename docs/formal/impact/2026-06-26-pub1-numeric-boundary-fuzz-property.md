@@ -1,9 +1,9 @@
-# Formal Impact Record: PUB1 numeric-boundary fuzz/property slice
+# Formal Impact Record: PUB1 numeric-boundary verification/fuzz/property slice
 
 ## Change metadata
 
 - Change ID: FIR-2026-06-26-pub1-numeric-boundary-fuzz-property
-- PR/issue: PUB1 fuzz/property adoption follow-up
+- PR/issue: PUB1 verification/fuzz/property adoption follow-up
 - Owner: repo maintainers
 - Date: 2026-06-26
 - Impact class: F1 (test/tooling only)
@@ -11,14 +11,14 @@
 ## Touched protocol-critical paths
 
 ```text
-fuzz/
+verification/fuzz/
 crates/causlane-replay/tests/proptest_parse_boundaries.rs
 docs/release/refactor-before-publication-gate.md
 ```
 
 ## Summary
 
-Extends the existing PUB1 parse-boundary fuzz/property slice with numeric edge
+Extends the existing PUB1 parse-boundary verification/fuzz/property slice with numeric edge
 coverage:
 
 - replay trace JSON and replay scenario YAML property inputs now cover `u64`
@@ -76,7 +76,7 @@ slice until they are actually executed and any findings are committed.
 ```bash
 ./tools/cargo-dev test -p causlane-replay --test proptest_parse_boundaries --locked
 ./tools/cargo-dev test -p causlane-replay --test mutation_fuzz --locked
-REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path fuzz/Cargo.toml --no-run --bins
+REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 ./tools/cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins
 python3 tools/pre-publication-review-gate --json
 python3 tools/architecture-lint --json
 tools/product-track-status-check --json

@@ -6,14 +6,14 @@ Date: 2026-06-24
 
 This change starts M10.3 by making Kani runner configuration explicit and
 machine-validated. The generated Kani harnesses and coverage obligations are
-unchanged; `formal-verify-all` now consumes a checked profile for the Kani
+unchanged; `check-verification-full` now consumes a checked profile for the Kani
 fixture, output format and lane-specific unwind bound.
 
 ## Changed Surface
 
-- `formal/kani/profile.json` records the Kani fixture and lane unwind bounds.
+- `verification/formal-full/kani/profile.json` records the Kani fixture and lane unwind bounds.
 - `contracts/schema/formal_kani_profile.schema.json` validates the profile.
-- `tools/formal-verify-all` reads Kani run parameters from the profile instead
+- `scripts/check-verification-full.sh` reads Kani run parameters from the profile instead
   of hardcoding them.
 - `tools/schema-validate-all` validates the Kani profile alongside existing
   schema gates.
@@ -27,5 +27,5 @@ and planned invariants remain outside coverage credit.
 
 - profile schema validation
 - `schema-validate-all`
-- `formal-verify-all`
+- `check-verification-full`
 - coverage-matrix check

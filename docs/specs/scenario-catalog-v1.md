@@ -75,4 +75,4 @@ negatives (`stale_generated_artifact_invalid`,
 2. Add a `*_success.scenario.yaml` exercising the full lifecycle.
 3. For each P0 invariant the predicate touches, add a `*_invalid.scenario.yaml`
    with the exact `expected_error_code`.
-4. Run `just formal-verify-all` — new negatives must be `refuted_by_replay`.
+4. Run `just verification-full` — new negatives must be `refuted_by_replay`.
