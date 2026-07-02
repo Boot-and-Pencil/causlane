@@ -1,12 +1,11 @@
-use formal_smoke_model::{reference_accepts, reduce, trace_from_bits, Event};
+use formal_smoke_model::{reference_accepts_bounded, reduce, reduce_bounded, trace_from_bits, Event};
 
 #[test]
 fn property_gate_before_use_matches_reference_for_bounded_traces() {
     for len in 0usize..=4 {
         for bits in 0u8..16 {
             let trace = trace_from_bits(len, bits);
-            let bounded = &trace[..len];
-            assert_eq!(reduce(bounded).accepted, reference_accepts(bounded));
+            assert_eq!(reduce_bounded(&trace, len).accepted, reference_accepts_bounded(&trace, len));
         }
     }
 }

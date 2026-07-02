@@ -1,3 +1,6 @@
+#![forbid(unsafe_code)]
+#![deny(warnings)]
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Event {
     GateOpened,
@@ -12,11 +15,24 @@ pub struct CheckResult {
 }
 
 pub fn reduce(trace: &[Event]) -> CheckResult {
+    reduce_prefix(trace, trace.len())
+}
+
+pub fn reduce_bounded(trace: &[Event; 4], len: usize) -> CheckResult {
+    reduce_prefix(trace, len)
+}
+
+fn reduce_prefix(trace: &[Event], len: usize) -> CheckResult {
     let mut gate_seen = false;
     let mut use_count = 0usize;
+    let bounded_len = len.min(trace.len());
     let mut i = 0usize;
-    while i < trace.len() {
-        match trace[i] {
+    while i < bounded_len {
+        let event = match trace.get(i) {
+            Some(event) => *event,
+            None => break,
+        };
+        match event {
             Event::GateOpened => gate_seen = true,
             Event::UseAttempted => {
                 use_count += 1;
@@ -39,13 +55,28 @@ pub fn reduce(trace: &[Event]) -> CheckResult {
 }
 
 pub fn reference_accepts(trace: &[Event]) -> bool {
+    reference_accepts_prefix(trace, trace.len())
+}
+
+pub fn reference_accepts_bounded(trace: &[Event; 4], len: usize) -> bool {
+    reference_accepts_prefix(trace, len)
+}
+
+fn reference_accepts_prefix(trace: &[Event], len: usize) -> bool {
     let mut gate_seen = false;
-    for event in trace {
+    let bounded_len = len.min(trace.len());
+    let mut i = 0usize;
+    while i < bounded_len {
+        let event = match trace.get(i) {
+            Some(event) => event,
+            None => break,
+        };
         match event {
             Event::GateOpened => gate_seen = true,
             Event::UseAttempted if !gate_seen => return false,
             Event::UseAttempted => {}
         }
+        i += 1;
     }
     true
 }
@@ -55,11 +86,13 @@ pub fn trace_from_bits(len: usize, bits: u8) -> [Event; 4] {
     let mut i = 0usize;
     while i < 4 {
         if i < len {
-            trace[i] = if ((bits >> i) & 1) == 0 {
-                Event::GateOpened
-            } else {
-                Event::UseAttempted
-            };
+            if let Some(slot) = trace.get_mut(i) {
+                *slot = if ((bits >> i) & 1) == 0 {
+                    Event::GateOpened
+                } else {
+                    Event::UseAttempted
+                };
+            }
         }
         i += 1;
     }
@@ -79,8 +112,8 @@ fn gate_before_use_kani_smoke() {
     kani::assume(len <= 4);
     let bits: u8 = kani::any();
     let trace = trace_from_bits(len, bits);
-    let checked = reduce(&trace[..len]);
-    assert_eq!(checked.accepted, reference_accepts(&trace[..len]));
+    let checked = reduce_bounded(&trace, len);
+    assert_eq!(checked.accepted, reference_accepts_bounded(&trace, len));
 
     let invalid = [Event::UseAttempted];
     assert!(!reduce(&invalid).accepted);

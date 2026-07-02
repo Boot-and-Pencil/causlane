@@ -53,3 +53,5 @@ run-cache/
 /smoke
 verification/formal-smoke/fuzz/corpus/
 verification/formal-smoke/fuzz/artifacts/
+verification/formal-smoke/fuzz/target/
+verification/formal-smoke/rust/target/
