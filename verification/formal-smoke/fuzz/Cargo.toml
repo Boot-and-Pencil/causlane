@@ -1,0 +1,21 @@
+[package]
+name = "formal-smoke-fuzz"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[dependencies]
+formal-smoke-model = { path = "../rust" }
+libfuzzer-sys = "0.4"
+
+[[bin]]
+name = "gate_before_use"
+path = "fuzz_targets/gate_before_use.rs"
+test = false
+doc = false
+bench = false

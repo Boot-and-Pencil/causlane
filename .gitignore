@@ -48,3 +48,8 @@ run-cache/
 
 # stray binary emitted by `verus` compiling the generated proof in the repo root
 /release_promote_success
+# formal-smoke local artifacts
+.tools/
+/smoke
+verification/formal-smoke/fuzz/corpus/
+verification/formal-smoke/fuzz/artifacts/

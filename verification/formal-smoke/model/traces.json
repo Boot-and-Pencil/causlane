@@ -1,0 +1,16 @@
+{
+  "schema_version": "hopium.formal_smoke.traces.v1",
+  "invariant_id": "FORMAL-SMOKE-GATE-BEFORE-USE",
+  "events": ["GateOpened", "UseAttempted"],
+  "rule": "UseAttempted is accepted only after GateOpened has been observed in the same trace.",
+  "positive": [
+    {"name": "valid_gate_then_use", "trace": ["GateOpened", "UseAttempted"], "accepted": true}
+  ],
+  "negative": [
+    {"name": "invalid_use_before_gate", "trace": ["UseAttempted"], "accepted": false}
+  ],
+  "generator": {
+    "bounded_trace_length": 4,
+    "encoding": "bit i == 0 => GateOpened, bit i == 1 => UseAttempted"
+  }
+}

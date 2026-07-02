@@ -1,0 +1,35 @@
+{
+  "schema_version": "hopium.formal_smoke.tool_versions.v1",
+  "formal_tools": {
+    "cargo_fuzz": {
+      "package": "cargo-fuzz",
+      "version": "0.13.2"
+    },
+    "kani": {
+      "package": "kani-verifier",
+      "version": "0.67.0"
+    },
+    "verus": {
+      "archive_path": ".tools/verus_dist/verus-x86-linux/verus",
+      "archive_sha256": "d234121e38718860e00edaadd2807278f720f9715f8d6c90e22f5d606be92cf1",
+      "archive_url": "https://github.com/verus-lang/verus/releases/download/release/0.2026.05.31.5dd6d83/verus-0.2026.05.31.5dd6d83-x86-linux.zip",
+      "requires_rust_toolchain": "1.95.0",
+      "version": "0.2026.05.31.5dd6d83"
+    },
+    "lean4": {
+      "elan_asset_sha256": "df0b2b3a439961ffcbb3985214365ffe40f49bc871df04dff268c7d8e21ca8b2",
+      "elan_asset_url": "https://github.com/leanprover/elan/releases/download/v4.2.3/elan-x86_64-unknown-linux-gnu.tar.gz",
+      "elan_version": "4.2.3",
+      "toolchain": "leanprover/lean4:v4.31.0",
+      "version": "4.31.0"
+    },
+    "p": {
+      "package": "P",
+      "version": "3.1.0"
+    },
+    "z3": {
+      "binary": ".tools/verus_dist/verus-x86-linux/z3",
+      "version": "4.12.5"
+    }
+  }
+}

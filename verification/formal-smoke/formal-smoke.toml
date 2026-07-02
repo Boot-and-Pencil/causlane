@@ -1,0 +1,13 @@
+schema_version = 1
+invariant_id = "FORMAL-SMOKE-GATE-BEFORE-USE"
+bounded_trace_length = 4
+positive_fixture = "valid_gate_then_use"
+negative_fixture = "invalid_use_before_gate"
+
+[lanes]
+kani = "cargo-kani bounded trace proof"
+verus = "verus no-cheating proof"
+p-lang = "P monitor with positive and negative controls"
+lean4 = "Lean4 theorem check"
+property = "bounded exhaustive Rust property"
+fuzz = "cargo-fuzz bounded byte-to-trace reducer"
