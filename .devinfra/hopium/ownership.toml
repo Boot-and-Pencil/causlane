@@ -1,0 +1,17 @@
+schema_version = 1
+default_owner = "generic-runtime"
+
+[[owners]]
+owner = "generic-runtime"
+paths = ["Cargo.toml", "Cargo.lock", "crates/**", "src/**", "tests/**", "benches/**"]
+change_classes = ["code", "tests"]
+
+[[owners]]
+owner = "generic-runtime"
+paths = ["docs/**", "evidence/**", ".devinfra/hopium/**", "Makefile.parallel-dev"]
+change_classes = ["docs", "evidence_only", "policy"]
+
+[[owners]]
+owner = "generic-runtime"
+paths = ["scripts/**", ".github/**"]
+change_classes = ["devinfra", "policy"]

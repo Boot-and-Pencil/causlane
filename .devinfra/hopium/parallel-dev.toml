@@ -1,0 +1,21 @@
+schema_version = 1
+
+[repo]
+id = "causlane"
+role = "generic-runtime"
+kind = "generic-runtime"
+owner = "generic-runtime"
+canonical_remote = "git@github.com-hopium:Boot-and-Pencil/causlane.git"
+
+[policy]
+interface_freeze = true
+no_compatibility_bridges = true
+formal_verification_friendly = true
+
+[dependency_policy]
+forbidden_dependency_fragments = ["hopium-foundation", "hopium-contracts", "hopium-platform", "hopium-refinery", "maw", "meat-grinder", "hopium-strategy-authoring", "cli-checker"]
+allowed_private_git_remotes = ["github.com:Boot-and-Pencil", "github.com/Boot-and-Pencil"]
+
+[bridge_policy]
+forbidden_terms = ["legacy_bridge", "compat_bridge", "compat_shim", "old_to_new", "new_to_old", "DeprecatedAlias", "LegacyBridge", "CompatibilityShim"]
+exempt_paths = []

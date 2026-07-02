@@ -1,0 +1,51 @@
+schema_version = 1
+version_set = "foundation-contracts-current"
+
+[local]
+repo = "causlane"
+branch_policy = "main"
+
+[[pins]]
+repo = "hopium-foundation"
+tag = "foundation-v0.2.0"
+reason = "shared primitive interface freeze"
+
+[[pins]]
+repo = "hopium-contracts"
+tag = "contracts-v0.2.0"
+reason = "shared contracts interface freeze"
+
+[[pins]]
+repo = "hopium-refinery"
+rev = "6ae2142610d33ee9d7f18a59689be80ba4cc3970"
+reason = "current clean main baseline for parallel-development stabilization"
+
+[[pins]]
+repo = "hopium-platform"
+rev = "8e34f64077b86bff7c77709538970dce2eb608a1"
+reason = "current clean main baseline for parallel-development stabilization"
+
+[[pins]]
+repo = "maw"
+rev = "591d0050ac2b3dd8548af2e5266d1b8610fb7413"
+reason = "current clean main baseline for parallel-development stabilization"
+
+[[pins]]
+repo = "meat-grinder"
+rev = "4df42300a1cc6deef0af7fda967de7f0aee4dd59"
+reason = "current clean main baseline for parallel-development stabilization"
+
+[[pins]]
+repo = "hopium-strategy-authoring"
+rev = "d443afd2bc143867fd45a50c36f0708a7bbbb293"
+reason = "current clean main baseline for parallel-development stabilization"
+
+[[pins]]
+repo = "causlane"
+rev = "72cab714622c58ab89322c0b3b2bc1fb778208bc"
+reason = "current clean main baseline for parallel-development stabilization"
+
+[[pins]]
+repo = "cli-checker"
+rev = "4bbf63bb0acedcb509329d8e01278b1cb975b778"
+reason = "current clean main baseline for parallel-development stabilization"

@@ -1,0 +1,10 @@
+.PHONY: parallel-dev-check parallel-dev-readiness
+
+parallel-dev-check:
+	python3 scripts/parallel-dev/check_parallel_dev.py --scan-bridge-terms
+	python3 scripts/parallel-dev/check_version_set.py
+	python3 scripts/parallel-dev/check_touch_ownership.py --base HEAD --change-class evidence_only
+	python3 scripts/parallel-dev/check_long_lane_registry.py
+	python3 scripts/parallel-dev/summarize_parallel_dev_readiness.py
+
+parallel-dev-readiness: parallel-dev-check
