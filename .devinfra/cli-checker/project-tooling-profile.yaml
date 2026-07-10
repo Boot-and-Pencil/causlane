@@ -5,6 +5,8 @@ requires_generic_checker_capabilities:
 - script_inventory_classification
 - dependency_source_policy
 - formal_smoke_policy
+- git_main_only_policy
+- sonarqube_analysis_backend
 project_inputs:
   gate_roots: []
   docs_roots: []
@@ -124,48 +126,60 @@ formal_smoke_policy:
   required_tools:
   - id: cargo
     binary: cargo
-    version_args: [--version]
+    version_args:
+    - --version
   - id: cargo-fuzz
     binary: cargo-fuzz
-    version_args: [--version]
+    version_args:
+    - --version
     expected_version_contains: 0.13.2
   - id: cargo-kani
     binary: cargo-kani
-    version_args: [--version]
+    version_args:
+    - --version
     manifest_key: kani
   - id: verus
     binary: verus
-    version_args: [--version]
+    version_args:
+    - --version
   - id: lean
     binary: lean
-    version_args: [--version]
+    version_args:
+    - --version
     manifest_key: lean4
   - id: p
     binary: p
-    version_args: [--version]
+    version_args:
+    - --version
   - id: z3
     binary: z3
-    version_args: [--version]
+    version_args:
+    - --version
   - id: java
     binary: java
-    version_args: [-version]
+    version_args:
+    - -version
     minimum_major_manifest_key: tools.formal_tools.alloy.java_min_version
   - id: javac
     binary: javac
-    version_args: [-version]
+    version_args:
+    - -version
     minimum_major_manifest_key: tools.formal_tools.alloy.java_min_version
   - id: dotnet
     binary: dotnet
-    version_args: [--version]
+    version_args:
+    - --version
     minimum_major_manifest_key: tools.formal_tools.p.dotnet_sdk_major
   optional_tools:
   - id: kani
     binary: kani
-    version_args: [--version]
+    version_args:
+    - --version
     manifest_key: kani
   - id: lake
     binary: lake
-    version_args: [--version]
+    version_args:
+    - --version
     manifest_key: lean4
   required_artifacts:
   - id: model
@@ -191,59 +205,237 @@ formal_smoke_policy:
     path: verification/formal-full/alloy/core/causlane_core.als
   lanes:
   - id: kani
-    required_tools: [cargo-kani]
-    required_artifacts: [rust, kani]
+    required_tools:
+    - cargo-kani
+    required_artifacts:
+    - rust
+    - kani
     steps:
     - id: kani
-      argv: [cargo-kani, --manifest-path, verification/formal-smoke/rust/Cargo.toml, --harness, gate_before_use_kani_smoke, --default-unwind, "8", --output-format, terse, --target-dir, "{run_dir}/target/kani"]
-      env_unset: [RUSTC_WRAPPER, CARGO_BUILD_RUSTC_WRAPPER, RUSTC_WORKSPACE_WRAPPER, RUSTFLAGS, CARGO_ENCODED_RUSTFLAGS]
+      argv:
+      - cargo-kani
+      - --manifest-path
+      - verification/formal-smoke/rust/Cargo.toml
+      - --harness
+      - gate_before_use_kani_smoke
+      - --default-unwind
+      - '8'
+      - --output-format
+      - terse
+      - --target-dir
+      - '{run_dir}/target/kani'
+      env_unset:
+      - RUSTC_WRAPPER
+      - CARGO_BUILD_RUSTC_WRAPPER
+      - RUSTC_WORKSPACE_WRAPPER
+      - RUSTFLAGS
+      - CARGO_ENCODED_RUSTFLAGS
   - id: verus
-    required_tools: [verus]
-    required_artifacts: [verus]
+    required_tools:
+    - verus
+    required_artifacts:
+    - verus
     steps:
     - id: verus
-      argv: [verus, "{repo}/verification/formal-smoke/verus/smoke.rs", --no-cheating]
+      argv:
+      - verus
+      - '{repo}/verification/formal-smoke/verus/smoke.rs'
+      - --no-cheating
   - id: p-lang
-    required_tools: [p]
-    required_artifacts: [p-lang]
+    required_tools:
+    - p
+    required_artifacts:
+    - p-lang
     steps:
     - id: compile
-      argv: [p, compile, --pfiles, "{repo}/verification/formal-smoke/p-lang/Smoke.p", --projname, formal_smoke, --outdir, "{run_dir}/p-lang-out"]
+      argv:
+      - p
+      - compile
+      - --pfiles
+      - '{repo}/verification/formal-smoke/p-lang/Smoke.p'
+      - --projname
+      - formal_smoke
+      - --outdir
+      - '{run_dir}/p-lang-out'
     - id: valid-control
-      argv: [p, check, "{run_dir}/p-lang-out/PChecker/net8.0/formal_smoke.dll", --testcase, TcGateBeforeUseValid, --schedules, "1", --max-steps, "16", --outdir, "{run_dir}/pcheck-valid"]
+      argv:
+      - p
+      - check
+      - '{run_dir}/p-lang-out/PChecker/net8.0/formal_smoke.dll'
+      - --testcase
+      - TcGateBeforeUseValid
+      - --schedules
+      - '1'
+      - --max-steps
+      - '16'
+      - --outdir
+      - '{run_dir}/pcheck-valid'
     - id: invalid-control
-      argv: [p, check, "{run_dir}/p-lang-out/PChecker/net8.0/formal_smoke.dll", --testcase, TcGateBeforeUseInvalid, --schedules, "1", --max-steps, "16", --outdir, "{run_dir}/pcheck-invalid"]
+      argv:
+      - p
+      - check
+      - '{run_dir}/p-lang-out/PChecker/net8.0/formal_smoke.dll'
+      - --testcase
+      - TcGateBeforeUseInvalid
+      - --schedules
+      - '1'
+      - --max-steps
+      - '16'
+      - --outdir
+      - '{run_dir}/pcheck-invalid'
       expected_nonzero: true
   - id: lean4
-    required_tools: [lean]
-    required_artifacts: [lean4]
+    required_tools:
+    - lean
+    required_artifacts:
+    - lean4
     steps:
     - id: lean4
-      argv: [lean, "{repo}/verification/formal-smoke/lean4/Smoke.lean"]
+      argv:
+      - lean
+      - '{repo}/verification/formal-smoke/lean4/Smoke.lean'
   - id: property
-    required_tools: [cargo]
-    required_artifacts: [rust, property]
+    required_tools:
+    - cargo
+    required_artifacts:
+    - rust
+    - property
     steps:
     - id: property
-      argv: [cargo, test, --manifest-path, verification/formal-smoke/rust/Cargo.toml, --test, property, --, --nocapture]
+      argv:
+      - cargo
+      - test
+      - --manifest-path
+      - verification/formal-smoke/rust/Cargo.toml
+      - --test
+      - property
+      - --
+      - --nocapture
   - id: fuzz
-    required_tools: [cargo-fuzz]
-    required_artifacts: [fuzz]
+    required_tools:
+    - cargo-fuzz
+    required_artifacts:
+    - fuzz
     steps:
     - id: fuzz
-      argv: [cargo, fuzz, run, gate_before_use, "{artifact_root}/fuzz-corpus", --fuzz-dir, verification/formal-smoke/fuzz, --sanitizer, none, --target, x86_64-unknown-linux-gnu, --target-dir, "{run_dir}/target/fuzz", --, -runs=8, "-artifact_prefix={artifact_root}/fuzz-artifacts/"]
-      env_unset: [RUSTC_WRAPPER, CARGO_BUILD_RUSTC_WRAPPER, RUSTC_WORKSPACE_WRAPPER, RUSTFLAGS, CARGO_ENCODED_RUSTFLAGS]
+      argv:
+      - cargo
+      - fuzz
+      - run
+      - gate_before_use
+      - '{artifact_root}/fuzz-corpus'
+      - --fuzz-dir
+      - verification/formal-smoke/fuzz
+      - --sanitizer
+      - none
+      - --target
+      - x86_64-unknown-linux-gnu
+      - --target-dir
+      - '{run_dir}/target/fuzz'
+      - --
+      - -runs=8
+      - -artifact_prefix={artifact_root}/fuzz-artifacts/
+      env_unset:
+      - RUSTC_WRAPPER
+      - CARGO_BUILD_RUSTC_WRAPPER
+      - RUSTC_WORKSPACE_WRAPPER
+      - RUSTFLAGS
+      - CARGO_ENCODED_RUSTFLAGS
   - id: alloy
-    required_tools: [java]
-    required_artifacts: [alloy-jar, alloy-model]
+    required_tools:
+    - java
+    required_artifacts:
+    - alloy-jar
+    - alloy-model
     steps:
     - id: pinned-version
-      argv: [java, -jar, "{repo}/.tools/alloy/alloy.jar", version]
-      expected_stdout_contains: [6.2.0]
+      argv:
+      - java
+      - -jar
+      - '{repo}/.tools/alloy/alloy.jar'
+      - version
+      expected_stdout_contains:
+      - 6.2.0
     - id: executable-model
-      argv: [java, -jar, "{repo}/.tools/alloy/alloy.jar", exec, -f, -q, -c, "*", -o, "{run_dir}/alloy-smoke", -t, json, "{repo}/verification/formal-full/alloy/core/causlane_core.als"]
+      argv:
+      - java
+      - -jar
+      - '{repo}/.tools/alloy/alloy.jar'
+      - exec
+      - -f
+      - -q
+      - -c
+      - '*'
+      - -o
+      - '{run_dir}/alloy-smoke'
+      - -t
+      - json
+      - '{repo}/verification/formal-full/alloy/core/causlane_core.als'
 dependency_source_policy:
   cargo_manifest_roots:
   - .
   forbidden_git_remote_prefixes:
   - ssh://git@github.com/
+git_main_only_policy:
+  main_branch: main
+  allow_detached_head: false
+  sonar_config_roots:
+  - .devinfra
+  - .github
+  - scripts
+sonarqube_policy:
+  server_url: http://sonarqube-server.lan:9000
+  token_env: SONAR_TOKEN
+  scanner_bin: sonar-scanner
+  project_key: causlane
+  prewrite_project_key: causlane:prewrite
+  sources:
+  - .
+  exclusions:
+  - target/**
+  - node_modules/**
+  - dist/**
+  - build/**
+  - .git/**
+  - .agent-state/**
+  - .scannerwork/**
+  - .tools/**
+  - '**/generated/**'
+  analysis_properties:
+    sonar.cpd.exclusions: '**/tests/**,**/fixtures/**,**/generated/**'
+    sonar.python.version: '3.12'
+  prewrite:
+    timeout_ms: 20000
+  ci:
+    timeout_ms: 7200000
+native_quality_policy:
+  languages:
+  - family: rust
+    roots:
+    - .
+    exclusions:
+    - target/**
+    - node_modules/**
+    - dist/**
+    - build/**
+    - '**/generated/**'
+  - family: shell
+    roots:
+    - scripts
+    - verification
+    exclusions:
+    - target/**
+    - node_modules/**
+    - dist/**
+    - build/**
+    - '**/generated/**'
+  - family: yaml
+    roots:
+    - .devinfra
+    - .github
+    exclusions:
+    - target/**
+    - node_modules/**
+    - dist/**
+    - build/**
+    - '**/generated/**'
