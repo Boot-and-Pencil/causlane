@@ -1,0 +1,123 @@
+schema_version: cli_checker.project_tooling_profile.v1
+profile_id: causlane-python-retirement
+owner: causlane
+requires_generic_checker_capabilities:
+- script_inventory_classification
+project_inputs:
+  gate_roots: []
+  docs_roots: []
+  implementation_roots: []
+  script_roots:
+  - scripts
+  - tools
+  - .devinfra
+  - verification
+  - docs
+  - crates
+  generated_report_roots: []
+script_inventory_policy:
+  categories:
+  - replace_with_checker_rule
+  - replace_with_repo_native_tool
+  - replace_with_infra_native_tool
+  - checker_owned_temporary_wrapper
+  - retain_product_language
+  - retain_operational_tooling
+  - retain_historical
+  - remove_after_parity
+  governed_languages:
+  - python
+  caller_roots:
+  - scripts
+  - tools
+  - .devinfra
+  - verification
+  - docs
+  - crates
+  - Cargo.toml
+  excluded_globs:
+  - .git/**
+  - .tools/**
+  - .agent-state/**
+  - .scannerwork/**
+  - target/**
+  - node_modules/**
+  - .codex/hook-runs/**
+  - .claude/hook-runs/**
+  inline_interpreters:
+  - python
+  block_unclassified_inline_interpreters: true
+  classifications:
+  - path: scripts/check-private-deps.py
+    category: replace_with_checker_rule
+    owner: causlane
+    reason: generic dependency source policy is owned by cli-checker project dependencies
+    parity_condition: typed replacement matches the blocking decisions of the Python implementation
+    effect_class: read_only_policy
+    blocking: true
+  - path: tools/formal-doctor
+    category: replace_with_checker_rule
+    owner: causlane
+    reason: generic formal tool discovery is owned by cli-checker project formal
+    parity_condition: typed replacement matches the blocking decisions of the Python implementation
+    effect_class: read_only_policy
+    blocking: true
+  - glob: scripts/parallel-dev/**
+    category: replace_with_checker_rule
+    owner: causlane
+    reason: generic ownership, version-set, no-compat and long-lane policy is checker-owned
+    parity_condition: project checker output preserves every blocking parallel-development decision
+    effect_class: read_only_policy
+    blocking: true
+  - glob: scripts/**
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: remaining repository-specific Python semantics must move to a repo-owned typed Rust test or tool
+    parity_condition: repo-owned Rust replacement preserves current blocking behavior and evidence
+    effect_class: read_only_policy
+    blocking: true
+  - glob: tools/**
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: remaining repository-specific Python semantics must move to a repo-owned typed Rust test or tool
+    parity_condition: repo-owned Rust replacement preserves current blocking behavior and evidence
+    effect_class: read_only_policy
+    blocking: true
+  - glob: .devinfra/**
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: remaining repository-specific Python semantics must move to a repo-owned typed Rust test or tool
+    parity_condition: repo-owned Rust replacement preserves current blocking behavior and evidence
+    effect_class: read_only_policy
+    blocking: true
+  - glob: verification/**
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: remaining repository-specific Python semantics must move to a repo-owned typed Rust test or tool
+    parity_condition: repo-owned Rust replacement preserves current blocking behavior and evidence
+    effect_class: read_only_policy
+    blocking: true
+  - glob: docs/**
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: remaining repository-specific Python semantics must move to a repo-owned typed Rust test or tool
+    parity_condition: repo-owned Rust replacement preserves current blocking behavior and evidence
+    effect_class: read_only_policy
+    blocking: true
+  - glob: crates/**
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: remaining repository-specific Python semantics must move to a repo-owned typed Rust test or tool
+    parity_condition: repo-owned Rust replacement preserves current blocking behavior and evidence
+    effect_class: read_only_policy
+    blocking: true
+  - path: Cargo.toml
+    category: replace_with_repo_native_tool
+    owner: causlane
+    reason: inline Python invocation in a top-level command surface must move to a typed command
+    parity_condition: top-level command invokes the typed replacement without inline Python
+    effect_class: read_only_policy
+    blocking: true
+checker_output_policy:
+  required_formats:
+  - json
