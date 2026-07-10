@@ -5,7 +5,7 @@ This workstream is not secondary. It prevents the project from becoming unverifi
 ## Repository and toolchain
 
 - Keep `.devinfra/tool-versions.json`, `rust-toolchain.toml`, `justfile`, formal installer and doctor aligned.
-- `tools/formal-doctor --json` must be usable before Rust/Cargo availability where possible.
+- `cli-checker project formal doctor` is the sole typed formal-environment authority.
 - Pin versions and checksums for Alloy, Z3, Kani, Verus, Lean4/P where feasible.
 - Split profiles: `base`, `rust`, `ci`, `formal`, `proof`, `all`.
 

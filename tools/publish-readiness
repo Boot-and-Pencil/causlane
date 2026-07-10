@@ -23,7 +23,6 @@ FIRST_PUBLIC_VERSION = "0.0.1"
 FEATURE_SURFACE_POLICY = "m11_2_default_minimal_optional_integrations"
 FULL_PUBLISH_SEQUENCE = [
     "causlane-core",
-    "causlane-formal",
     "causlane-contracts",
     "causlane-runtime",
     "causlane-replay",

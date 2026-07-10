@@ -4,15 +4,11 @@
 //! raw `argv` strings into a typed [`Command`]. All file/env I/O stays in the
 //! `main.rs` boundary.
 
-use causlane_formal::FormalProfile;
-
 use causlane_cli::cli_shared::{
-    flag_present, flag_value, DEFAULT_FORMAL_ARTIFACT_DIR, DEFAULT_FORMAL_LANE,
-    DEFAULT_FORMAL_RECEIPT_DIR,
+    flag_present, flag_value, DEFAULT_FORMAL_ARTIFACT_DIR, DEFAULT_FORMAL_RECEIPT_DIR,
 };
 use causlane_cli::formal_artifacts::single_target_from_kind;
 
-use crate::formal_doctor::formal_profile_from_arg;
 use crate::Command;
 
 const COMMAND_GRAPH: &str = "graph";
@@ -207,45 +203,6 @@ fn parse_scenario(args: &[String]) -> Option<Command> {
 #[allow(clippy::too_many_lines)]
 fn parse_formal(args: &[String]) -> Option<Command> {
     let sub = args.get(2)?;
-    if sub == "doctor" {
-        let mut json = false;
-        let mut require: Vec<String> = Vec::new();
-        let mut profile = FormalProfile::Custom;
-        let mut lane = DEFAULT_FORMAL_LANE.to_owned();
-        let mut index = 3;
-        while let Some(flag) = args.get(index) {
-            if flag == "--json" {
-                json = true;
-                index += 1;
-            } else if flag == "--require" {
-                if let Some(value) = args.get(index + 1) {
-                    for token in value.split(',') {
-                        require.push(token.to_owned());
-                    }
-                }
-                index += 2;
-            } else if flag == "--profile" {
-                if let Some(value) = args.get(index + 1) {
-                    profile = formal_profile_from_arg(value);
-                    require.extend(profile.requirement_tokens());
-                }
-                index += 2;
-            } else if flag == "--lane" {
-                if let Some(value) = args.get(index + 1) {
-                    lane.clone_from(value);
-                }
-                index += 2;
-            } else {
-                index += 1;
-            }
-        }
-        return Some(Command::FormalDoctor {
-            json,
-            require,
-            profile,
-            lane,
-        });
-    }
     if sub == "generate" && args.get(3).is_some_and(|kind| kind == "alloy") {
         let bundle = flag_value(args, "--bundle")?;
         let out = flag_value(args, "--out")?;
@@ -343,7 +300,6 @@ pub(crate) fn usage() -> String {
         "  causlane scenario compile --scenario <scenario.yaml> --bundle <bundle.json> --out-dir <dir> [--kernel-secret <secret>]",
         "  causlane contract test --manifest <contract-tests.yaml> [--json]",
         "  causlane scenario validate <scenario.yaml>",
-        "  causlane formal doctor [--json] [--profile custom|base|rust|proof|all] [--lane <profile-lane>] [--require a,b,...]",
         "  causlane formal generate <alloy|p|kani|verus|lean4|all> --bundle <bundle.json> --out <artifact> [--scenario <scenario.yaml>] [--receipt <receipt.json>]",
         "  causlane formal stale-check --bundle <bundle.json> --generated <facts.als> [--scenario <scenario.yaml>] [--receipt <receipt.json>]",
         "  causlane formal ir emit --bundle <bundle.json> [--scenario <scenario.yaml>] --out <formal_ir.json>",

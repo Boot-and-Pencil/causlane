@@ -34,7 +34,6 @@ causlane-core = { path = "../causlane-core", version = "0.0.1" }
 causlane-codegen = { path = "../causlane-codegen", version = "0.0.1" }
 causlane-contracts = { path = "../causlane-contracts", version = "0.0.1" }
 causlane-replay = { path = "../causlane-replay", version = "0.0.1" }
-causlane-formal = { path = "../causlane-formal", version = "0.0.1" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 noyalib = { version = "0.0.8", features = ["compat-serde-yaml"] }

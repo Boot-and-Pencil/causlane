@@ -47,8 +47,7 @@ Rust stable, `nightly-2025-11-21`, `cargo-fuzz`, `cargo-kani`, Z3, Java, `javac`
 and dotnet. Then it runs:
 
 ```bash
-python3 tools/formal-doctor --json --profile all --lane local_smoke
-./tools/cargo-dev test -p causlane-formal --test proptest_smoke --locked
+cli-checker project formal doctor --profile .devinfra/cli-checker/project-tooling-profile.yaml --require all --format json
 ./tools/cargo-dev test -p causlane-core --test proptest_protocol_properties --locked
 ./tools/cargo-dev test -p causlane-replay --test proptest_parse_boundaries --locked
 ```
@@ -57,7 +56,7 @@ Portable cargo-fuzz equivalents:
 
 ```bash
 cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
-cargo +nightly-2025-11-21 fuzz run requirement_from_tokens -- \
+cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- \
   -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/
 ```
 
@@ -67,7 +66,7 @@ The repository-local wrapper form used by the preflight is:
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
   ./tools/cargo +nightly-2025-11-21 test --manifest-path verification/fuzz/Cargo.toml --no-run --bins --locked
 REAL_CARGO="$(command -v cargo)" DEVINFRA_ALLOW_DIRECT_CARGO=1 \
-  ./tools/cargo +nightly-2025-11-21 fuzz run requirement_from_tokens -- \
+  ./tools/cargo +nightly-2025-11-21 fuzz run runtime_guarded_audit_projection -- \
   -runs=1 -artifact_prefix=/tmp/causlane-fuzz-artifacts/
 ```
 

@@ -135,7 +135,7 @@
 - `M07.3` — **Tracing connector** (`done_or_near_done`): Structured action/op spans; logs derived, not truth.
 - `M07.4` — **OpenTelemetry optional** (`done_or_near_done`): OTLP logs/traces/metrics adapter; fail-open for telemetry only.
 - `M07.5` — **Redaction policy** (`done_or_near_done`): Audit/log/projection/replay/support-bundle redaction classes.
-- `M07.6` — **Support bundle** (`done_or_near_done`): Sanitized bundle with trace, graph slice, route rationale, environment/tool report.
+- `M07.6` — **Support bundle** (`done_or_near_done`): Sanitized product bundle with trace, graph slice and route rationale; environment evidence is emitted separately by `cli-checker`.
 - `M07.7` — **Cookbook docs** (`done_or_near_done`): Add action, approval, conflict, drain, replay, adapter, authz, projection recipes.
 
 **Exit gate:** Пользователь может понять, почему action запущен, заблокирован, не параллелится, требует approval/drain/lease, и воспроизвести это в replay.

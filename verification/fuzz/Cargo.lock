@@ -30,20 +30,11 @@ name = "causlane-core"
 version = "0.0.1"
 
 [[package]]
-name = "causlane-formal"
-version = "0.0.1"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "causlane-fuzz"
 version = "0.0.0"
 dependencies = [
  "causlane",
  "causlane-contracts",
- "causlane-formal",
  "causlane-replay",
  "causlane-runtime",
  "libfuzzer-sys",

@@ -218,9 +218,9 @@ authority. Before wiring an adapter, keep these checks green:
 causlane replay verify \
   --bundle /tmp/causlane-cookbook/release_promote.bundle.json \
   --trace /tmp/causlane-cookbook/release_promote.trace.json
-causlane formal doctor --profile base --lane local_smoke
+just formal-doctor
 ```
 
 Adapter-specific certification belongs to S08. The S07 cookbook stops at the
 stable control surfaces: bundle, scenario, replay, graph, support bundle and
-formal doctor.
+typed formal doctor.

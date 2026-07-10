@@ -22,7 +22,7 @@ GEN_NEG_LEASE="verification/formal-full/alloy/generated/conflicting_leases_inval
 GEN_RECEIPT="verification/formal-full/receipts/release_promote.codegen.json"
 
 if [ ! -f "$ALLOY_JAR" ]; then
-  echo "alloy jar missing: $ALLOY_JAR — run: causlane formal doctor" >&2
+  echo "alloy jar missing: $ALLOY_JAR; run: just formal-doctor" >&2
   exit 2
 fi
 

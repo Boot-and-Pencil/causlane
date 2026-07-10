@@ -45,7 +45,6 @@ crates/causlane-contracts Registry/bundle contract types.
 crates/causlane-runtime/  Runtime adapters and orchestration skeleton.
 crates/causlane-replay/   Replay oracle: bundle-bound trace verifier.
 crates/causlane-codegen/  Formal artifact generators.
-crates/causlane-formal/   Pure formal-toolchain readiness logic.
 crates/causlane-cli/      CLI for bundle/scenario/replay/formal commands.
 examples/                 Runnable and planned end-to-end examples.
 ```
@@ -70,9 +69,14 @@ Projections explain the truth.
 ## Publication status
 
 The first public crates.io release is an experimental `0.0.1` pre-alpha
-bootstrap. All eight runbook crates have been published and indexed:
-`causlane-core`, `causlane-formal`, `causlane-contracts`, `causlane-runtime`,
+bootstrap. The maintained runbook crates have been published and indexed:
+`causlane-core`, `causlane-contracts`, `causlane-runtime`,
 `causlane-replay`, `causlane-codegen`, `causlane` and `causlane-cli`.
+
+The previously published `causlane-formal 0.0.1` readiness crate is historical
+and no longer part of the workspace. Formal environment policy is owned by
+`cli-checker`; the real `causlane-formal` model/generation executable remains
+part of `causlane-cli`.
 
 Signed tag `v0.0.1` and the GitHub pre-release are public:
 <https://github.com/Boot-and-Pencil/causlane/releases/tag/v0.0.1>. Release

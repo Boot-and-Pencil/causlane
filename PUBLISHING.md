@@ -63,13 +63,12 @@ evidence, branch-protection confirmation and release owner.
 
 ```text
 1. causlane-core
-2. causlane-formal
-3. causlane-contracts
-4. causlane-runtime
-5. causlane-replay
-6. causlane-codegen
-7. causlane
-8. causlane-cli
+2. causlane-contracts
+3. causlane-runtime
+4. causlane-replay
+5. causlane-codegen
+6. causlane
+7. causlane-cli
 ```
 
 This order matters. A crate must not be dry-run/published until its internal
@@ -80,7 +79,7 @@ registry dependencies have already been published to crates.io and indexed.
 File-list inspection can be done for all crates before upload:
 
 ```bash
-for p in causlane-core causlane-formal causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
+for p in causlane-core causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
   cargo package -p "$p" --list --locked
   echo "reviewed package file list for $p"
 done

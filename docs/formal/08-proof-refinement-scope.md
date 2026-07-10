@@ -114,11 +114,11 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - ID: `cryptographic-and-toolchain-assumptions`
 - Lanes: `tooling`
 - Claim: Hash collision resistance, signature primitive correctness and external solver/compiler correctness are trusted assumptions, not repository proofs.
-- Authority surface: toolchain pins, HMAC/SHA tests and formal-doctor installation checks
+- Authority surface: toolchain pins, HMAC/SHA tests and typed cli-checker readiness checks
 - Scope: Environmental and cryptographic assumptions needed for the evidence chain to be meaningful.
 - Limits: The repository tests deterministic use of primitives but does not prove cryptographic hardness or solver soundness.
-- Verification: tools/formal-doctor, tools/formal-install, unit tests and pinned tool versions
-- Source links: `.devinfra/tool-versions.json`, `tools/formal-doctor`, `docs/setup.md`
+- Verification: `cli-checker project formal doctor`, tools/formal-install, unit tests and pinned tool versions
+- Source links: `.devinfra/tool-versions.json`, `.devinfra/cli-checker/project-tooling-profile.yaml`, `docs/setup.md`
 
 
 ## out_of_scope

@@ -953,7 +953,7 @@
     },
     "M07.6": {
       "title": "Support bundle",
-      "description": "Sanitized bundle with trace, graph slice, route rationale, environment/tool report.",
+      "description": "Sanitized product bundle with trace, graph slice and route rationale; environment evidence is emitted separately.",
       "status": "done_or_near_done",
       "stage": "S07"
     },

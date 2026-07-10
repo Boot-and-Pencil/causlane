@@ -5,7 +5,7 @@ HOST="${CI_DISPATCHER_HOST:-ci-dispatcher.lan}"
 REPO="${CI_DISPATCHER_REPO:-/workspace/repo}"
 CONNECT_TIMEOUT="${CI_DISPATCHER_CONNECT_TIMEOUT:-10}"
 FUZZ_TOOLCHAIN="${CI_DISPATCHER_FUZZ_TOOLCHAIN:-nightly-2025-11-21}"
-FUZZ_TARGET="${CI_DISPATCHER_FUZZ_TARGET:-requirement_from_tokens}"
+FUZZ_TARGET="${CI_DISPATCHER_FUZZ_TARGET:-runtime_guarded_audit_projection}"
 FUZZ_ARTIFACTS="${CI_DISPATCHER_FUZZ_ARTIFACTS:-target/causlane/fuzz-artifacts}"
 SYNC=1
 
@@ -20,7 +20,7 @@ Options:
   --repo PATH          Checkout path on the host (default: /workspace/repo)
   --connect-timeout N  SSH connect timeout in seconds (default: 10)
   --fuzz-toolchain T   Rust toolchain for cargo-fuzz (default: nightly-2025-11-21)
-  --fuzz-target T      Short fuzz target to execute (default: requirement_from_tokens)
+  --fuzz-target T      Short fuzz target to execute (default: runtime_guarded_audit_projection)
   --fuzz-artifacts P   Fuzz artifact prefix directory (default: /tmp/causlane-fuzz-artifacts)
   --no-sync            Do not fetch/fast-forward the remote checkout first
   -h, --help           Show this help
@@ -144,7 +144,7 @@ if [[ "$local_head" != "$origin_head" || "$local_head" != "$remote_head" ]]; the
 fi
 
 step "tool inventory"
-for tool in bash git python3 jq just cargo rustc rustup cargo-fuzz cargo-kani z3 java javac dotnet; do
+for tool in bash git python3 jq just cargo rustc rustup cargo-fuzz cargo-kani z3 java javac dotnet cli-checker; do
   require_tool "$tool"
   printf '%-12s %s\n' "$tool" "$(command -v "$tool")"
 done
@@ -161,12 +161,13 @@ dotnet --version
 
 step "formal doctor local_smoke"
 mkdir -p target/causlane
-python3 tools/formal-doctor --json --profile all --lane local_smoke \
+cli-checker project formal doctor \
+  --profile .devinfra/cli-checker/project-tooling-profile.yaml \
+  --require all --format json \
   > target/causlane/ci-dispatcher-formal-doctor.json
-jq -e '.status == "ok"' target/causlane/ci-dispatcher-formal-doctor.json >/dev/null
+jq -e '.formal_doctor.status == "ok"' target/causlane/ci-dispatcher-formal-doctor.json >/dev/null
 
 step "property smoke"
-./tools/cargo-dev test -p causlane-formal --test proptest_smoke --locked
 ./tools/cargo-dev test -p causlane-core --test proptest_protocol_properties --locked
 ./tools/cargo-dev test -p causlane-replay --test proptest_parse_boundaries --locked
 

@@ -10,17 +10,11 @@ use causlane_core::{
     FieldVisibility, RedactionClass, RedactionClassPolicy, RedactionPolicy, RedactionSurface,
     SurfaceRedactionProfile,
 };
-use causlane_formal::{report_with_context, DoctorReport, FormalProfile};
 use causlane_replay::{ReplayError, ReplayEvent, ReplayExplain, ReplayTrace};
 use serde::Serialize;
 
-use causlane_cli::cli_shared::DEFAULT_FORMAL_LANE;
-
 use crate::cli_graph_export::{export_graph_model, GraphExportDto};
-use crate::formal_doctor::formal_lane_checks;
-use crate::{
-    checked_at_token, gather_env, read_bundle, read_file, write_file, CliError, RunOutput,
-};
+use crate::{checked_at_token, read_bundle, read_file, write_file, CliError, RunOutput};
 
 const SUPPORT_BUNDLE_SCHEMA_VERSION: u32 = 1;
 const REDACTED: &str = "[redacted]";
@@ -45,7 +39,6 @@ const FIELD_TRACE_CAPABILITY_PAYLOADS: &str = "trace.events.execution_capability
 const FIELD_TRACE_CAPABILITY_ATTESTATIONS: &str = "trace.events.execution_capability.attestation";
 const FIELD_REPLAY_EXPLAIN: &str = "replay.explain";
 const FIELD_GRAPH_EXPORT: &str = "graph.export";
-const FIELD_ENVIRONMENT_REPORT: &str = "environment.formal_doctor";
 
 #[derive(Serialize)]
 struct SupportBundleDto {
@@ -55,7 +48,6 @@ struct SupportBundleDto {
     trace: TraceSummaryDto,
     replay: ReplayExplain,
     graph: GraphExportDto,
-    environment: DoctorReport,
     redaction: RedactionReportDto,
 }
 
@@ -128,15 +120,7 @@ pub(crate) fn build_support_bundle(
     let trace_json = read_file(trace_path)?;
     let trace = ReplayTrace::from_json_str(&trace_json)?;
     let graph = export_graph_model(graph_path, focus)?;
-    let env = gather_env();
-    let environment = report_with_context(
-        &FormalProfile::Base.requirement_tokens(),
-        &env,
-        FormalProfile::Base,
-        DEFAULT_FORMAL_LANE,
-        formal_lane_checks(DEFAULT_FORMAL_LANE),
-    );
-    let dto = support_bundle_from_parts(&bundle, &trace, graph, environment, checked_at_token())?;
+    let dto = support_bundle_from_parts(&bundle, &trace, graph, checked_at_token())?;
     let json = serde_json::to_string_pretty(&dto)
         .map_err(|err| CliError::Replay(ReplayError::Decode(err.to_string())))?;
     write_file(out, &json)?;
@@ -154,7 +138,6 @@ fn support_bundle_from_parts(
     bundle: &CompiledDispatchBundle,
     trace: &ReplayTrace,
     graph: GraphExportDto,
-    environment: DoctorReport,
     generated_at: String,
 ) -> Result<SupportBundleDto, CliError> {
     let profile = support_bundle_redaction_profile();
@@ -168,7 +151,6 @@ fn support_bundle_from_parts(
         trace: trace_summary(trace, &policy)?,
         replay,
         graph,
-        environment,
         redaction: redaction_report(&profile),
     })
 }
@@ -318,7 +300,6 @@ fn support_bundle_redaction_profile() -> SurfaceRedactionProfile {
             cf(FIELD_TRACE_CAPABILITY_ATTESTATIONS, RedactionClass::Secret),
             cf(FIELD_REPLAY_EXPLAIN, RedactionClass::Operational),
             cf(FIELD_GRAPH_EXPORT, RedactionClass::Operational),
-            cf(FIELD_ENVIRONMENT_REPORT, RedactionClass::Operational),
         ],
     )
 }
@@ -342,11 +323,8 @@ mod tests {
         FIELD_TRACE_CAPABILITY_ATTESTATIONS, FIELD_TRACE_SUBJECT_VALUES,
     };
     use crate::cli_graph_export::export_graph_model_from_text;
-    use crate::formal_doctor::formal_lane_checks;
     use crate::CliError;
-    use causlane_cli::cli_shared::DEFAULT_FORMAL_LANE;
     use causlane_contracts::{CompiledDispatchBundle, RegistryManifest};
-    use causlane_formal::{report_with_context, EnvFacts, FormalProfile, ToolFacts};
     use causlane_replay::ReplayTrace;
 
     const REGISTRY: &str =
@@ -371,33 +349,6 @@ ops:
         Ok(CompiledDispatchBundle::compile(&manifest)?)
     }
 
-    fn env_report() -> causlane_formal::DoctorReport {
-        let env = EnvFacts {
-            rustc: ToolFacts::new(true, Some("test-rust".to_owned())),
-            cargo: ToolFacts::new(true, Some("test-rust".to_owned())),
-            rustup: ToolFacts::absent(),
-            java: ToolFacts::absent(),
-            jq: ToolFacts::new(true, None),
-            python3: ToolFacts::new(true, None),
-            dotnet: ToolFacts::absent(),
-            alloy: ToolFacts::absent(),
-            p: ToolFacts::absent(),
-            cargo_kani: ToolFacts::absent(),
-            verus: ToolFacts::absent(),
-            elan: ToolFacts::absent(),
-            lean: ToolFacts::absent(),
-            lake: ToolFacts::absent(),
-            z3: ToolFacts::absent(),
-        };
-        report_with_context(
-            &FormalProfile::Base.requirement_tokens(),
-            &env,
-            FormalProfile::Base,
-            DEFAULT_FORMAL_LANE,
-            formal_lane_checks(DEFAULT_FORMAL_LANE),
-        )
-    }
-
     #[test]
     fn support_bundle_omits_raw_sensitive_trace_payloads() -> Result<(), CliError> {
         let mut trace = ReplayTrace::from_json_str(TRACE)?;
@@ -411,8 +362,7 @@ ops:
         });
         let bundle = bundle()?;
         let graph = export_graph_model_from_text("test", GRAPH, None)?;
-        let dto =
-            support_bundle_from_parts(&bundle, &trace, graph, env_report(), "unix:1".to_owned())?;
+        let dto = support_bundle_from_parts(&bundle, &trace, graph, "unix:1".to_owned())?;
         let json = serde_json::to_string(&dto)
             .map_err(|err| CliError::Usage(format!("json error: {err}")))?;
 

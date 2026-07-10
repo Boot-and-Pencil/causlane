@@ -123,18 +123,14 @@ context-pack-scan *paths:
 
 # --- formal contour (P0 Formal Readiness) ---
 
-# Bootstrap doctor (no Rust required) — works even without cargo/rustc.
-formal-doctor-bootstrap *args:
-  python3 tools/formal-doctor {{args}}
-
 formal-install tool:
   tools/formal-install {{tool}}
 
 formal-doctor:
-  ./tools/cargo-dev run -q -p causlane-cli --bin causlane -- formal doctor
+  cli-checker project formal doctor --profile .devinfra/cli-checker/project-tooling-profile.yaml --require all
 
 formal-doctor-json:
-  ./tools/cargo-dev run -q -p causlane-cli --bin causlane -- formal doctor --json
+  cli-checker project formal doctor --profile .devinfra/cli-checker/project-tooling-profile.yaml --require all --format json
 
 formal-smoke:
   bash verification/formal-full/smoke.sh

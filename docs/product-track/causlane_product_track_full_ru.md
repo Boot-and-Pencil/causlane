@@ -344,7 +344,7 @@ Beta можно выпускать, когда:
 - `M07.3` — **Tracing connector** (`done_or_near_done`): Structured action/op spans; logs derived, not truth.
 - `M07.4` — **OpenTelemetry optional** (`done_or_near_done`): OTLP logs/traces/metrics adapter; fail-open for telemetry only.
 - `M07.5` — **Redaction policy** (`done_or_near_done`): Audit/log/projection/replay/support-bundle redaction classes.
-- `M07.6` — **Support bundle** (`done_or_near_done`): Sanitized bundle with trace, graph slice, route rationale, environment/tool report.
+- `M07.6` — **Support bundle** (`done_or_near_done`): Sanitized product bundle with trace, graph slice and route rationale; environment evidence is emitted separately by `cli-checker`.
 - `M07.7` — **Cookbook docs** (`done_or_near_done`): Add action, approval, conflict, drain, replay, adapter, authz, projection recipes.
 
 **Exit gate:** Пользователь может понять, почему action запущен, заблокирован, не параллелится, требует approval/drain/lease, и воспроизвести это в replay.
@@ -781,7 +781,7 @@ Beta можно выпускать, когда:
 
 - **Stage:** S07
 - **Status:** `done_or_near_done`
-- **Purpose:** Sanitized bundle with trace, graph slice, route rationale, environment/tool report.
+- **Purpose:** Sanitized product bundle with trace, graph slice and route rationale; environment evidence remains a separate CI artifact.
 
 ## M07.7 — Cookbook docs
 
@@ -1437,7 +1437,7 @@ This workstream is not secondary. It prevents the project from becoming unverifi
 ## Repository and toolchain
 
 - Keep `.devinfra/tool-versions.json`, `rust-toolchain.toml`, `justfile`, formal installer and doctor aligned.
-- `tools/formal-doctor --json` must be usable before Rust/Cargo availability where possible.
+- `cli-checker project formal doctor` is the sole typed formal-environment authority.
 - Pin versions and checksums for Alloy, Z3, Kani, Verus, Lean4/P where feasible.
 - Split profiles: `base`, `rust`, `ci`, `formal`, `proof`, `all`.
 

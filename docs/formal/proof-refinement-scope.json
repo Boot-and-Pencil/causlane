@@ -122,13 +122,13 @@
       "evidence_class": "assumed",
       "responsible_lanes": ["tooling"],
       "claim": "Hash collision resistance, signature primitive correctness and external solver/compiler correctness are trusted assumptions, not repository proofs.",
-      "authority_surface": "toolchain pins, HMAC/SHA tests and formal-doctor installation checks",
+      "authority_surface": "toolchain pins, HMAC/SHA tests and typed cli-checker readiness checks",
       "scope": "Environmental and cryptographic assumptions needed for the evidence chain to be meaningful.",
       "limits": "The repository tests deterministic use of primitives but does not prove cryptographic hardness or solver soundness.",
-      "verification": "tools/formal-doctor, tools/formal-install, unit tests and pinned tool versions",
+      "verification": "cli-checker project formal doctor, tools/formal-install, unit tests and pinned tool versions",
       "source_links": [
         ".devinfra/tool-versions.json",
-        "tools/formal-doctor",
+        ".devinfra/cli-checker/project-tooling-profile.yaml",
         "docs/setup.md"
       ]
     },

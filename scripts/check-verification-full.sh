@@ -26,7 +26,7 @@ SUITE="${VERIFICATION_SUITE:-all}"
 PROFILE="${FORMAL_PROFILE:-all}"
 DEPTH="${VERIFICATION_DEPTH:-${FORMAL_LANE:-fast_ci}}"
 FUZZ_TOOLCHAIN="${FUZZ_TOOLCHAIN:-nightly-2025-11-21}"
-FUZZ_TARGET="${FUZZ_TARGET:-requirement_from_tokens}"
+FUZZ_TARGET="${FUZZ_TARGET:-runtime_guarded_audit_projection}"
 FUZZ_RUNS="${FUZZ_RUNS:-1}"
 
 usage() {
@@ -80,7 +80,6 @@ LANE="$DEPTH"
 
 run_property() {
   echo "== property tests =="
-  ./tools/cargo-dev test -p causlane-formal --test proptest_smoke --locked
   ./tools/cargo-dev test -p causlane-core --test proptest_protocol_properties --locked
   ./tools/cargo-dev test -p causlane-replay --test proptest_parse_boundaries --locked
 }
@@ -133,7 +132,6 @@ export PATH
 # so this gate proves on every run and the full toolchain is always required.
 # The fast dev loop lives in `formal-ready` / `cargo test` / `clippy`, not here.
 RUN_PROOF=1
-DOCTOR_ARGS=(--profile all --lane "$LANE")
 case "$PROFILE" in
   base|rust|proof|all)
     ;;
@@ -146,7 +144,9 @@ esac
 mkdir -p "$TARGET_DIR" verification/formal-full/receipts
 
 echo "== formal doctor (profile=$PROFILE lane=$LANE) =="
-python3 tools/formal-doctor --json "${DOCTOR_ARGS[@]}" > "$TARGET_DIR/formal-doctor.$PROFILE.$LANE.json"
+cli-checker project formal doctor \
+  --profile .devinfra/cli-checker/project-tooling-profile.yaml \
+  --require all --format json > "$TARGET_DIR/formal-doctor.$PROFILE.$LANE.json"
 
 echo "== formal exceptions policy (P1-FM-012) =="
 # Fail fast on any expired lane exception, regardless of profile.

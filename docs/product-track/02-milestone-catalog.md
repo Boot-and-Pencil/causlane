@@ -304,7 +304,7 @@
 
 - **Stage:** S07
 - **Status:** `done_or_near_done`
-- **Purpose:** Sanitized bundle with trace, graph slice, route rationale, environment/tool report.
+- **Purpose:** Sanitized product bundle with trace, graph slice and route rationale; environment evidence remains a separate CI artifact.
 
 ## M07.7 — Cookbook docs
 

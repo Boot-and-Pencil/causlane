@@ -3,8 +3,8 @@
 
 A fast tool-presence/version gate covering the whole install surface:
 base OS tools, Rust + cargo tools, devinfra tools, Node/npm, and the formal
-contour. Formal-tool checks are delegated to tools/formal-doctor so the two
-doctors agree on versions/SHAs; everything else is probed here.
+contour. Formal-tool checks are delegated to the typed cli-checker policy so
+the repository has one environment authority; everything else is probed here.
 
 Source of truth for expected versions is .devinfra/tool-versions.json.
 
@@ -40,7 +40,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 CONFIG = REPO / ".devinfra" / "tool-versions.json"
-FORMAL_DOCTOR = REPO / "tools" / "formal-doctor"
+FORMAL_PROFILE = REPO / ".devinfra" / "cli-checker" / "project-tooling-profile.yaml"
 VERSION_RE = re.compile(r"(\d+\.\d+\.\d+[\w.+-]*)")
 
 
@@ -240,7 +240,7 @@ FORMAL_DELEGATE = {
     "all":    "all",
 }
 
-FORMAL_TOOL_NAMES = ["alloy", "z3", "p", "cargo-kani", "verus", "elan", "lean", "lake"]
+FORMAL_TOOL_NAMES = ["z3", "p", "cargo-kani", "verus", "lean", "lake"]
 
 
 def add_formal_base(reg: list) -> None:
@@ -277,23 +277,14 @@ def evaluate_tool(spec: dict, required: bool) -> dict:
     }
 
 
-def normalize_formal_status(state: str, found: bool) -> str:
-    if state in ("ok", "disabled"):
-        return "pass"
-    if state == "missing":
-        return "fail"
-    if state in ("version_mismatch", "sha_mismatch"):
-        return "warn"
-    return "warn" if found else "fail"
-
-
 def run_formal_doctor(profile):
     if profile is None:
         return None
     try:
         proc = subprocess.run(
-            [sys.executable, str(FORMAL_DOCTOR), "--json",
-             "--profile", profile, "--lane", "local_smoke"],
+            ["cli-checker", "project", "formal", "doctor",
+             "--profile", str(FORMAL_PROFILE), "--require", "all",
+             "--format", "json"],
             capture_output=True, text=True, timeout=120, check=False, cwd=REPO,
         )
     except (OSError, subprocess.SubprocessError):
@@ -301,7 +292,7 @@ def run_formal_doctor(profile):
     if not proc.stdout.strip():
         return None
     try:
-        return json.loads(proc.stdout)
+        return json.loads(proc.stdout).get("formal_doctor")
     except ValueError:
         return None
 
@@ -312,14 +303,6 @@ def formal_tool_required(name: str, profile: str) -> bool:
     if profile in ("formal", "ci", "proof", "all"):
         return name in FORMAL_TOOL_NAMES
     return False
-
-
-def formal_tool_path(name: str):
-    if name in ("elan", "lean", "lake"):
-        path = REPO / ".tools" / "elan" / "home" / "bin" / name
-        return str(path) if path.is_file() else None
-    probe = "java" if name == "alloy" else name
-    return shutil.which(probe)
 
 
 def verus_rust_toolchain_check(cfg: dict, profile: str):
@@ -425,16 +408,17 @@ def main() -> int:
                 report["status"] = "fail"
         tools.append(report)
 
-    # Delegate formal-tool checks to formal-doctor and fold them in.
+    # Delegate formal-tool checks to cli-checker and fold them in.
     fd_profile = FORMAL_DELEGATE.get(profile)
     if fd_profile:
         fd = run_formal_doctor(fd_profile)
         if fd is None:
             remediation.append(
-                "could not run tools/formal-doctor; formal tool checks skipped"
+                "could not run cli-checker formal doctor; formal tool checks skipped"
             )
         else:
-            fd_tools = fd.get("tools", {})
+            fd_tools = fd.get("commands", {})
+            failures = set(fd.get("failures", []))
             for name in FORMAL_TOOL_NAMES:
                 entry = fd_tools.get(name)
                 req = formal_tool_required(name, profile)
@@ -447,15 +431,16 @@ def main() -> int:
                         "hint": f"run: tools/formal-install {name}",
                     })
                     continue
-                status = normalize_formal_status(entry.get("status", ""),
-                                                 entry.get("found", False))
+                found = bool(entry.get("found", False))
+                mismatch = f"version_mismatch_{name}" in failures
+                status = "fail" if not found else ("warn" if mismatch else "pass")
                 tools.append({
                     "name": name, "required": req,
-                    "expected_version": entry.get("expected_version"),
-                    "actual_version": entry.get("actual_version"),
-                    "path": formal_tool_path(name),
+                    "expected_version": entry.get("expected_version_contains"),
+                    "actual_version": entry.get("version"),
+                    "path": entry.get("path"),
                     "status": status,
-                    "hint": entry.get("hint"),
+                    "hint": "run: just formal-doctor",
                 })
             vt = verus_rust_toolchain_check(cfg, profile)
             if vt is not None:

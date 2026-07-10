@@ -9,8 +9,6 @@ pub const DEFAULT_FORMAL_ARTIFACT_DIR: &str = "verification/formal-full";
 pub const DEFAULT_FORMAL_RECEIPT_DIR: &str = "verification/formal-full/receipts";
 /// Default path for the derived formal coverage report.
 pub const DEFAULT_FORMAL_COVERAGE_REPORT: &str = "target/causlane/formal-coverage-report.json";
-/// Default formal-doctor lane for local checks.
-pub const DEFAULT_FORMAL_LANE: &str = "local_smoke";
 
 /// File boundary error with the affected path preserved for CLI rendering.
 #[derive(Debug)]

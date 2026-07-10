@@ -62,8 +62,7 @@
       {
         "tier": 0,
         "packages": [
-          "causlane-core",
-          "causlane-formal"
+          "causlane-core"
         ]
       },
       {
@@ -97,7 +96,6 @@
     ],
     "full_publish_sequence": [
       "causlane-core",
-      "causlane-formal",
       "causlane-contracts",
       "causlane-runtime",
       "causlane-replay",
@@ -175,6 +173,7 @@
           "src/domain/tier.rs",
           "src/domain/tracing.rs",
           "src/domain/why_not_parallel.rs",
+          "src/integration/tests.rs",
           "src/integration.rs",
           "src/kernel.rs",
           "src/lib.rs",
@@ -318,6 +317,7 @@
           "src/in_process/tests/backpressure.rs",
           "src/in_process/tests/recovery.rs",
           "src/in_process/tests/retention.rs",
+          "src/in_process/tests/validation.rs",
           "src/in_process/tests.rs",
           "src/in_process/worker.rs",
           "src/lib.rs",
@@ -382,22 +382,6 @@
         ]
       },
       {
-        "name": "causlane-formal",
-        "version": "0.0.1",
-        "manifest_path": "crates/causlane-formal/Cargo.toml",
-        "package_root": "crates/causlane-formal",
-        "package_files": [
-          ".cargo_vcs_info.json",
-          "Cargo.lock",
-          "Cargo.toml",
-          "Cargo.toml.orig",
-          "README.md",
-          "src/lib.rs",
-          "tests/proptest_smoke.rs"
-        ],
-        "normal_workspace_dependencies": []
-      },
-      {
         "name": "causlane-cli",
         "version": "0.0.1",
         "manifest_path": "crates/causlane-cli/Cargo.toml",
@@ -441,12 +425,10 @@
           "src/cli_smoke_tests.rs",
           "src/cli_support_bundle.rs",
           "src/formal_artifacts.rs",
-          "src/formal_doctor.rs",
           "src/formal_generate.rs",
           "src/lib.rs",
           "src/main.rs",
-          "src/scenario_facts.rs",
-          "src/tool_versions.rs"
+          "src/scenario_facts.rs"
         ],
         "normal_workspace_dependencies": [
           {
@@ -463,11 +445,6 @@
             "name": "causlane-core",
             "requirement": "^0.0.1",
             "path": "crates/causlane-core"
-          },
-          {
-            "name": "causlane-formal",
-            "requirement": "^0.0.1",
-            "path": "crates/causlane-formal"
           },
           {
             "name": "causlane-replay",
@@ -600,14 +577,6 @@
         "docsrs_all_features": false
       },
       {
-        "name": "causlane-formal",
-        "manifest_path": "crates/causlane-formal/Cargo.toml",
-        "default_features": [],
-        "declared_features": [],
-        "optional_dependencies": [],
-        "docsrs_all_features": false
-      },
-      {
         "name": "causlane-cli",
         "manifest_path": "crates/causlane-cli/Cargo.toml",
         "default_features": [],
@@ -626,7 +595,6 @@
     ],
     "publish_sequence": [
       "causlane-core",
-      "causlane-formal",
       "causlane-contracts",
       "causlane-runtime",
       "causlane-replay",
@@ -690,7 +658,7 @@
       "status": "pass",
       "summary": "Every workspace crate has a crate-local README for crates.io.",
       "evidence": [
-        "crate READMEs: causlane: crates/causlane/README.md, causlane-core: crates/causlane-core/README.md, causlane-contracts: crates/causlane-contracts/README.md, causlane-replay: crates/causlane-replay/README.md, causlane-runtime: crates/causlane-runtime/README.md, causlane-codegen: crates/causlane-codegen/README.md, causlane-formal: crates/causlane-formal/README.md, causlane-cli: crates/causlane-cli/README.md"
+        "crate READMEs: causlane: crates/causlane/README.md, causlane-core: crates/causlane-core/README.md, causlane-contracts: crates/causlane-contracts/README.md, causlane-replay: crates/causlane-replay/README.md, causlane-runtime: crates/causlane-runtime/README.md, causlane-codegen: crates/causlane-codegen/README.md, causlane-cli: crates/causlane-cli/README.md"
       ],
       "remediation": "Add crate-local README files or explicit package.readme entries."
     },
@@ -699,7 +667,7 @@
       "status": "pass",
       "summary": "Workspace package file lists include manifests, READMEs and Rust entrypoints.",
       "evidence": [
-        "package file lists captured for 8 workspace crates"
+        "package file lists captured for 7 workspace crates"
       ],
       "remediation": "Adjust package include/exclude metadata if required files are absent."
     },
@@ -708,7 +676,7 @@
       "status": "pass",
       "summary": "Workspace crate publication order is machine-derived from normal path dependencies.",
       "evidence": [
-        "dependency tiers: tier 0: causlane-core, causlane-formal, tier 1: causlane, causlane-contracts, causlane-runtime, tier 2: causlane-replay, causlane-codegen, tier 3: causlane-cli",
+        "dependency tiers: tier 0: causlane-core, tier 1: causlane, causlane-contracts, causlane-runtime, tier 2: causlane-replay, causlane-codegen, tier 3: causlane-cli",
         "facade publish sequence: causlane-core, causlane"
       ],
       "remediation": "Break workspace dependency cycles before publishing internal crates."
@@ -718,7 +686,7 @@
       "status": "pass",
       "summary": "Full workspace publication sequence is explicit and release-runbook aligned.",
       "evidence": [
-        "sequence: causlane-core, causlane-formal, causlane-contracts, causlane-runtime, causlane-replay, causlane-codegen, causlane, causlane-cli"
+        "sequence: causlane-core, causlane-contracts, causlane-runtime, causlane-replay, causlane-codegen, causlane, causlane-cli"
       ],
       "remediation": "Update the publish sequence or workspace package list before publication."
     },

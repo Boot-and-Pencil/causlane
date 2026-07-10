@@ -86,26 +86,22 @@ which is run by `scripts/check-verification-full.sh` after fresh coverage and
 coverage-matrix drift checking. They extend the generated evidence chain rather
 than replacing it.
 
-## Toolchain bootstrap (no Rust required)
+## Toolchain readiness
 
 ```bash
-tools/formal-doctor --profile base --lane local_smoke
-tools/formal-doctor --json
-tools/formal-doctor --profile proof        # explicit opt-in to Verus/z3/Lean4
+cli-checker project formal doctor --profile .devinfra/cli-checker/project-tooling-profile.yaml --require all
+cli-checker project formal doctor --profile .devinfra/cli-checker/project-tooling-profile.yaml --require all --format json
 tools/formal-install alloy                 # provision .tools/alloy/alloy.jar (SHA-verified)
-just formal-doctor-bootstrap               # same doctor, via just
+just formal-doctor                         # canonical typed readiness gate
 ```
 
-`tools/formal-doctor` distinguishes **missing** (binary absent), **disabled**
-(pinned but intentionally turned off), **version_mismatch**, **sha_mismatch**,
-and **ok**, using
-`.devinfra/tool-versions.json` as the source of truth. It reports missing
-cargo/rustc as a state (it never needs Rust itself).
+`cli-checker` validates presence, exact pinned versions, minimum major versions,
+the Alloy artifact SHA and forbidden mutable-version tokens using
+`.devinfra/tool-versions.json` as the source of truth.
 
 ## Running the formal gates
 
 ```bash
-causlane formal doctor [--json] [--profile ...] [--lane ...] [--require ...]
 just formal-doctor
 just formal-smoke                                 # compile runner + run Alloy + write receipt
 just formal-ready                                 # full readiness gate
@@ -121,7 +117,7 @@ the core Alloy receipt and codegen receipt; see
 `verification/formal-full/receipts/examples/alloy-core.sample.json` for the schema.
 
 The Alloy jar (`.tools/alloy/alloy.jar`) is a downloaded artifact (git-ignored);
-both doctors report whether it is present and SHA-correct.
+the typed checker reports whether it is present and SHA-correct.
 
 ## Lean4 quick path
 

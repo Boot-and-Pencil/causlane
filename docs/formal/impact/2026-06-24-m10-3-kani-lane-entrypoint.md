@@ -13,7 +13,7 @@ delegates to the existing `check-verification-full` runner.
 
 - `scripts/check-verification-full.sh --depth` validates lane names from `verification/formal-full/kani/profile.json`
   and delegates real execution to `scripts/check-verification-full.sh --lane`.
-- `tools/formal-doctor` reads valid lanes from the same profile.
+- `cli-checker` reads the Kani lane and tool pins from the typed project profile.
 - The Rust CLI doctor no longer duplicates the concrete non-local lane list:
   `local_smoke` is the local lane, and every other lane uses the publication
   contract checks.

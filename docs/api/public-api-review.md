@@ -94,12 +94,6 @@ schema-checked files.
 - [x] in-process runtime retention is bounded and explicit in config/docs;
 - [x] hard-effect safety remains delegated to barrier/capability validators.
 
-### `causlane-formal`
-
-- [x] API stays pure and does not download or execute external tools;
-- [x] filesystem probing and process execution stay at CLI/tool boundary;
-- [x] doctor reports distinguish missing optional tools from blocking tools.
-
 ### `causlane-cli`
 
 - [x] every declared binary has a source file;

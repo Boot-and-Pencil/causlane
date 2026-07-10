@@ -46,7 +46,6 @@ evidence and signed tag evidence are recorded under `docs/release/`. All eight
 runbook crates have been published and indexed on crates.io:
 
 - `causlane-core 0.0.1`;
-- `causlane-formal 0.0.1`;
 - `causlane-contracts 0.0.1`;
 - `causlane-runtime 0.0.1`;
 - `causlane-replay 0.0.1`;

@@ -19,7 +19,9 @@ DOCTOR_REPORT="$TARGET_DIR/formal-doctor.json"
 mkdir -p "$TARGET_DIR" verification/formal-full/alloy/generated verification/formal-full/receipts
 
 echo "== formal doctor =="
-python3 tools/formal-doctor --json --profile base --lane local_smoke > "$DOCTOR_REPORT"
+cli-checker project formal doctor \
+  --profile .devinfra/cli-checker/project-tooling-profile.yaml \
+  --require all --format json > "$DOCTOR_REPORT"
 
 echo "== rust checks =="
 ./tools/cargo-dev fmt --all --check

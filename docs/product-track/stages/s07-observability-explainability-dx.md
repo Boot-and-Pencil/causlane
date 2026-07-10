@@ -59,7 +59,7 @@
 ### M07.6 — Support bundle
 
 - **Status:** `done_or_near_done`
-- **Outcome:** Sanitized bundle with trace, graph slice, route rationale, environment/tool report.
+- **Outcome:** Sanitized product bundle with trace, graph slice and route rationale; environment evidence is separate.
 - **Definition of done:**
   - typed contract or executable check exists;
   - docs/ADR updated;

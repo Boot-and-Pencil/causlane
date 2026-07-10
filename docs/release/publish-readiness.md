@@ -72,14 +72,6 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Optional dependencies: none
 - docs.rs all-features: `false`
 
-#### causlane-formal
-
-- Manifest: `crates/causlane-formal/Cargo.toml`
-- Default features: none
-- Declared features: none
-- Optional dependencies: none
-- docs.rs all-features: `false`
-
 #### causlane-cli
 
 - Manifest: `crates/causlane-cli/Cargo.toml`
@@ -106,12 +98,12 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Status: `pass`
 - Facade dependency closure: `causlane-core`
 - Facade publish sequence: `causlane-core`, `causlane`
-- Full publish sequence: `causlane-core`, `causlane-formal`, `causlane-contracts`, `causlane-runtime`, `causlane-replay`, `causlane-codegen`, `causlane`, `causlane-cli`
+- Full publish sequence: `causlane-core`, `causlane-contracts`, `causlane-runtime`, `causlane-replay`, `causlane-codegen`, `causlane`, `causlane-cli`
 - Cycle packages: none
 
 ### Dependency Tiers
 
-- Tier 0: `causlane-core`, `causlane-formal`
+- Tier 0: `causlane-core`
 - Tier 1: `causlane`, `causlane-contracts`, `causlane-runtime`
 - Tier 2: `causlane-replay`, `causlane-codegen`
 - Tier 3: `causlane-cli`
@@ -130,7 +122,7 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Manifest: `crates/causlane-core/Cargo.toml`
 - Package root: `crates/causlane-core`
 - Normal workspace dependencies: none
-- Package files: 45
+- Package files: 46
 
 #### causlane-contracts
 
@@ -151,7 +143,7 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Manifest: `crates/causlane-runtime/Cargo.toml`
 - Package root: `crates/causlane-runtime`
 - Normal workspace dependencies: `causlane-core ^0.0.1 via crates/causlane-core`
-- Package files: 36
+- Package files: 37
 
 #### causlane-codegen
 
@@ -160,26 +152,19 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Normal workspace dependencies: `causlane-contracts ^0.0.1 via crates/causlane-contracts`
 - Package files: 30
 
-#### causlane-formal
-
-- Manifest: `crates/causlane-formal/Cargo.toml`
-- Package root: `crates/causlane-formal`
-- Normal workspace dependencies: none
-- Package files: 7
-
 #### causlane-cli
 
 - Manifest: `crates/causlane-cli/Cargo.toml`
 - Package root: `crates/causlane-cli`
-- Normal workspace dependencies: `causlane-codegen ^0.0.1 via crates/causlane-codegen`, `causlane-contracts ^0.0.1 via crates/causlane-contracts`, `causlane-core ^0.0.1 via crates/causlane-core`, `causlane-formal ^0.0.1 via crates/causlane-formal`, `causlane-replay ^0.0.1 via crates/causlane-replay`
-- Package files: 44
+- Normal workspace dependencies: `causlane-codegen ^0.0.1 via crates/causlane-codegen`, `causlane-contracts ^0.0.1 via crates/causlane-contracts`, `causlane-core ^0.0.1 via crates/causlane-core`, `causlane-replay ^0.0.1 via crates/causlane-replay`
+- Package files: 42
 
 ## Publication Execution
 
 - Status: `deferred`
 - Reason: Actual upload is deferred until the explicit release runbook is invoked.
 - Deferred dependencies: `causlane-core ^0.0.1 via crates/causlane-core`
-- Publish sequence: `causlane-core`, `causlane-formal`, `causlane-contracts`, `causlane-runtime`, `causlane-replay`, `causlane-codegen`, `causlane`, `causlane-cli`
+- Publish sequence: `causlane-core`, `causlane-contracts`, `causlane-runtime`, `causlane-replay`, `causlane-codegen`, `causlane`, `causlane-cli`
 - Next command: `cargo package -p causlane-core --list`
 - Dry-run command: `cargo publish -p causlane-core --dry-run --locked`
 - Actual publish command: `cargo publish -p causlane-core --locked`
@@ -226,28 +211,28 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 
 - Status: `pass`
 - Summary: Every workspace crate has a crate-local README for crates.io.
-- Evidence: crate READMEs: causlane: crates/causlane/README.md, causlane-core: crates/causlane-core/README.md, causlane-contracts: crates/causlane-contracts/README.md, causlane-replay: crates/causlane-replay/README.md, causlane-runtime: crates/causlane-runtime/README.md, causlane-codegen: crates/causlane-codegen/README.md, causlane-formal: crates/causlane-formal/README.md, causlane-cli: crates/causlane-cli/README.md
+- Evidence: crate READMEs: causlane: crates/causlane/README.md, causlane-core: crates/causlane-core/README.md, causlane-contracts: crates/causlane-contracts/README.md, causlane-replay: crates/causlane-replay/README.md, causlane-runtime: crates/causlane-runtime/README.md, causlane-codegen: crates/causlane-codegen/README.md, causlane-cli: crates/causlane-cli/README.md
 - Remediation: Add crate-local README files or explicit package.readme entries.
 
 ### workspace-package-file-lists
 
 - Status: `pass`
 - Summary: Workspace package file lists include manifests, READMEs and Rust entrypoints.
-- Evidence: package file lists captured for 8 workspace crates
+- Evidence: package file lists captured for 7 workspace crates
 - Remediation: Adjust package include/exclude metadata if required files are absent.
 
 ### workspace-publication-order
 
 - Status: `pass`
 - Summary: Workspace crate publication order is machine-derived from normal path dependencies.
-- Evidence: dependency tiers: tier 0: causlane-core, causlane-formal, tier 1: causlane, causlane-contracts, causlane-runtime, tier 2: causlane-replay, causlane-codegen, tier 3: causlane-cli, facade publish sequence: causlane-core, causlane
+- Evidence: dependency tiers: tier 0: causlane-core, tier 1: causlane, causlane-contracts, causlane-runtime, tier 2: causlane-replay, causlane-codegen, tier 3: causlane-cli, facade publish sequence: causlane-core, causlane
 - Remediation: Break workspace dependency cycles before publishing internal crates.
 
 ### full-workspace-publish-sequence
 
 - Status: `pass`
 - Summary: Full workspace publication sequence is explicit and release-runbook aligned.
-- Evidence: sequence: causlane-core, causlane-formal, causlane-contracts, causlane-runtime, causlane-replay, causlane-codegen, causlane, causlane-cli
+- Evidence: sequence: causlane-core, causlane-contracts, causlane-runtime, causlane-replay, causlane-codegen, causlane, causlane-cli
 - Remediation: Update the publish sequence or workspace package list before publication.
 
 ### internal-dependency-versions

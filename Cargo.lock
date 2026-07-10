@@ -206,7 +206,6 @@ dependencies = [
  "causlane-codegen",
  "causlane-contracts",
  "causlane-core",
- "causlane-formal",
  "causlane-replay",
  "noyalib",
  "serde",
@@ -237,15 +236,6 @@ name = "causlane-core"
 version = "0.0.1"
 dependencies = [
  "proptest",
-]
-
-[[package]]
-name = "causlane-formal"
-version = "0.0.1"
-dependencies = [
- "proptest",
- "serde",
- "serde_json",
 ]
 
 [[package]]

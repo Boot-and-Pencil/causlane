@@ -17,7 +17,8 @@ logic:
 - bundle metadata from the compiled dispatch bundle;
 - replay diagnosis from `ReplayTrace::verify_explain`;
 - graph context from the M07.2 graph export model;
-- environment/tool status from the formal doctor report;
+- repository-owned replay, graph and redaction evidence only; environment
+  readiness is emitted separately by `cli-checker` as CI evidence;
 - support-bundle redaction from the M07.5 class/profile layer.
 
 ## JSON Shape
@@ -31,8 +32,12 @@ The top-level object has `schema_version: 1` and these sections:
   count, binding counts and sanitized per-event summaries.
 - `replay`: structured replay explain output.
 - `graph`: typed graph export model.
-- `environment`: formal doctor report for the base/local-smoke surface.
 - `redaction`: support-bundle field paths revealed/redacted by the M07.5 policy.
+
+Environment/tool readiness is deliberately not part of this product DTO. The
+authoritative environment report is produced by `cli-checker project formal
+doctor` and attached to the CI evidence bundle. This keeps host state out of
+the stable support-bundle contract.
 
 ## Sanitization
 

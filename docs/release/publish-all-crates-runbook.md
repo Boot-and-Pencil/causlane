@@ -61,7 +61,7 @@ This step can run for all crates before publication because it inspects local
 package contents only.
 
 ```bash
-for p in causlane-core causlane-formal causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
+for p in causlane-core causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
   cargo package -p "$p" --list
   echo "--- reviewed $p ---"
 done
@@ -82,13 +82,12 @@ Use this order:
 
 ```text
 1. causlane-core
-2. causlane-formal
-3. causlane-contracts
-4. causlane-runtime
-5. causlane-replay
-6. causlane-codegen
-7. causlane
-8. causlane-cli
+2. causlane-contracts
+3. causlane-runtime
+4. causlane-replay
+5. causlane-codegen
+6. causlane
+7. causlane-cli
 ```
 
 The order is derived from normal workspace dependencies. Publish a crate only
@@ -119,7 +118,7 @@ and a downstream temporary project after the dependency has propagated.
 ## 6. Full Sequence Template
 
 ```bash
-for crate in causlane-core causlane-formal causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
+for crate in causlane-core causlane-contracts causlane-runtime causlane-replay causlane-codegen causlane causlane-cli; do
   echo "==> dry-run $crate"
   cargo publish -p "$crate" --dry-run --locked
 

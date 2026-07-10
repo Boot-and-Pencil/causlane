@@ -2,8 +2,6 @@ schema_version: sadave.rust_crate_graph_policy.v1
 crates:
   - crate_name: causlane-core
     layer: kernel
-  - crate_name: causlane-formal
-    layer: formal
   - crate_name: causlane-contracts
     layer: contracts
   - crate_name: causlane-runtime
@@ -19,9 +17,6 @@ crates:
 allowed_edges:
   - from_layer: kernel
     to_layers: [kernel]
-    allowed_external_classes: []
-  - from_layer: formal
-    to_layers: [formal]
     allowed_external_classes: []
   - from_layer: contracts
     to_layers: [contracts, kernel]
@@ -39,5 +34,5 @@ allowed_edges:
     to_layers: [facade, kernel, contracts, runtime, replay]
     allowed_external_classes: []
   - from_layer: cli
-    to_layers: [cli, kernel, formal, contracts, replay, codegen]
+    to_layers: [cli, kernel, contracts, replay, codegen]
     allowed_external_classes: []

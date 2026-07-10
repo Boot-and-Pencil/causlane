@@ -90,6 +90,7 @@
                 "lake_version": "5.0.0",
                 "lean_linux_tar_zst_sha256": "07a633cc8d9151cbc08825ea4cdda50d4b02a2c9cb852c0131b13046f49cad7f",
                 "lean_version": "4.31.0",
+                "version": "4.31.0",
                 "profile_required": [
                     "proof",
                     "all"

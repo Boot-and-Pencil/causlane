@@ -11,16 +11,8 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 causlane = { path = "../../crates/causlane" }
 causlane-contracts = { path = "../../crates/causlane-contracts" }
-causlane-formal = { path = "../../crates/causlane-formal" }
 causlane-replay = { path = "../../crates/causlane-replay" }
 causlane-runtime = { path = "../../crates/causlane-runtime" }
-
-[[bin]]
-name = "requirement_from_tokens"
-path = "fuzz_targets/requirement_from_tokens.rs"
-test = false
-doc = false
-bench = false
 
 [[bin]]
 name = "replay_trace_json"

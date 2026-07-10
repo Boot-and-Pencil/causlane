@@ -7,7 +7,6 @@ members = [
     "crates/causlane-codegen",
     "crates/causlane-runtime",
     "crates/causlane-replay",
-    "crates/causlane-formal",
     "crates/causlane-cli",
 ]
 # The cargo-fuzz crate is a standalone workspace (needs nightly + sanitizer

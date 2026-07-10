@@ -10,7 +10,7 @@ This is the consolidated, executable install checklist for the Causlane repo
 Both read pinned versions/URLs/SHAs from `.devinfra/tool-versions.json`, which
 is the single source of truth for tool versions. Formal-tool provisioning is
 delegated to the existing `tools/formal-install`, and formal-tool diagnosis to
-the existing `tools/formal-doctor`.
+the canonical typed `cli-checker` formal policy.
 
 ## TL;DR
 
@@ -184,8 +184,7 @@ tools/formal-install z3      # validates the z3 bundled with the pinned Verus di
 - [ ] `cargo-kani --version` passes (and `cargo-kani setup` run).
 - [ ] Verus binary installed; Rust `1.95.0` toolchain installed;
       `verus --version` passes.
-- [ ] `python3 tools/formal-doctor --json --profile all` passes (or honestly
-      reports missing optional tools).
+- [ ] `just formal-doctor` passes against the pinned tool manifest and artifact hashes.
 
 ### Repo gates
 

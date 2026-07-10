@@ -21,11 +21,9 @@ mod cli_parse;
 mod cli_replay;
 mod cli_scenario;
 mod cli_support_bundle;
-mod formal_doctor;
 mod formal_generate;
 #[path = "bin/formal_runtime/io.rs"]
 mod formal_runtime_io;
-mod tool_versions;
 
 use cli_parse::{parse, usage};
 
@@ -38,9 +36,7 @@ use causlane_codegen::{CodegenError, FormalTarget};
 use causlane_contracts::{
     BoundaryContracts, BundleCompiler, CompiledDispatchBundle, ContractError, RegistryManifest,
 };
-use causlane_formal::{report_with_context, EnvFacts, FormalProfile, ToolFacts};
 use causlane_replay::{ReplayError, ReplayScenario};
-use formal_doctor::formal_lane_checks;
 pub(crate) use formal_runtime_io::StdFormalIo;
 
 /// A parsed CLI command (boundary strings resolved before branching).
@@ -104,12 +100,6 @@ enum Command {
     ContractTest {
         manifest: String,
         json: bool,
-    },
-    FormalDoctor {
-        json: bool,
-        require: Vec<String>,
-        profile: FormalProfile,
-        lane: String,
     },
     FormalGenerateAlloy {
         bundle: String,
@@ -272,53 +262,6 @@ fn validate_scenario_file(path: &str) -> Result<String, CliError> {
     ))
 }
 
-fn on_path(bin: &str) -> bool {
-    match std::env::var_os("PATH") {
-        Some(path) => std::env::split_paths(&path).any(|dir| dir.join(bin).is_file()),
-        None => false,
-    }
-}
-
-fn present(bin: &str, fallback: &str) -> bool {
-    on_path(bin) || Path::new(fallback).is_file()
-}
-
-fn gather_env() -> EnvFacts {
-    // Surface the pinned versions from the manifest (P1-005): the Python doctor is
-    // the version/SHA verification authority, the Rust doctor reports presence plus
-    // the pin so the two no longer disagree (file read stays at this boundary).
-    let pins = std::fs::read_to_string(".devinfra/tool-versions.json")
-        .ok()
-        .map(|text| tool_versions::PinnedVersions::parse(&text))
-        .unwrap_or_default();
-    EnvFacts {
-        rustc: ToolFacts::new(on_path("rustc"), pins.rust.clone()),
-        cargo: ToolFacts::new(on_path("cargo"), pins.rust.clone()),
-        rustup: ToolFacts::new(on_path("rustup"), pins.rust.clone()),
-        java: ToolFacts::new(on_path("java"), None),
-        jq: ToolFacts::new(on_path("jq"), None),
-        python3: ToolFacts::new(on_path("python3"), None),
-        dotnet: ToolFacts::new(on_path("dotnet"), None),
-        alloy: ToolFacts::new(Path::new(".tools/alloy/alloy.jar").is_file(), pins.alloy),
-        p: ToolFacts::new(present("p", ".tools/p/p"), pins.p),
-        cargo_kani: ToolFacts::new(
-            present("cargo-kani", "/cache/cargo/bin/cargo-kani"),
-            pins.kani,
-        ),
-        verus: ToolFacts::new(
-            present("verus", ".tools/verus_dist/verus-x86-linux/verus"),
-            pins.verus,
-        ),
-        elan: ToolFacts::new(present("elan", ".tools/elan/home/bin/elan"), None),
-        lean: ToolFacts::new(present("lean", ".tools/elan/home/bin/lean"), None),
-        lake: ToolFacts::new(present("lake", ".tools/elan/home/bin/lake"), None),
-        z3: ToolFacts::new(
-            present("z3", ".tools/verus_dist/verus-x86-linux/z3"),
-            pins.z3,
-        ),
-    }
-}
-
 #[allow(clippy::too_many_lines)]
 fn run(args: &[String]) -> Result<RunOutput, CliError> {
     match parse(args) {
@@ -419,25 +362,6 @@ fn run(args: &[String]) -> Result<RunOutput, CliError> {
         }),
         Some(Command::ContractTest { manifest, json }) => {
             cli_contract::run_contract_tests(&manifest, json)
-        }
-        Some(Command::FormalDoctor {
-            json,
-            require,
-            profile,
-            lane,
-        }) => {
-            let env = gather_env();
-            let doctor =
-                report_with_context(&require, &env, profile, &lane, formal_lane_checks(&lane));
-            let text = if json {
-                doctor.to_json()
-            } else {
-                doctor.to_human()
-            };
-            Ok(RunOutput {
-                text,
-                success: doctor.required_satisfied(),
-            })
         }
         Some(Command::FormalGenerateAlloy {
             bundle,

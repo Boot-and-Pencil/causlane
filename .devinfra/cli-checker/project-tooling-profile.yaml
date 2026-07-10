@@ -4,6 +4,7 @@ owner: causlane
 requires_generic_checker_capabilities:
 - script_inventory_classification
 - dependency_source_policy
+- formal_smoke_policy
 project_inputs:
   gate_roots: []
   docs_roots: []
@@ -49,13 +50,6 @@ script_inventory_policy:
   - python
   block_unclassified_inline_interpreters: true
   classifications:
-  - path: tools/formal-doctor
-    category: replace_with_checker_rule
-    owner: causlane
-    reason: generic formal tool discovery is owned by cli-checker project formal
-    parity_condition: typed replacement matches the blocking decisions of the Python implementation
-    effect_class: read_only_policy
-    blocking: true
   - glob: scripts/parallel-dev/**
     category: replace_with_checker_rule
     owner: causlane
@@ -115,6 +109,139 @@ script_inventory_policy:
 checker_output_policy:
   required_formats:
   - json
+formal_smoke_policy:
+  project_check_mode: doctor_only
+  tool_version_manifest_path: .devinfra/tool-versions.json
+  tool_manifest_roots:
+  - tools.formal_tools
+  forbidden_tool_manifest_tokens:
+  - +working-tree
+  smoke_manifest_path: verification/formal-smoke/formal-smoke.toml
+  artifact_root: .agent-state/formal-smoke
+  tmp_dir: .agent-state/formal-smoke/tmp
+  cargo_target_dir: .agent-state/formal-smoke/cargo-target
+  default_lane: all
+  required_tools:
+  - id: cargo
+    binary: cargo
+    version_args: [--version]
+  - id: cargo-fuzz
+    binary: cargo-fuzz
+    version_args: [--version]
+    expected_version_contains: 0.13.2
+  - id: cargo-kani
+    binary: cargo-kani
+    version_args: [--version]
+    manifest_key: kani
+  - id: verus
+    binary: verus
+    version_args: [--version]
+  - id: lean
+    binary: lean
+    version_args: [--version]
+    manifest_key: lean4
+  - id: p
+    binary: p
+    version_args: [--version]
+  - id: z3
+    binary: z3
+    version_args: [--version]
+  - id: java
+    binary: java
+    version_args: [-version]
+    minimum_major_manifest_key: tools.formal_tools.alloy.java_min_version
+  - id: javac
+    binary: javac
+    version_args: [-version]
+    minimum_major_manifest_key: tools.formal_tools.alloy.java_min_version
+  - id: dotnet
+    binary: dotnet
+    version_args: [--version]
+    minimum_major_manifest_key: tools.formal_tools.p.dotnet_sdk_major
+  optional_tools:
+  - id: kani
+    binary: kani
+    version_args: [--version]
+    manifest_key: kani
+  - id: lake
+    binary: lake
+    version_args: [--version]
+    manifest_key: lean4
+  required_artifacts:
+  - id: model
+    path: verification/formal-smoke/model/traces.json
+  - id: rust
+    path: verification/formal-smoke/rust/Cargo.toml
+  - id: kani
+    path: verification/formal-smoke/kani/README.md
+  - id: verus
+    path: verification/formal-smoke/verus/smoke.rs
+  - id: p-lang
+    path: verification/formal-smoke/p-lang/Smoke.p
+  - id: lean4
+    path: verification/formal-smoke/lean4/Smoke.lean
+  - id: property
+    path: verification/formal-smoke/property/README.md
+  - id: fuzz
+    path: verification/formal-smoke/fuzz/Cargo.toml
+  - id: alloy-jar
+    path: .tools/alloy/alloy.jar
+    sha256_manifest_key: tools.formal_tools.alloy.jar_sha256
+  - id: alloy-model
+    path: verification/formal-full/alloy/core/causlane_core.als
+  lanes:
+  - id: kani
+    required_tools: [cargo-kani]
+    required_artifacts: [rust, kani]
+    steps:
+    - id: kani
+      argv: [cargo-kani, --manifest-path, verification/formal-smoke/rust/Cargo.toml, --harness, gate_before_use_kani_smoke, --default-unwind, "8", --output-format, terse, --target-dir, "{run_dir}/target/kani"]
+      env_unset: [RUSTC_WRAPPER, CARGO_BUILD_RUSTC_WRAPPER, RUSTC_WORKSPACE_WRAPPER, RUSTFLAGS, CARGO_ENCODED_RUSTFLAGS]
+  - id: verus
+    required_tools: [verus]
+    required_artifacts: [verus]
+    steps:
+    - id: verus
+      argv: [verus, "{repo}/verification/formal-smoke/verus/smoke.rs", --no-cheating]
+  - id: p-lang
+    required_tools: [p]
+    required_artifacts: [p-lang]
+    steps:
+    - id: compile
+      argv: [p, compile, --pfiles, "{repo}/verification/formal-smoke/p-lang/Smoke.p", --projname, formal_smoke, --outdir, "{run_dir}/p-lang-out"]
+    - id: valid-control
+      argv: [p, check, "{run_dir}/p-lang-out/PChecker/net8.0/formal_smoke.dll", --testcase, TcGateBeforeUseValid, --schedules, "1", --max-steps, "16", --outdir, "{run_dir}/pcheck-valid"]
+    - id: invalid-control
+      argv: [p, check, "{run_dir}/p-lang-out/PChecker/net8.0/formal_smoke.dll", --testcase, TcGateBeforeUseInvalid, --schedules, "1", --max-steps, "16", --outdir, "{run_dir}/pcheck-invalid"]
+      expected_nonzero: true
+  - id: lean4
+    required_tools: [lean]
+    required_artifacts: [lean4]
+    steps:
+    - id: lean4
+      argv: [lean, "{repo}/verification/formal-smoke/lean4/Smoke.lean"]
+  - id: property
+    required_tools: [cargo]
+    required_artifacts: [rust, property]
+    steps:
+    - id: property
+      argv: [cargo, test, --manifest-path, verification/formal-smoke/rust/Cargo.toml, --test, property, --, --nocapture]
+  - id: fuzz
+    required_tools: [cargo-fuzz]
+    required_artifacts: [fuzz]
+    steps:
+    - id: fuzz
+      argv: [cargo, fuzz, run, gate_before_use, "{artifact_root}/fuzz-corpus", --fuzz-dir, verification/formal-smoke/fuzz, --sanitizer, none, --target, x86_64-unknown-linux-gnu, --target-dir, "{run_dir}/target/fuzz", --, -runs=8, "-artifact_prefix={artifact_root}/fuzz-artifacts/"]
+      env_unset: [RUSTC_WRAPPER, CARGO_BUILD_RUSTC_WRAPPER, RUSTC_WORKSPACE_WRAPPER, RUSTFLAGS, CARGO_ENCODED_RUSTFLAGS]
+  - id: alloy
+    required_tools: [java]
+    required_artifacts: [alloy-jar, alloy-model]
+    steps:
+    - id: pinned-version
+      argv: [java, -jar, "{repo}/.tools/alloy/alloy.jar", version]
+      expected_stdout_contains: [6.2.0]
+    - id: executable-model
+      argv: [java, -jar, "{repo}/.tools/alloy/alloy.jar", exec, -f, -q, -c, "*", -o, "{run_dir}/alloy-smoke", -t, json, "{repo}/verification/formal-full/alloy/core/causlane_core.als"]
 dependency_source_policy:
   cargo_manifest_roots:
   - .
