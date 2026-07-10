@@ -3,6 +3,7 @@ profile_id: causlane-python-retirement
 owner: causlane
 requires_generic_checker_capabilities:
 - script_inventory_classification
+- dependency_source_policy
 project_inputs:
   gate_roots: []
   docs_roots: []
@@ -48,13 +49,6 @@ script_inventory_policy:
   - python
   block_unclassified_inline_interpreters: true
   classifications:
-  - path: scripts/check-private-deps.py
-    category: replace_with_checker_rule
-    owner: causlane
-    reason: generic dependency source policy is owned by cli-checker project dependencies
-    parity_condition: typed replacement matches the blocking decisions of the Python implementation
-    effect_class: read_only_policy
-    blocking: true
   - path: tools/formal-doctor
     category: replace_with_checker_rule
     owner: causlane
@@ -121,3 +115,8 @@ script_inventory_policy:
 checker_output_policy:
   required_formats:
   - json
+dependency_source_policy:
+  cargo_manifest_roots:
+  - .
+  forbidden_git_remote_prefixes:
+  - ssh://git@github.com/

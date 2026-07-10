@@ -69,7 +69,7 @@ if [ "$skip_checker" -eq 0 ]; then
 fi
 
 if [ "$skip_private_deps" -eq 0 ]; then
-  run_step python3 scripts/check-private-deps.py
+  run_step cli-checker project dependencies validate --profile .devinfra/cli-checker/project-tooling-profile.yaml --format human
 fi
 
 if [ -f scripts/verify-architecture.py ]; then
