@@ -36,3 +36,13 @@ that generic API outside this repository.
 - Trading decision or execution logic.
 - CLI checker policy implementation.
 - Product-specific bridge or compatibility adapters.
+
+## E01 Canonical Governance Projection
+
+The fingerprinted cross-repository projection for this owner is
+`hopium.repository-governance.v1` in `hopium-contracts` release
+`contracts-v0.2.32` (`48ecc9b5999e53e315f101dc0e11fba1f1be3098`).
+It records explicit ownership/non-ownership and current/target public edges;
+no target edge authorizes a private cross-repository import. This document
+retains owner-specific detail. A boundary change must update both surfaces
+through a new fingerprinted contract release.
