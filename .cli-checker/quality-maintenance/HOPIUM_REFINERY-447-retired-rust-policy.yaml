@@ -1,0 +1,20 @@
+schema: cli-checker.quality-maintenance.v2
+change_id: hopium-refinery-447-causlane-136ff3f768e9-maintenance
+reason: Remove the retired sadave v1 graph document after the canonical deny-by-default v2 policy became the effective repository control.
+owner: architecture
+issue: HOPIUM_REFINERY-447
+scope:
+- checker_code_policy
+impact: Only an unreferenced legacy policy document is removed; the effective v2 graph policy and every enforced layer remain unchanged.
+expires: 2026-07-28
+restoration: The canonical v2 policy is published and its migration gate passes; remove this one-time authority after the deletion is the repository baseline.
+affected_checks:
+- quality-plane surface
+restoration_evidence:
+- artifact_ref: .cli-checker/state/maintenance-evidence/b620cd81d2997d824d36a1ec4c0044422061e0fbc52e20ba090f70d4800da67f/HOPIUM_REFINERY-447-causlane-policy-retirement-evidence.json
+  content_hash: blake3:b620cd81d2997d824d36a1ec4c0044422061e0fbc52e20ba090f70d4800da67f
+architecture_delta: null
+architecture_diff_review: null
+architecture_audit_pack: null
+allowed_delta_ids:
+- blake3:ce84d7fd5c33dfaf453db922c65f3c59ccf992f9b9e481f68ca1661f496c4560
