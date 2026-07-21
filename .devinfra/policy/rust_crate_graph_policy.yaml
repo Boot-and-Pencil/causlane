@@ -1,0 +1,69 @@
+schema_version: cli-checker.rust-architecture-policy.v2
+deny_by_default: true
+crates:
+  - package: causlane-core
+    manifest: crates/causlane-core/Cargo.toml
+    layer: kernel
+  - package: causlane-contracts
+    manifest: crates/causlane-contracts/Cargo.toml
+    layer: contracts
+  - package: causlane-runtime
+    manifest: crates/causlane-runtime/Cargo.toml
+    layer: runtime
+  - package: causlane-replay
+    manifest: crates/causlane-replay/Cargo.toml
+    layer: replay
+  - package: causlane-codegen
+    manifest: crates/causlane-codegen/Cargo.toml
+    layer: codegen
+  - package: causlane
+    manifest: crates/causlane/Cargo.toml
+    layer: facade
+  - package: causlane-cli
+    manifest: crates/causlane-cli/Cargo.toml
+    layer: cli
+layers:
+  - name: kernel
+    allow_internal_layers: [kernel]
+    allow_external_classes: [general]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: false
+  - name: contracts
+    allow_internal_layers: [contracts, kernel]
+    allow_external_classes: [general]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: false
+  - name: runtime
+    allow_internal_layers: [runtime, kernel]
+    allow_external_classes: [general, network, database, fs]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: false
+  - name: replay
+    allow_internal_layers: [replay, kernel, contracts]
+    allow_external_classes: [general]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: false
+  - name: codegen
+    allow_internal_layers: [codegen, contracts]
+    allow_external_classes: [general]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: false
+  - name: facade
+    allow_internal_layers: [facade, kernel, contracts, runtime, replay]
+    allow_external_classes: [general]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: false
+  - name: cli
+    allow_internal_layers: [cli, kernel, contracts, replay, codegen]
+    allow_external_classes: [general]
+    allow_build_scripts: false
+    allow_proc_macros: false
+    allow_public_binaries: true
+internal_exceptions: []
+external_exceptions: []

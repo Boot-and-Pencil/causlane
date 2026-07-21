@@ -8,7 +8,7 @@ editable_control_file_paths = [
   ".github/workflows/publication-gate.yml",
 ]
 policy_file_paths = [
-  ".devinfra/policy/rust-crate-graph.yaml",
+  ".devinfra/policy/rust_crate_graph_policy.yaml",
 ]
 model_engines = []
 waivers = [
