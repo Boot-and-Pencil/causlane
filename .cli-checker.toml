@@ -12,14 +12,14 @@ policy_file_paths = [
 ]
 model_engines = []
 waivers = [
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".cli-checker.toml", reason = "devinfra managed checker policy compatibility metadata", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".devinfra/tool-versions.json", reason = "devinfra managed agent compatibility metadata", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = "crates/causlane-cli/fixtures/.devinfra/tool-versions.json", reason = "devinfra managed fixture for agent compatibility metadata parser tests", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".gitignore", reason = "devinfra managed hook log ignore paths", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/config.toml", reason = "devinfra managed Codex hook configuration", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/hooks/pre_tool_use.sh", reason = "devinfra managed Codex hook wrapper", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/.gitignore", reason = "devinfra managed Codex hook log ignore path", owner = "devinfra" },
-  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = "tools/lib/devinfra_common.py", reason = "devinfra managed snapshot ignore paths", owner = "devinfra" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".cli-checker.toml", reason = "devinfra managed checker policy compatibility metadata", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".devinfra/tool-versions.json", reason = "devinfra managed agent compatibility metadata", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = "crates/causlane-cli/fixtures/.devinfra/tool-versions.json", reason = "devinfra managed fixture for agent compatibility metadata parser tests", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".gitignore", reason = "devinfra managed hook log ignore paths", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/config.toml", reason = "devinfra managed Codex hook configuration", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/hooks/pre_tool_use.sh", reason = "devinfra managed Codex hook wrapper", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = ".codex/.gitignore", reason = "devinfra managed Codex hook log ignore path", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
+  { rule_id = "REPO-HYGIENE-CODEX-USAGE-001", path = "tools/lib/devinfra_common.py", reason = "devinfra managed snapshot ignore paths", owner = "devinfra", issue = "HOPIUM_REFINERY-447" },
 ]
 
 [file_length]

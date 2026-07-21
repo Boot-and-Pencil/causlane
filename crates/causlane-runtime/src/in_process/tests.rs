@@ -13,7 +13,7 @@ use causlane_core::{
     CAUSLANE_HOST_API_VERSION,
 };
 use tokio::{
-    sync::{broadcast, mpsc},
+    sync::{broadcast, mpsc, Semaphore},
     time::timeout,
 };
 
@@ -56,7 +56,7 @@ struct RecordingAsyncHandler {
     active: Arc<AtomicUsize>,
     peak: Arc<AtomicUsize>,
     entered: Option<mpsc::Sender<String>>,
-    sleep_for: Duration,
+    completion_gate: Option<Arc<Semaphore>>,
     fail_ids: BTreeSet<String>,
 }
 
@@ -66,17 +66,19 @@ impl RecordingAsyncHandler {
             active: Arc::new(AtomicUsize::new(0)),
             peak: Arc::new(AtomicUsize::new(0)),
             entered: None,
-            sleep_for: Duration::from_millis(0),
+            completion_gate: None,
             fail_ids: BTreeSet::new(),
         }
     }
 
-    fn with_entry_sender(sender: mpsc::Sender<String>, sleep_for: Duration) -> Self {
-        Self {
+    fn gated(sender: mpsc::Sender<String>) -> (Self, Arc<Semaphore>) {
+        let completion_gate = Arc::new(Semaphore::new(0));
+        let handler = Self {
             entered: Some(sender),
-            sleep_for,
+            completion_gate: Some(Arc::clone(&completion_gate)),
             ..Self::new()
-        }
+        };
+        (handler, completion_gate)
     }
 
     fn failing(task_id: &str) -> Self {
@@ -96,7 +98,7 @@ impl InProcessEffectHandler for RecordingAsyncHandler {
         let active = Arc::clone(&self.active);
         let peak = Arc::clone(&self.peak);
         let entered = self.entered.clone();
-        let sleep_for = self.sleep_for;
+        let completion_gate = self.completion_gate.clone();
         let fail = self.fail_ids.contains(&task.task_id);
 
         Box::pin(async move {
@@ -105,8 +107,14 @@ impl InProcessEffectHandler for RecordingAsyncHandler {
             if let Some(sender) = entered {
                 let _send_result = sender.try_send(task.task_id.clone());
             }
-            if !sleep_for.is_zero() {
-                tokio::time::sleep(sleep_for).await;
+            if let Some(gate) = completion_gate {
+                let Ok(permit) = gate.acquire_owned().await else {
+                    let _previous = active.fetch_sub(1, Ordering::SeqCst);
+                    return Err(HostDispatchError::HandlerRejected {
+                        reason: "test completion gate closed".to_owned(),
+                    });
+                };
+                permit.forget();
             }
             let _previous = active.fetch_sub(1, Ordering::SeqCst);
 
@@ -465,7 +473,7 @@ async fn reversed_multi_partition_routes_do_not_deadlock() -> TestResult {
 #[tokio::test(flavor = "current_thread")]
 async fn independent_partitions_execute_concurrently() -> TestResult {
     let (entry_sender, mut entry_receiver) = mpsc::channel(4);
-    let handler = RecordingAsyncHandler::with_entry_sender(entry_sender, Duration::from_millis(50));
+    let (handler, completion_gate) = RecordingAsyncHandler::gated(entry_sender);
     let peak = Arc::clone(&handler.peak);
     let left = partition("left");
     let right = partition("right");
@@ -493,13 +501,14 @@ async fn independent_partitions_execute_concurrently() -> TestResult {
     let _first_entry = recv_entry(&mut entry_receiver).await?;
     let _second_entry = recv_entry(&mut entry_receiver).await?;
     assert_eq!(peak.load(Ordering::SeqCst), 2);
+    completion_gate.add_permits(2);
     Ok(())
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn semaphore_capacity_prevents_overlapping_handler_calls() -> TestResult {
     let (entry_sender, mut entry_receiver) = mpsc::channel(4);
-    let handler = RecordingAsyncHandler::with_entry_sender(entry_sender, Duration::from_millis(50));
+    let (handler, completion_gate) = RecordingAsyncHandler::gated(entry_sender);
     let peak = Arc::clone(&handler.peak);
     let left = partition("left");
     let right = partition("right");
@@ -525,10 +534,14 @@ async fn semaphore_capacity_prevents_overlapping_handler_calls() -> TestResult {
     assert!(matches!(left_result, Ok(HostDispatchTicket { .. })));
     assert!(matches!(right_result, Ok(HostDispatchTicket { .. })));
     let _first_entry = recv_entry(&mut entry_receiver).await?;
-    let second_early = timeout(Duration::from_millis(10), entry_receiver.recv()).await;
-    assert!(second_early.is_err());
+    assert!(matches!(
+        entry_receiver.try_recv(),
+        Err(mpsc::error::TryRecvError::Empty)
+    ));
+    completion_gate.add_permits(1);
     let _second_entry = recv_entry(&mut entry_receiver).await?;
     assert_eq!(peak.load(Ordering::SeqCst), 1);
+    completion_gate.add_permits(1);
     Ok(())
 }
 

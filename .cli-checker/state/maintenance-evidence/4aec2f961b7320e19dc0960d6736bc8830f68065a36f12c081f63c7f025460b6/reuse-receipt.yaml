@@ -1,0 +1,668 @@
+schema: cli-checker.architecture-reuse-receipt.v4
+receipt_id: blake3:da22c7b3fa0afdb6a2ab1d537562ab7cf217d953090556b7f165235302403e4f
+task_id: HOPIUM_REFINERY-438
+task_goal:
+  normalized_goal: 'Complete the reviewed HOPIUM_REFINERY-438 BLAKE3 hard cut and HOPIUM_REFINERY-447 E01-E06 audit corrections. Preserve the per-repository Rust semantic applicability correction. Add one fail-closed Codex apply-patch bootstrap for an otherwise invalid .cli-checker.toml: allow only updates that add non-empty missing waiver issue fields, require every other TOML value and waiver ordering/content to remain identical, require the complete candidate PolicyConfig to validate, support repository-root and multi-repository paths, and keep all other invalid-baseline changes denied. Add positive and negative regressions. In causlane, replace the stale product-CLI formal doctor smoke with a negative ownership regression because cli-checker project formal doctor is the sole typed formal-environment authority. Do not introduce a second policy authority, compatibility alias, broad bypass, or weaken existing quality gates.'
+  provenance: explicit_cli
+task_fingerprint: blake3:c6a505903dd5f502f879609b98cc8b978fc3a8a0b0089584de391cbc826f16a4
+session_fingerprint: blake3:348cb6eb59b6a07bd8eeae3e28555c94b2102f0845690e64072b511b2bdebc4b
+context_snapshot_id: blake3:eb83cecb50faf21a31e314d7ebf44f12921b7bb5ea2a00c25e173a3efdd37d0d
+context_profile_id: reuse-preflight
+repository_sources:
+- repo_id: access-fence
+  relative_root: access-fence
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/access-fence.git
+  resolved_tree_fingerprint: git-tree:c076f0b6b04a45fa7fbccb4bf80c137a2fddbcbd
+  revision: 8df9fb828b136776a360d02f9c7005a15507a2da
+  baseline_worktree_fingerprint: blake3:b0d7d54c719d5bd4722b86323fee3150dda8426a1eeeb775f5777414b6823b26
+- repo_id: adjustment-ledger
+  relative_root: adjustment-ledger
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/adjustment-ledger.git
+  resolved_tree_fingerprint: git-tree:64f3a8cf47e8eb78e95e67b3c3e083c875e6011f
+  revision: f480207da1507a6546c25c22da8924fda83ba830
+  baseline_worktree_fingerprint: blake3:b8aaf11828708af553f069884886202cea936ba55bf1b5ded38760ed50f99bc4
+- repo_id: agent-switchyard
+  relative_root: agent-switchyard
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/agent-switchyard.git
+  resolved_tree_fingerprint: git-tree:6496197a98d684e0472a7c6aeae6acb7cd254677
+  revision: 48ee5b1cc7d5e02d01959368db03a6be105e6560
+  baseline_worktree_fingerprint: blake3:597cc6c7f98cfa136a1e92225c5d8247dc5011690ee6a5a2242a0bae986e2dd8
+- repo_id: bag-ledger
+  relative_root: bag-ledger
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/bag-ledger.git
+  resolved_tree_fingerprint: git-tree:5cefe7d0ffd0dd3e76d85e76a2b10b8baa65e344
+  revision: d89a53b244de133009e0f4dd566a546215ffa48b
+  baseline_worktree_fingerprint: blake3:aca76b9ffa3f81cc89309e4de79a2c46e7a834598bf7aace45ae7449d07f541a
+- repo_id: brakeworks
+  relative_root: brakeworks
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/brakeworks.git
+  resolved_tree_fingerprint: git-tree:7a781f7ea5ffd9c610272454b8a27eaad704893b
+  revision: 74c24ee6545934fd64eee14b323f75e0ec160340
+  baseline_worktree_fingerprint: blake3:f57a37c55c919358da051281543a0940d8d32cb31fa99ecf46cb5ca54e79a895
+- repo_id: causlane
+  relative_root: causlane
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/causlane.git
+  resolved_tree_fingerprint: git-tree:00b17757d6a25ef91f253b36b626038b2dd7a5d7
+  revision: 7734a06a155e05dd82194abb9d3a0d09995c261a
+  baseline_worktree_fingerprint: blake3:0778e75b5e0a0c44db44b0f33289caf061e28989be97fc9e7049acf42fd9edda
+- repo_id: cli-checker
+  relative_root: cli-checker
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+  resolved_tree_fingerprint: git-tree:5835055e60d65c78bff9e7dcc36d9e163e057451
+  revision: 03f7c1fd805a5ef6b207919cb870bebe5c20063c
+  baseline_worktree_fingerprint: blake3:b7ca25134e6ee767caf330aa7a807093d9967e6ad0e9ae30bdba53130bb0f79b
+- repo_id: context-intake
+  relative_root: context-intake
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/context-intake.git
+  resolved_tree_fingerprint: git-tree:0c3085b2646ca7d1fe4dfb33b8d0951f41b8c1c4
+  revision: 8d66bc9e3a118c1e95344d4c495a9175e8425757
+  baseline_worktree_fingerprint: blake3:e6ca7f3de26d26df2e52dea1200a11bbd1303d531f55fcd00b719968cd6b867e
+- repo_id: contract-yard
+  relative_root: contract-yard
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/contract-yard.git
+  resolved_tree_fingerprint: git-tree:fe68e812e38243e6ddaa774de8ace1da82f21093
+  revision: 0cee14267a1ac13d80d034458eebff33d5a867c3
+  baseline_worktree_fingerprint: blake3:e46ead59cb54d9bd3f6a37c3ddb80e11659c80630a3d0678fcd699e90e52336b
+- repo_id: crime-board
+  relative_root: crime-board
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/crime-board.git
+  resolved_tree_fingerprint: git-tree:85c620e12d4585b1ecb37b1e452b3f7e3c0cb6ff
+  revision: 73b0e9cf596d12ba9d8b67b55ebec1519f850223
+  baseline_worktree_fingerprint: blake3:1e3be501b2a6b73a9fe8a8b8c9d963de19bf56890966b5b4230c073d39cbe5c5
+- repo_id: curve-rack
+  relative_root: curve-rack
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/curve-rack.git
+  resolved_tree_fingerprint: git-tree:cd64ab1cb80c511eb4d1dc0ad93b8a1cb2fa8423
+  revision: e7258365c1e03662cb38beb1bcb066f7edcd3768
+  baseline_worktree_fingerprint: blake3:4639aa7fdcca7a400f4b2968effc759d69f9682d10dcba2c1bc7fd10c0706834
+- repo_id: dark-forest-lab
+  relative_root: dark-forest-lab
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/dark-forest-lab.git
+  resolved_tree_fingerprint: git-tree:95864df28317cf0b2dc2ab372c9a6040e51c299c
+  revision: f456876ae54dbe28f14d7d6e681882c5da26d2cf
+  baseline_worktree_fingerprint: blake3:b2cfca8982ddbdf897aa346d6c6ec0e4038a664f54bc6ce5c54edab5031e0cd9
+- repo_id: docks
+  relative_root: docks
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/docks.git
+  resolved_tree_fingerprint: git-tree:4487c5da99124cb47e75ab8b4b812728fddcba33
+  revision: ebc795020570bdcd98a52ce79b4e3ec2a189999d
+  baseline_worktree_fingerprint: blake3:7272faea1fca1bad95194b1cd80b5e70f7e691107a947da6abad4b3baa4082ea
+- repo_id: evidence-locker
+  relative_root: evidence-locker
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/evidence-locker.git
+  resolved_tree_fingerprint: git-tree:2b794bf7e0945de0bb7eca695d6a5399f055d4b3
+  revision: 86eb82440e08c8f7e2980c129e6d43d21e9804c9
+  baseline_worktree_fingerprint: blake3:3330ce409035e5a9ad39bb6db32df1485e18756fef967654c04c11c794612c0d
+- repo_id: expiry-clock
+  relative_root: expiry-clock
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/expiry-clock.git
+  resolved_tree_fingerprint: git-tree:9feb36deb8d9771b3095c199985ae9645e453f38
+  revision: 9b15f4aad674760362bffe134277a46632b0de4e
+  baseline_worktree_fingerprint: blake3:6e657dfcf27961643e3a2574c8ed4f422f088e6c3d08ceb97c8cfda6ff12d919
+- repo_id: feature-mill
+  relative_root: feature-mill
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/feature-mill.git
+  resolved_tree_fingerprint: git-tree:eb53eb794aef3bc33d3c8deb162af916784072e3
+  revision: 089fa6bda1d23a2ce7d25856f944c461288b8e95
+  baseline_worktree_fingerprint: blake3:59756f0ec79873bc1e840a717b2b3e3f1244e797cdd81f48edb2f6b923027399
+- repo_id: gamma-foundry
+  relative_root: gamma-foundry
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/gamma-foundry.git
+  resolved_tree_fingerprint: git-tree:b834cba1cc3b7de40760485829192d332c395706
+  revision: 06932733cadf40bb1ff93eb03477cc0ea0bdfd12
+  baseline_worktree_fingerprint: blake3:54d3aeaca6581cb44247edd1e3da0ff5120c5ec3e7c9c75faacf02acd8ccd533
+- repo_id: gatehouse
+  relative_root: gatehouse
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/gatehouse.git
+  resolved_tree_fingerprint: git-tree:4a4564681b783bb500406e5f567391b1ceb2aa3f
+  revision: 27a26ba9824a73dbe147aab84e71cf4fba692bd4
+  baseline_worktree_fingerprint: blake3:125cb3e737577fce5e09e416a3dc537245a446e8952248195b5c5a58fd6148af
+- repo_id: greeks-ledger
+  relative_root: greeks-ledger
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/greeks-ledger.git
+  resolved_tree_fingerprint: git-tree:dae710f6f29248cd31118653ecc3b7064d6203ce
+  revision: a00bbfce57b98d73cefdfb7a6bae77c549d9d1a1
+  baseline_worktree_fingerprint: blake3:6d308aede16061344e31eb4729d60d4f336cfbb18ba9ece68ce9117ed304caec
+- repo_id: handler
+  relative_root: handler
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/handler.git
+  resolved_tree_fingerprint: git-tree:27d6113692f6af4e011921078525198dcb2c5277
+  revision: 106471676aa3ef1da1bda72e22d4d8255e3c163c
+  baseline_worktree_fingerprint: blake3:f546e0a243f046eb9dc5a0308e08ba82b24e1ec78aedda24da9c18a926a865e7
+- repo_id: hopium-contracts
+  relative_root: hopium-contracts
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-contracts.git
+  resolved_tree_fingerprint: git-tree:f7003c9d9497c54b6a0087640dc1a635e244e7b1
+  revision: cbd2a31b031ce1d2020bdc122d4adeb08e5f127a
+  baseline_worktree_fingerprint: blake3:ac249a4f3fa705ec0dbcbd33e43d349684738b8b00c7365129afb7d9b2ecd66b
+- repo_id: hopium-foundation
+  relative_root: hopium-foundation
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-foundation.git
+  resolved_tree_fingerprint: git-tree:8d29b1b1d1a53e3e4f6518649b915a237dfd3aa9
+  revision: 66b6e50f1f856f3e730e8f652c42eca50da201dd
+  baseline_worktree_fingerprint: blake3:ce7d4625326e0b6faec012382ec52835246a8956ba1c6d4a963ce89351322200
+- repo_id: hopium-language
+  relative_root: hopium-language
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-language.git
+  resolved_tree_fingerprint: git-tree:5f84eeecb25870209c86372171ee5adee0861d4d
+  revision: 320ec938addbd593dd182a48f517f79764d051b2
+  baseline_worktree_fingerprint: blake3:9f6bbb85384aae36026f2a7982af8aaf285d692cb4ee9138ca2944a06a4bfbc0
+- repo_id: hopium-local-infra-orchestrator
+  relative_root: hopium-local-infra-orchestrator
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-local-infra.git
+  resolved_tree_fingerprint: git-tree:7789dde47ef10e80e1e2ea68ddf7a84a0995e9c7
+  revision: 27f9320d4c86bb17a6ff32e74af6a4950672d956
+  baseline_worktree_fingerprint: blake3:c819b46bf2b4cb75b73c6b603fe5ef70af3429c859ebb20df1d00a8efa5780e4
+- repo_id: hopium-math
+  relative_root: hopium-math
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-math.git
+  resolved_tree_fingerprint: git-tree:e7a07fc75e8f9dc3b2db212e623a6c3d36272f9a
+  revision: 9c2d5d6c07ad9815f811218f25ff4a47e30220a9
+  baseline_worktree_fingerprint: blake3:59380d0089b58d25ce056f55c61bb7cb99e1f9f29a1196515bf8c62c184b2687
+- repo_id: hopium-oracles
+  relative_root: hopium-oracles
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-oracles.git
+  resolved_tree_fingerprint: git-tree:ded27d8d2c2fa188266f4078e33be9fa45eeb4c0
+  revision: 53f7767ed9dcb7525aa4e51a32fbfc7e931b2ed6
+  baseline_worktree_fingerprint: blake3:2e7d86d12285399fbe270dc1db21f382bbc6cb532030295dca31f8e20d905f1b
+- repo_id: hopium-platform
+  relative_root: hopium-platform
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-platform.git
+  resolved_tree_fingerprint: git-tree:2c889441b568a55518ad8719207d81482c5021b0
+  revision: d753dde53ca66ceabe775495324edc7f5192d736
+  baseline_worktree_fingerprint: blake3:4b8d1903b695fca79f664b82dd171d641f7307b96bb9b34cf15e902d60256d82
+- repo_id: hopium-refinery
+  relative_root: hopium-refinery
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-refinery.git
+  resolved_tree_fingerprint: git-tree:41af753cca499d54996c16fe1bad0b65f01d8121
+  revision: 39d58ed44675736212728d9a99c2afb2bc4b9017
+  baseline_worktree_fingerprint: blake3:a779d6dbc8023e4790c638e8301d9ea93baafaef87c667c74ba809957c131dae
+- repo_id: hopium-rnd-workbench
+  relative_root: hopium-rnd-workbench
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-rnd-workbench.git
+  resolved_tree_fingerprint: git-tree:8df618e06535a05c1d4a9b528678c29692df9f91
+  revision: 82bc3908059ac13af30145b2ef34c1ce8a6f211a
+  baseline_worktree_fingerprint: blake3:83e7746d0471d59cb88280450e1c3c6a25eff48a9a5d6d7c9e6f34296ed952dd
+- repo_id: hopium-simulation
+  relative_root: hopium-simulation
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-simulation.git
+  resolved_tree_fingerprint: git-tree:6d50fa009cc97a8e9c7c703e49b090915bb260dc
+  revision: 7af36cd0f1bb670ee2cf07721f240215d302f5f5
+  baseline_worktree_fingerprint: blake3:35830d351dfc2729da686322329921e0a482a9b66f61181f6db0ed7ba2b9dc73
+- repo_id: hopium-strategy-authoring
+  relative_root: hopium-strategy-authoring
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-strategy-authoring.git
+  resolved_tree_fingerprint: git-tree:0e3b2b16b3cab227bc9129d872fcb02e8934aa3e
+  revision: a4cb18d4813cee66561b61ac33ad0783dadf63c5
+  baseline_worktree_fingerprint: blake3:fa31796d82664474d79703fb822d280fa08c29eb6000aaf9d08bfe3642bca1b9
+- repo_id: hopium-surfaces
+  relative_root: hopium-surfaces
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/hopium-surfaces.git
+  resolved_tree_fingerprint: git-tree:c0f4fc457f243f2391a356c937efc06e208d4b80
+  revision: 16a766adf7411166e2499673d9178c16c09b2683
+  baseline_worktree_fingerprint: blake3:f13116b82fd05bcaee49e2d1079dd724c8d70717f1b0e3be255de2bf1f749c22
+- repo_id: invariant-mill
+  relative_root: invariant-mill
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/invariant-mill.git
+  resolved_tree_fingerprint: git-tree:8dd9ffa5c6245e7150efbb11c2ed415fabb66bf3
+  revision: 87a6617c31c454e351182e52f49237219fefd8f1
+  baseline_worktree_fingerprint: blake3:51fba50da2aa1a7917bb3899718d47d5b49db15567bdde9c06d1e5788baa4db6
+- repo_id: keysmith
+  relative_root: keysmith
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/keysmith.git
+  resolved_tree_fingerprint: git-tree:04e5d887fb3ba43bc788388acb77089b7aeb8cb0
+  revision: a96207a28619e23f92621847c7185e7864b992ae
+  baseline_worktree_fingerprint: blake3:412f055889e016495de4442cc8602e8c01d6852c326c2621a5dc1054f54fee84
+- repo_id: liquidity-furnace
+  relative_root: liquidity-furnace
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/liquidity-furnace.git
+  resolved_tree_fingerprint: git-tree:c3cbfe472a17b238aee9ae9fcc3e5a50d2c2c10f
+  revision: 4dab8722f5f546026a22f985724792c71565426d
+  baseline_worktree_fingerprint: blake3:c322f0cb554a0f559f337637db613c5ede8df857de3d8fe41fd3657f54b890e7
+- repo_id: margin-anvil
+  relative_root: margin-anvil
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/margin-anvil.git
+  resolved_tree_fingerprint: git-tree:c80a10f307a634c69b237d0d4a94f9a7f3f00a5b
+  revision: 32b237076a22e68326e1b4ea5435307abaa49bd9
+  baseline_worktree_fingerprint: blake3:b25a3948d00d6566df22f725a38eb4edc5d7212d239173e5574229c09c18c4c8
+- repo_id: maw
+  relative_root: maw
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/maw.git
+  resolved_tree_fingerprint: git-tree:990459f1f2a03e627497b4637da47fc97fee8b6e
+  revision: 1743de3f9b6f1be0c1d2ed0ed8df1f6e9db6bdbe
+  baseline_worktree_fingerprint: blake3:c92d1ae08164826803b90da2d2c53a24b46de383b1be8cd552c8820a3c844821
+- repo_id: meat-grinder
+  relative_root: meat-grinder
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/meat-grinder.git
+  resolved_tree_fingerprint: git-tree:5c569f4333747beb15e9356851bb2f5ab66e5113
+  revision: a545c54c2b64286203f3472a429f48a24027b526
+  baseline_worktree_fingerprint: blake3:64f73f4a25c694863182ce5614f7910a74d6d65091edd7b2184d2210560cb881
+- repo_id: model-foundry
+  relative_root: model-foundry
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/model-foundry.git
+  resolved_tree_fingerprint: git-tree:58e27f63d12b06f7a768aa88de7e481f132467f6
+  revision: 86ecf8a73ffce3fe3ce7d54791fcca0fd2dc273f
+  baseline_worktree_fingerprint: blake3:af0496fce31eeb2c5766531c442245bb2e6090e3386778b9180b7ff183689920
+- repo_id: model-risk-ledger
+  relative_root: model-risk-ledger
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/model-risk-ledger.git
+  resolved_tree_fingerprint: git-tree:5c28b0c4724a37d350f72092477f571b1c9a82c6
+  revision: 8740dbca2c321bcc7e09942d079b7ebc2eb1d7f5
+  baseline_worktree_fingerprint: blake3:33c2fe42646fa8b0dd80d36bc933b096d4ba32be2433544de9354ebb84e56b6c
+- repo_id: overseers
+  relative_root: overseers
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/overseers.git
+  resolved_tree_fingerprint: git-tree:e2d7d6110b6a5a439052ad61f622719fea562e88
+  revision: de8256f3d19cfff1281956310a5db83e09a47d35
+  baseline_worktree_fingerprint: blake3:3153fa1cec38d355b30a643c6b23f9cff95e00a1adaee60ef6c50ccecec96447
+- repo_id: pain-bench
+  relative_root: pain-bench
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/pain-bench.git
+  resolved_tree_fingerprint: git-tree:eb6b92871c5a2e33873f871ee1a34d97c01c090f
+  revision: de608b44074972b4e673836654e079c415b82b1e
+  baseline_worktree_fingerprint: blake3:3cc038de89cd8a965f53ccde9eda86852763dc5a7fec66148962e52b7c9a20a7
+- repo_id: panic-bell
+  relative_root: panic-bell
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/panic-bell.git
+  resolved_tree_fingerprint: git-tree:b3f72b13c1823d714f00f8b9ffa5a81ab27d8d8c
+  revision: 01ab711a8068ccb5454e73bddc63865987f658b6
+  baseline_worktree_fingerprint: blake3:2f89f14e6715b13afbdca983bdf876bb92690f70c3ac45c4b81b80ed0d9a96d0
+- repo_id: pipeworks
+  relative_root: pipeworks
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/pipeworks.git
+  resolved_tree_fingerprint: git-tree:948943ab91e47dbc8c8d66ab088c0336c14cb1bc
+  revision: 27147a7640142171c218ebe39c8f5b1952fa6d00
+  baseline_worktree_fingerprint: blake3:1812fc93a62ea5badc8db7ba24d9e3ff128ac2cf777c1593df78794f85d56542
+- repo_id: quote-press
+  relative_root: quote-press
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/quote-press.git
+  resolved_tree_fingerprint: git-tree:3eefd98c7cc352737af3c43dcdbd3e4212b86903
+  revision: 09017e06bcd62a8db45647f2b2f45cf90a165c4b
+  baseline_worktree_fingerprint: blake3:709bf6497a1918475163c2a074b4d560917f4aff1778072d10c14fb4100011f1
+- repo_id: reckoning
+  relative_root: reckoning
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/reckoning.git
+  resolved_tree_fingerprint: git-tree:917ce258ea060226c6a5038545be1cd2a5223998
+  revision: c68ecfaf8c62f24648c0096b799afd0a45eb0f6b
+  baseline_worktree_fingerprint: blake3:a9059563640037ff47cb25edbb5bb8567d10f337a61931882fc318baff08032b
+- repo_id: registry
+  relative_root: registry
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/registry.git
+  resolved_tree_fingerprint: git-tree:291d6ea397aa6c94531e661ffb648869b4f33efe
+  revision: 513fb54a96b9ec0aad438a0c41e8942b09be6502
+  baseline_worktree_fingerprint: blake3:b0c231a493640963de207d4e13a03d06e068380e73bec6b94e8fe416424591e7
+- repo_id: report-mill
+  relative_root: report-mill
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/report-mill.git
+  resolved_tree_fingerprint: git-tree:562bb42cb3fec973a25b59d7f5ca140fcf14a288
+  revision: bfef221304c946665e3a7f700b2546c1090388f6
+  baseline_worktree_fingerprint: blake3:00f22e093c596ceef239d5cbcd2e447bb42d0e8c343a29b42fff1106a92cca61
+- repo_id: runbook-forge
+  relative_root: runbook-forge
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/runbook-forge.git
+  resolved_tree_fingerprint: git-tree:1f25a629998e2ad29625a47c3a3147236ea5f476
+  revision: 747f1e2f53fc56ff66bca5a7c46230f7b36097dc
+  baseline_worktree_fingerprint: blake3:84ec3d789336871e8089a02d3e069fc132faaf0974ab697db72b86530ef85e09
+- repo_id: sanitary-cordon
+  relative_root: sanitary-cordon
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/sanitary-cordon.git
+  resolved_tree_fingerprint: git-tree:6b3ab011a78430a94b0db0c9135a651c4b55574f
+  revision: 78d391a1488bd0e19f64381013f1ca3353e182c9
+  baseline_worktree_fingerprint: blake3:610f7e909e41b7098fda411bfc0ec66e4e95442865912395f4ee8879684e66e4
+- repo_id: sanitation-plant
+  relative_root: sanitation-plant
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/sanitation-plant.git
+  resolved_tree_fingerprint: git-tree:bdf747b90b95f1dbf9a9ac457034f225a431a75e
+  revision: 927f5bb7defed85058050d540854547409df9500
+  baseline_worktree_fingerprint: blake3:9dbafab031fab05e5c7513b6e5f54e5e4206bbb1504e590fecc77a918630ae74
+- repo_id: settlement-coroner
+  relative_root: settlement-coroner
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/settlement-coroner.git
+  resolved_tree_fingerprint: git-tree:4abe29f4c5f8417132d0086a5b65f261b00512a1
+  revision: 12859a71120efbd0fe91eea89838b23596b208a8
+  baseline_worktree_fingerprint: blake3:1314278399731a11d64841131aba178cd94140f20a7f47a7ffa734339f5d6cd6
+- repo_id: situation-feed
+  relative_root: situation-feed
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/situation-feed.git
+  resolved_tree_fingerprint: git-tree:48b658cef3a520a33db69268ac4848198b5fce68
+  revision: cbbd21a71befbe0fd2802279bc6709611047c5a5
+  baseline_worktree_fingerprint: blake3:b53f70234fc5e8710e626876ebe82521f3014a81a4f5991a66017e44d15a5614
+- repo_id: smile-forge
+  relative_root: smile-forge
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/smile-forge.git
+  resolved_tree_fingerprint: git-tree:8de86f91230a1b0e1e0e3dbaf9a5973cca929c6c
+  revision: 7aa2dc38196ce0fdd4c425de6315e13cf01d9832
+  baseline_worktree_fingerprint: blake3:c1cd0000e8a90289f38eff78ddb5312302aacc8f1ad16124bb5f5daf57bf0ffa
+- repo_id: socket-yard
+  relative_root: socket-yard
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/socket-yard.git
+  resolved_tree_fingerprint: git-tree:dfc73f43fdc84e5c4ea7f5e6ce14efaa07864009
+  revision: 51c91e4d86d917b605327584b9f82e9dbc669748
+  baseline_worktree_fingerprint: blake3:40d5608e250c8613d113b2e3779d51b2035fc38f1dc1492382a9d1476641a818
+- repo_id: spider
+  relative_root: spider
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/spider.git
+  resolved_tree_fingerprint: git-tree:84e3956fa45eaa4010351781b89e34357bfd29d8
+  revision: b0fcbf0cf495189ec66e57b17befe1e6f828e443
+  baseline_worktree_fingerprint: blake3:e01a5d574d88f9121858c0ba8b6e922ca19b5c818b6186bf35811f7205925030
+- repo_id: splint
+  relative_root: splint
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/splint.git
+  resolved_tree_fingerprint: git-tree:c2f043270fdce78e4a75826efed487d03a262cc0
+  revision: add2d41dc7fb4ad1350489e5c98ee86feaa3d9b1
+  baseline_worktree_fingerprint: blake3:0c4c86b535e4e234e1248b8bb88833d7d4c7519c662985922d2bac92c938bdda
+- repo_id: statement-coroner
+  relative_root: statement-coroner
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/statement-coroner.git
+  resolved_tree_fingerprint: git-tree:4aaa2e9a2f783b7542cce7aa36716dcafa6e8d5c
+  revision: 3fd86bf6906a898f5a1336e8ff81b076ae1cbdab
+  baseline_worktree_fingerprint: blake3:87ee3acbb9eb2ddd3e503ae155284536d9e485bcb67a5efd912268e2251e8367
+- repo_id: surface-pulverizer
+  relative_root: surface-pulverizer
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/surface-pulverizer.git
+  resolved_tree_fingerprint: git-tree:50ffe077883c39cab2e6f88c7ce60d5391e86d75
+  revision: 9e1c81e79471f3a336b090975801eeeb0871211e
+  baseline_worktree_fingerprint: blake3:b550efc8053d0f213885b8e88864d855f69a7f1561e292988c9c97b425a98878
+- repo_id: tuning-pit
+  relative_root: tuning-pit
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/tuning-pit.git
+  resolved_tree_fingerprint: git-tree:bd9918c24f593ae6c77a3c8b4d9b4c9fa7396b18
+  revision: ee495aee7542fb46133ec48cc8ee9893e0aa8681
+  baseline_worktree_fingerprint: blake3:ed352bb60ec4452249c79aedcc7bdeaf0065969edfdc2a2b208851eed44c6135
+- repo_id: valuation-bench
+  relative_root: valuation-bench
+  declared_source_identity: git@github.com-hopium:Boot-and-Pencil/valuation-bench.git
+  resolved_tree_fingerprint: git-tree:59c0abfe1d1c8124da638f0eeb35d290c819706f
+  revision: 7228fad7587221e892c07d6552c3f7aecf9d7e23
+  baseline_worktree_fingerprint: blake3:ead42020ea7b37bb0b70d221946e7e99008b5e2fba8e3bd81c1f09cb1117e490
+allowed_scopes:
+- repo_id: causlane
+  trigger_kinds:
+  - command_event_or_route
+- repo_id: cli-checker
+  trigger_kinds:
+  - public_abstraction
+  - named_responsibility
+  - command_event_or_route
+  - persistent_schema_or_dto
+  - dependency
+  - contract_change
+planned_capabilities:
+- capability_id: waiver_issue_apply_patch_bootstrap
+  rationale: 'One fail-closed Codex apply-patch bootstrap for otherwise invalid .cli-checker.toml: allow only adding non-empty missing waiver issue fields; all other TOML values and waiver ordering/content must stay identical; candidate PolicyConfig must fully validate; support repository-root and multi-repository paths; deny every other invalid-baseline change. Positive and negative regressions required.'
+- capability_id: blake3_content_identity_hardcut
+  rationale: Complete the reviewed HOPIUM_REFINERY-438 hard cut of active content identities, checksum paths, schemas, DTOs, and tooling onto algorithm-bearing blake3:<hex> without dual-read, dual-write, or compatibility aliases.
+- capability_id: rust_semantic_applicability_correction
+  rationale: 'Preserve the HOPIUM_REFINERY-447 E01-E06 per-repository Rust semantic applicability correction: policy-driven relation coverage from source-owned dylint.toml, always-complete Symbol/Calls for Rust workspaces, optional relations only when declared, declared-empty relations as valid negative evidence, and standalone/multi-repository regressions.'
+- capability_id: formal_doctor_ownership_regression
+  rationale: In causlane, replace the stale product-CLI formal doctor smoke with a negative ownership regression so typed formal-environment authority remains solely cli-checker project formal doctor.
+- capability_id: single_policy_authority_preservation
+  rationale: Do not introduce a second policy authority, synthetic-issue compatibility reader, broad invalid-baseline bypass, or weakened quality gates while enabling the narrow waiver-issue bootstrap.
+planned_entities:
+- plan_id: extend_quality_plane_policy_compare_bootstrap
+  kind: quality_plane
+  disposition: extend
+  proposed_owner: cli-checker/crates/cli-checker-core/src/quality_plane/policy_compare.rs
+  existing_entity_id: rust:crates/cli-checker-core/src/quality_plane/policy_compare.rs#compare_policy_change
+  replaced_entity_id: null
+  rationale: 'compare_policy_change currently fail-closes any invalid current/candidate as unsupported_candidate_policy. Extend it (and only this quality-plane path) with one fail-closed bootstrap: invalid current solely for empty/missing waiver issue, candidate differs only by filling non-empty issue fields with identical ordering/other values, and validate_policy_config succeeds.'
+- plan_id: reuse_policyconfig_validation_authority
+  kind: public_api
+  disposition: reuse
+  proposed_owner: cli-checker/crates/cli-checker-policy/src/config
+  existing_entity_id: rust:crates/cli-checker-policy/src/config/schema.rs#PolicyConfig
+  replaced_entity_id: null
+  rationale: PolicyConfig, WaiverConfig.issue, parse_policy_config, and validate_policy_config remain the sole typed policy schema and validation authority. Bootstrap must call them, not fork a second policy model.
+- plan_id: reuse_pre_tool_use_apply_patch_entry
+  kind: event_or_command
+  disposition: reuse
+  proposed_owner: cli-checker/crates/cli-checker-core/src/checks/hooks.rs
+  existing_entity_id: rust:crates/cli-checker-core/src/checks/hooks.rs#run_pre_tool_use_hook
+  replaced_entity_id: null
+  rationale: Codex PreToolUse apply_patch already flows through run_pre_tool_use_hook into proposed-tree quality assessment. Reuse that entry; do not add a parallel hook or second policy gate.
+- plan_id: reuse_multirepo_partition_for_config_paths
+  kind: public_api
+  disposition: reuse
+  proposed_owner: cli-checker/crates/cli-checker-core/src/checks/workspace_changes.rs
+  existing_entity_id: rust:crates/cli-checker-core/src/checks/workspace_changes.rs#partition_repository_changes
+  replaced_entity_id: null
+  rationale: Repository-root and multi-repository .cli-checker.toml paths already resolve through partition_repository_changes and cli_checker_policy_config_path. Bootstrap must work on those same path shapes without a second multi-repo path authority.
+- plan_id: extend_blake3_content_identity_surfaces
+  kind: public_api
+  disposition: extend
+  proposed_owner: cli-checker/crates/cli-checker-core/src/virtual_tree.rs
+  existing_entity_id: rust:crates/cli-checker-core/src/virtual_tree.rs#ProposedContentIdentity
+  replaced_entity_id: null
+  rationale: Finish active SHA-256 cutover on ProposedContentIdentity and related content_hash surfaces to algorithm-bearing blake3:<hex> only.
+- plan_id: replace_active_schema_sha256_patterns
+  kind: persistent_schema
+  disposition: replace
+  proposed_owner: cli-checker/crates/cli-checker-catalog/data/schemas
+  existing_entity_id: schema:crates/cli-checker-catalog/data/schemas/*#content_hash
+  replaced_entity_id: schema-pattern:sha256:[0-9a-f]{64}
+  rationale: Active catalog/state schemas that still accept SHA-256 content hashes hard-cut to blake3 patterns; immutable archival evidence outside active paths stays untouched.
+- plan_id: extend_factset_per_repo_semantic_coverage
+  kind: public_api
+  disposition: extend
+  proposed_owner: cli-checker/crates/cli-checker-cli/src/architecture_solver/facts.rs
+  existing_entity_id: rust:crates/cli-checker-cli/src/architecture_solver/facts.rs#FactSet
+  replaced_entity_id: null
+  rationale: 'Preserve and complete E01-E06 applicability: FactSet derives optional relation coverage from per-repository dylint policy while always retaining Symbol/Calls for Rust workspaces.'
+- plan_id: reuse_semantic_relation_vocabulary
+  kind: contract
+  disposition: reuse
+  proposed_owner: cli-checker/crates/cli-checker-contract/src/architecture_semantic.rs
+  existing_entity_id: rust:crates/cli-checker-contract/src/architecture_semantic.rs#ArchitectureSemanticRelationV1
+  replaced_entity_id: null
+  rationale: Reuse ArchitectureSemanticRelationV1 as the single fact ABI vocabulary; no parallel relation enums for applicability.
+- plan_id: reuse_cli_checker_formal_doctor_authority
+  kind: event_or_command
+  disposition: reuse
+  proposed_owner: cli-checker/crates/cli-checker-cli/src/tooling/project_tooling/formal/doctor.rs
+  existing_entity_id: rust:crates/cli-checker-cli/src/tooling/project_tooling/commands.rs#ProjectFormalCommand
+  replaced_entity_id: null
+  rationale: cli-checker project formal doctor (ProjectFormalCommand::Doctor / run_formal_doctor) is the sole typed formal-environment authority.
+- plan_id: replace_stale_causlane_formal_doctor_smoke
+  kind: event_or_command
+  disposition: replace
+  proposed_owner: causlane/crates/causlane-cli/src/cli_smoke_tests.rs
+  existing_entity_id: rust:crates/causlane-cli/src/cli_smoke_tests.rs#formal_doctor_json_runs
+  replaced_entity_id: rust:crates/causlane-cli/src/cli_smoke_tests.rs#formal_doctor_json_runs
+  rationale: Replace formal_doctor_json_runs positive smoke with a negative ownership regression asserting product CLI does not own typed formal doctor; product formal subcommands remain generate/stale/ir only.
+- plan_id: reuse_tool_checksum_command
+  kind: event_or_command
+  disposition: reuse
+  proposed_owner: cli-checker/crates/cli-checker-cli/src/cli/tool_output_command_group.rs
+  existing_entity_id: rust:crates/cli-checker-cli/src/cli/tool_output_command_group.rs#ToolCommand
+  replaced_entity_id: null
+  rationale: ToolCommand::Checksum already owns profile-bearing blake3 checksum CLI surface; reuse rather than add a parallel checksum command.
+searched_concepts:
+- apply_patch
+- PreToolUse
+- PolicyConfig
+- WaiverConfig
+- waiver issue
+- validate_policy_config
+- unsupported_candidate_policy
+- .cli-checker.toml
+- quality plane
+- compare_policy_change
+- partition_repository_changes
+- BLAKE3
+- 'blake3:'
+- SHA-256
+- content_hash
+- ProposedContentIdentity
+- Rust semantic applicability
+- FactSet
+- ArchitectureSemanticRelationV1
+- formal doctor
+- ProjectFormalCommand
+- run_formal_doctor
+- causlane formal doctor
+- sole typed formal-environment authority
+candidates:
+- responsibility: Quality-plane semantic comparison of .cli-checker.toml policy changes (canonical home for fail-closed invalid-policy handling and the narrow waiver-issue bootstrap)
+  disposition: extend
+  rationale: compare_policy_change + parse_valid_policy already own typed current/candidate policy deltas and today fail-close any invalid side as unsupported_candidate_policy. Extending this path is the only place that can allow a single fail-closed issue-fill bootstrap without creating a second policy authority.
+  evidence:
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/quality_plane/policy_compare.rs
+    line: 12
+    symbol: compare_policy_change
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/quality_plane/policy_compare.rs
+    line: 200
+    symbol: parse_valid_policy
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/quality_plane/policy_compare.rs
+    line: 338
+    symbol: compare_waivers
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/quality_plane/mod.rs
+    line: 210
+    symbol: assess_quality_plane_changes
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: docs/quality-plane-anti-weakening.md
+    line: 230
+    symbol: null
+- responsibility: Typed PolicyConfig schema and validation authority (waivers require non-empty issue)
+  disposition: reuse
+  rationale: PolicyConfig/WaiverConfig and validate_policy_config already enforce non-empty issue with no compatibility reader. Bootstrap must reuse this authority for candidate completeness rather than inventing defaults or a second schema.
+  evidence:
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-policy/src/config/schema.rs
+    line: 11
+    symbol: PolicyConfig
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-policy/src/config/schema.rs
+    line: 307
+    symbol: WaiverConfig
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-policy/src/config/validation.rs
+    line: 13
+    symbol: parse_policy_config
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-policy/src/config/validation.rs
+    line: 17
+    symbol: validate_policy_config
+- responsibility: Codex PreToolUse apply_patch proposed-tree entry and multi-repository path partitioning
+  disposition: reuse
+  rationale: Apply-patch bootstrap must enter through the existing hook and multi-repo partition so repository-root and nested repo paths share one assessment path; no alternate apply-patch policy pipeline.
+  evidence:
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/checks/hooks.rs
+    line: 183
+    symbol: run_pre_tool_use_hook
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/checks/workspace_changes.rs
+    line: 33
+    symbol: partition_repository_changes
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/checks/policy_config_rules.rs
+    line: 90
+    symbol: cli_checker_policy_config_path
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/checks/policy_config_rules.rs
+    line: 22
+    symbol: policy_config_file_findings
+- responsibility: BLAKE3 content-identity hard cut and checksum surfaces
+  disposition: extend
+  rationale: ProposedContentIdentity, FileHashEntry, and ToolCommand::Checksum already own checker content identity and checksum vocabulary; complete remaining active SHA-256 cutovers on those surfaces without a second identity owner.
+  evidence:
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/virtual_tree.rs
+    line: 67
+    symbol: ProposedContentIdentity
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/repo_plugin/contracts.rs
+    line: 23
+    symbol: FileHashEntry
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-cli/src/cli/tool_output_command_group.rs
+    line: 101
+    symbol: ToolCommand
+- responsibility: Per-repository Rust semantic applicability and fact ABI
+  disposition: extend
+  rationale: FactSet plus ArchitectureSemanticRelationV1 and quality-plane rust suppression applicability already own semantic coverage and suppression governance; preserve E01-E06 corrections by extending FactSet coverage derivation rather than adding a second applicability engine.
+  evidence:
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-cli/src/architecture_solver/facts.rs
+    line: 52
+    symbol: FactSet
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-contract/src/architecture_semantic.rs
+    line: 10
+    symbol: ArchitectureSemanticRelationV1
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/quality_plane/mod.rs
+    line: 294
+    symbol: compare_rust_suppression_if_applicable
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-core/src/quality_plane/source_compare.rs
+    line: 138
+    symbol: compare_rust_suppressions
+- responsibility: Typed formal-environment doctor authority
+  disposition: reuse
+  rationale: cli-checker ProjectFormalCommand::Doctor / run_formal_doctor is already the sole typed formal-environment authority. Reuse it; do not reintroduce a product-CLI formal doctor.
+  evidence:
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-cli/src/tooling/project_tooling/commands.rs
+    line: 341
+    symbol: ProjectFormalCommand
+  - repo_id: cli-checker
+    source_identity: git@github.com-hopium:Boot-and-Pencil/cli-checker.git
+    path: crates/cli-checker-cli/src/tooling/project_tooling/formal/doctor.rs
+    line: 30
+    symbol: run_formal_doctor
+  - repo_id: causlane
+    source_identity: git@github.com-hopium:Boot-and-Pencil/causlane.git
+    path: docs/product-track/07-service-workstream.md
+    line: 8
+    symbol: null
+- responsibility: Stale causlane product-CLI formal doctor smoke and product formal command surface
+  disposition: replace
+  rationale: formal_doctor_json_runs still smokes causlane formal doctor, but parse_formal no longer exposes a doctor subcommand (generate/stale/ir only). Replace the smoke with a negative ownership regression; product formal remains related_not_owner for environment doctor.
+  evidence:
+  - repo_id: causlane
+    source_identity: git@github.com-hopium:Boot-and-Pencil/causlane.git
+    path: crates/causlane-cli/src/cli_smoke_tests.rs
+    line: 335
+    symbol: formal_doctor_json_runs
+  - repo_id: causlane
+    source_identity: git@github.com-hopium:Boot-and-Pencil/causlane.git
+    path: crates/causlane-cli/src/cli_parse.rs
+    line: 204
+    symbol: parse_formal
+proposed_owner: cli-checker/crates/cli-checker-core/src/quality_plane/policy_compare.rs
+decision: extend
+rationale: Canonical owners already exist for every requested capability. The new Codex apply-patch waiver-issue bootstrap is a narrow fail-closed extension of compare_policy_change/parse_valid_policy using existing PolicyConfig validation, PreToolUse apply-patch entry, and multi-repo path partitioning—not a second policy authority. BLAKE3 hard cut and E01-E06 Rust semantic applicability complete extensions of ProposedContentIdentity/schema patterns and FactSet/ArchitectureSemanticRelationV1. Causlane only replaces a stale positive formal-doctor smoke with a negative ownership regression so cli-checker project formal doctor remains the sole typed formal-environment authority.
+new_responsibility: null
+nearest_capability_difference: 'Nearest capability is quality-plane compare_policy_change, which currently treats any invalid current or candidate policy as unsupported_candidate_policy and blocks. The requested bootstrap differs only by allowing one exact class of update: current invalid solely because waiver issue fields are missing/empty; candidate fills only those fields with non-empty issue values; every other TOML value and waiver order/content is identical; full validate_policy_config on the candidate succeeds; repository-root and multi-repository paths reuse existing partition/path recognition. All other invalid-baseline edits remain denied. Formal-doctor ownership is already cli-checker; causlane change is regression-only.'
+anti_duplication_contract: Must not add a second PolicyConfig parser/validator, synthetic default issue, compatibility alias, broad invalid-baseline allowlist, alternate apply-patch policy gate, or product-CLI formal doctor. Bootstrap logic lives only inside the quality-plane policy comparison used by Codex apply-patch proposed trees; formal environment doctor remains exclusively cli-checker project formal doctor (ProjectFormalCommand::Doctor / run_formal_doctor).
+reviewer:
+  reviewer_id: switchyard/grok-build/grok-4.5-build
+  mode: read_only
+  write_tools_available: false
+operator_acknowledgement: null

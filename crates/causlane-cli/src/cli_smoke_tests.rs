@@ -332,13 +332,9 @@ fn builds_sanitized_support_bundle() -> std::io::Result<()> {
 }
 
 #[test]
-fn formal_doctor_json_runs() {
+fn formal_doctor_stays_checker_owned() {
     let result = run(&args(&["causlane", "formal", "doctor", "--json"]));
-    let output = result.ok();
-    assert!(output.is_some());
-    if let Some(out) = output {
-        assert!(out.text.contains("\"schema_version\""));
-    }
+    assert!(matches!(result, Err(CliError::Usage(_))));
 }
 
 #[test]

@@ -1,0 +1,20 @@
+schema: cli-checker.quality-maintenance.v2
+change_id: hopium-refinery-447-causlane-c5eb52f69f35-maintenance
+reason: Replace a stale positive product-CLI smoke with the canonical negative ownership regression for Checker-owned formal doctor.
+owner: architecture
+issue: HOPIUM_REFINERY-447
+scope:
+- test_coverage_exclusions
+impact: The assertion shape changes, while coverage becomes aligned with the existing command boundary and prevents a second formal-doctor owner.
+expires: 2026-08-21
+restoration: Remove this authority after the negative ownership regression is published as the baseline.
+affected_checks:
+- test/assertion contract
+restoration_evidence:
+- artifact_ref: .cli-checker/state/maintenance-evidence/4aec2f961b7320e19dc0960d6736bc8830f68065a36f12c081f63c7f025460b6/reuse-receipt.yaml
+  content_hash: blake3:4aec2f961b7320e19dc0960d6736bc8830f68065a36f12c081f63c7f025460b6
+architecture_delta: null
+architecture_diff_review: null
+architecture_audit_pack: null
+allowed_delta_ids:
+- blake3:798400af7f0981b0fc185f2e129f4eff615ca0b06425979e8d4b5e443db10ad0
