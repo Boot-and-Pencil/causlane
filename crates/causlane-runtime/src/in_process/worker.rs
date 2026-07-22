@@ -5,7 +5,8 @@ use std::{
 };
 
 use causlane_core::{
-    HostDispatchContext, HostDispatchError, HostDispatchTicket, HostEffectOutcome, HostTaskSpec,
+    validate_host_effect_outcome, HostDispatchContext, HostDispatchError, HostDispatchTicket,
+    HostEffectOutcome, HostTaskSpec,
 };
 use tokio::{
     sync::{broadcast, mpsc, Semaphore},
@@ -258,8 +259,14 @@ async fn drain_ready<H>(
             }
         };
 
+        let task = queued.task;
         let outcome =
-            execute_host_effect_supervised(Arc::clone(&handler), queued.ctx, queued.task).await;
+            execute_host_effect_supervised(Arc::clone(&handler), queued.ctx, task.clone())
+                .await
+                .and_then(|outcome| {
+                    validate_host_effect_outcome(&task, &outcome)?;
+                    Ok(outcome)
+                });
         drop(permit);
 
         match outcome {
@@ -271,6 +278,8 @@ async fn drain_ready<H>(
                         partition: partition.clone(),
                         task_id,
                         produced_refs: outcome.produced_refs,
+                        action_receipt_ref: outcome.action_receipt_ref,
+                        audit_ref: outcome.audit_ref,
                     },
                 );
             }

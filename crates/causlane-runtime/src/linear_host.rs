@@ -7,9 +7,9 @@
 use std::collections::{BTreeSet, VecDeque};
 
 use causlane_core::{
-    validate_host_context, validate_host_submission, HostDispatchContext, HostDispatchError,
-    HostDispatchPort, HostDispatchTicket, HostDispatcherCapabilities, HostDrainOutcome,
-    HostEffectHandler, HostTaskSpec,
+    validate_host_context, validate_host_effect_outcome, validate_host_submission,
+    HostDispatchContext, HostDispatchError, HostDispatchPort, HostDispatchTicket,
+    HostDispatcherCapabilities, HostDrainOutcome, HostEffectHandler, HostTaskSpec,
 };
 
 /// Deterministic linear implementation of [`HostDispatchPort`].
@@ -113,11 +113,14 @@ impl HostDispatchPort for LinearHostDispatcher {
             return Ok(HostDrainOutcome::Idle);
         };
         let outcome = handler.execute_host_effect(ctx, &task)?;
+        validate_host_effect_outcome(&task, &outcome)?;
         let _is_new = self.completed.insert(task.task_id.clone());
 
         Ok(HostDrainOutcome::Executed {
             task_id: task.task_id,
             produced_refs: outcome.produced_refs,
+            action_receipt_ref: outcome.action_receipt_ref,
+            audit_ref: outcome.audit_ref,
         })
     }
 }
@@ -145,6 +148,8 @@ mod tests {
             self.seen.push(task.task_id.clone());
             Ok(HostEffectOutcome {
                 produced_refs: vec![format!("fact://{}", task.task_id)],
+                action_receipt_ref: Some(format!("receipt://action/{}", task.task_id)),
+                audit_ref: format!("audit://host/outcome/{}", task.task_id),
             })
         }
     }
@@ -170,6 +175,8 @@ mod tests {
             subject_ref: format!("subject://{id}"),
             plan_hash: None,
             effect_class: HostEffectClass::SoftWrite,
+            confirmation_or_quorum_refs: Vec::new(),
+            audit_ref: format!("audit://host/admission/{id}"),
             payload_ref: Some(format!("object://payload/{id}")),
             dependencies,
             idempotency_key: idempotency_key.map(str::to_owned),
@@ -194,11 +201,12 @@ mod tests {
     }
 
     #[test]
-    fn linear_dispatcher_rejects_hard_effect_without_idempotency() {
+    fn linear_dispatcher_rejects_controlled_effect_without_idempotency() {
         let ctx = ctx();
         let mut dispatcher = LinearHostDispatcher::new();
         let mut task = task("hard-effect", Vec::new(), None);
-        task.effect_class = HostEffectClass::HardEffect;
+        task.effect_class = HostEffectClass::ControlledEffect;
+        task.confirmation_or_quorum_refs = vec!["approval://operator/quorum".to_owned()];
 
         assert!(matches!(
             dispatcher.submit(&ctx, task),
@@ -245,6 +253,8 @@ mod tests {
             HostDrainOutcome::Executed {
                 task_id: "root".to_owned(),
                 produced_refs: vec!["fact://root".to_owned()],
+                action_receipt_ref: Some("receipt://action/root".to_owned()),
+                audit_ref: "audit://host/outcome/root".to_owned(),
             }
         );
         assert_eq!(
@@ -252,6 +262,8 @@ mod tests {
             HostDrainOutcome::Executed {
                 task_id: "child".to_owned(),
                 produced_refs: vec!["fact://child".to_owned()],
+                action_receipt_ref: Some("receipt://action/child".to_owned()),
+                audit_ref: "audit://host/outcome/child".to_owned(),
             }
         );
         assert_eq!(handler.seen, vec!["root".to_owned(), "child".to_owned()]);

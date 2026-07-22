@@ -174,6 +174,8 @@ impl HostEffectHandler for ReleaseWorker {
         }
         Ok(HostEffectOutcome {
             produced_refs: vec![format!("release://{}/{}", ctx.correlation_id, task.task_id)],
+            action_receipt_ref: None,
+            audit_ref: format!("audit://release/outcome/{}", task.task_id),
         })
     }
 }
@@ -305,7 +307,7 @@ fn release_task(task: ReleaseTaskId, plan: &PlanHash) -> HostTaskSpec {
     host_task(
         task.as_str(),
         task.dependencies(),
-        HostEffectClass::ReadOnly,
+        HostEffectClass::SafeRead,
         &format!("idem-{}", task.as_str()),
         plan,
     )
@@ -325,6 +327,8 @@ fn host_task(
         subject_ref: "subject://release/workspace-0.0.1".to_owned(),
         plan_hash: Some(plan.clone()),
         effect_class,
+        confirmation_or_quorum_refs: Vec::new(),
+        audit_ref: format!("audit://release/admission/{task_id}"),
         payload_ref: Some(format!("object://release/{task_id}")),
         dependencies,
         idempotency_key: Some(idempotency_key.to_owned()),
@@ -454,7 +458,7 @@ mod tests {
             host_task(
                 ReleaseTaskId::PackageFileListReview.as_str(),
                 vec![ReleaseTaskId::CiTest.as_str().to_owned()],
-                HostEffectClass::ReadOnly,
+                HostEffectClass::SafeRead,
                 "idem-review",
                 &plan,
             ),
@@ -464,7 +468,7 @@ mod tests {
             host_task(
                 ReleaseTaskId::PublishDryRunPlan.as_str(),
                 vec![ReleaseTaskId::PackageFileListReview.as_str().to_owned()],
-                HostEffectClass::ReadOnly,
+                HostEffectClass::SafeRead,
                 "idem-dry-run",
                 &plan,
             ),
@@ -527,7 +531,7 @@ mod tests {
             host_task(
                 ReleaseTaskId::CiFmt.as_str(),
                 Vec::new(),
-                HostEffectClass::ReadOnly,
+                HostEffectClass::SafeRead,
                 "idem-release-attempt",
                 &plan,
             ),
@@ -538,7 +542,7 @@ mod tests {
             host_task(
                 &duplicate_task_id,
                 Vec::new(),
-                HostEffectClass::ReadOnly,
+                HostEffectClass::SafeRead,
                 "idem-release-attempt",
                 &plan,
             ),

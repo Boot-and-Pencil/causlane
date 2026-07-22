@@ -280,6 +280,10 @@ pub enum InProcessRuntimeEvent {
         task_id: String,
         /// Host-produced references.
         produced_refs: Vec<String>,
+        /// Canonical product action receipt reference, when the task wrote or acted.
+        action_receipt_ref: Option<String>,
+        /// Append-only audit reference emitted by the handler.
+        audit_ref: String,
     },
     /// A host effect handler rejected or failed a task.
     Failed {

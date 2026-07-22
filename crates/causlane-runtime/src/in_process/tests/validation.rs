@@ -73,7 +73,7 @@ async fn rejects_invalid_host_context() -> TestResult {
 }
 
 #[tokio::test(flavor = "current_thread")]
-async fn rejects_hard_effect_without_idempotency() -> TestResult {
+async fn rejects_controlled_effect_without_idempotency() -> TestResult {
     let partition = partition("p1");
     let runtime = runtime(
         InProcessRuntimeConfig::new(2, 1),
@@ -82,7 +82,8 @@ async fn rejects_hard_effect_without_idempotency() -> TestResult {
     )?;
     let mut events = runtime.subscribe();
     let mut invalid = task("hard-effect", Vec::new(), None);
-    invalid.effect_class = HostEffectClass::HardEffect;
+    invalid.effect_class = HostEffectClass::ControlledEffect;
+    invalid.confirmation_or_quorum_refs = vec!["approval://operator/quorum".to_owned()];
 
     let result = runtime.submit(&partition, ctx(), invalid).await;
 

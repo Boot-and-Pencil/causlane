@@ -126,6 +126,8 @@ impl InProcessEffectHandler for RecordingAsyncHandler {
 
             Ok(HostEffectOutcome {
                 produced_refs: vec![format!("fact://{}", task.task_id)],
+                action_receipt_ref: Some(format!("receipt://action/{}", task.task_id)),
+                audit_ref: format!("audit://host/outcome/{}", task.task_id),
             })
         })
     }
@@ -166,6 +168,8 @@ fn task(id: &str, dependencies: Vec<String>, idempotency_key: Option<&str>) -> H
         subject_ref: format!("subject://{id}"),
         plan_hash: None,
         effect_class: HostEffectClass::SoftWrite,
+        confirmation_or_quorum_refs: Vec::new(),
+        audit_ref: format!("audit://host/admission/{id}"),
         payload_ref: Some(format!("object://payload/{id}")),
         dependencies,
         idempotency_key: idempotency_key.map(str::to_owned),

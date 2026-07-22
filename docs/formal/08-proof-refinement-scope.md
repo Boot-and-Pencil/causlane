@@ -117,7 +117,7 @@ This artifact classifies proof/refinement strength. It does not grant coverage c
 - Authority surface: toolchain pins, HMAC/SHA tests and typed cli-checker readiness checks
 - Scope: Environmental and cryptographic assumptions needed for the evidence chain to be meaningful.
 - Limits: The repository tests deterministic use of primitives but does not prove cryptographic hardness or solver soundness.
-- Verification: `cli-checker project formal doctor`, tools/formal-install, unit tests and pinned tool versions
+- Verification: cli-checker project formal doctor, tools/formal-install, unit tests and pinned tool versions
 - Source links: `.devinfra/tool-versions.json`, `.devinfra/cli-checker/project-tooling-profile.yaml`, `docs/setup.md`
 
 

@@ -146,6 +146,7 @@ impl From<&InProcessRuntimeEvent> for ShadowObservation {
                 partition,
                 task_id,
                 produced_refs,
+                ..
             } => Self {
                 partition: partition.clone(),
                 task_id: Some(task_id.clone()),
@@ -392,6 +393,8 @@ mod tests {
             partition: partition(partition_id),
             task_id: task_id.to_owned(),
             produced_refs: produced_refs.into_iter().map(str::to_owned).collect(),
+            action_receipt_ref: Some(format!("receipt://action/{task_id}")),
+            audit_ref: format!("audit://host/outcome/{task_id}"),
         }
     }
 

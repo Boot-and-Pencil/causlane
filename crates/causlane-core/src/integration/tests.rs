@@ -21,6 +21,8 @@ fn task(effect_class: HostEffectClass) -> HostTaskSpec {
         subject_ref: "host://subject/demo".to_owned(),
         plan_hash: None,
         effect_class,
+        confirmation_or_quorum_refs: vec!["approval://operator/quorum".to_owned()],
+        audit_ref: "audit://host/task-1".to_owned(),
         payload_ref: Some("object://payload/demo".to_owned()),
         dependencies: Vec::new(),
         idempotency_key: Some("idem-1".to_owned()),
@@ -113,8 +115,23 @@ fn host_api_rejects_dependency_shape_defects() {
 }
 
 #[test]
-fn host_api_requires_task_idempotency_for_hard_effects() {
-    let mut bad = task(HostEffectClass::HardEffect);
+fn host_api_requires_confirmation_for_controlled_effects() {
+    let mut bad = task(HostEffectClass::ControlledEffect);
+    bad.confirmation_or_quorum_refs.clear();
+
+    assert_eq!(
+        validate_host_task(&bad),
+        Err(HostDispatchError::InvalidTask {
+            task_id: Some("task-1".to_owned()),
+            field: "confirmation_or_quorum_refs",
+            reason: "controlled effects require confirmation or quorum evidence".to_owned(),
+        })
+    );
+}
+
+#[test]
+fn host_api_requires_task_idempotency_for_controlled_effects() {
+    let mut bad = task(HostEffectClass::ControlledEffect);
     bad.idempotency_key = None;
 
     assert_eq!(
@@ -122,9 +139,39 @@ fn host_api_requires_task_idempotency_for_hard_effects() {
         Err(HostDispatchError::InvalidTask {
             task_id: Some("task-1".to_owned()),
             field: "idempotency_key",
-            reason: "hard effects require a host task idempotency key".to_owned(),
+            reason: "controlled effects require a host task idempotency key".to_owned(),
         })
     );
+}
+
+#[test]
+fn host_api_requires_audit_and_write_receipt_from_handler() {
+    let task = task(HostEffectClass::SoftWrite);
+    let missing_receipt = HostEffectOutcome {
+        produced_refs: Vec::new(),
+        action_receipt_ref: None,
+        audit_ref: "audit://host/outcome/task-1".to_owned(),
+    };
+    assert!(matches!(
+        validate_host_effect_outcome(&task, &missing_receipt),
+        Err(HostDispatchError::InvalidTask {
+            field: "effect_outcome.action_receipt_ref",
+            ..
+        })
+    ));
+
+    let missing_audit = HostEffectOutcome {
+        produced_refs: Vec::new(),
+        action_receipt_ref: Some("receipt://action/task-1".to_owned()),
+        audit_ref: String::new(),
+    };
+    assert!(matches!(
+        validate_host_effect_outcome(&task, &missing_audit),
+        Err(HostDispatchError::InvalidTask {
+            field: "effect_outcome.audit_ref",
+            ..
+        })
+    ));
 }
 
 #[test]
@@ -163,6 +210,7 @@ fn builders_set_current_api_version_and_validate() -> Result<(), HostDispatchErr
         "host://subject/demo",
         HostEffectClass::SoftWrite,
         PartitionRoute::for_primary(PartitionKey("partition-1".to_owned())),
+        "audit://host/task-1",
     )
     .with_payload_ref("object://payload/demo")
     .with_dependencies(["root"])

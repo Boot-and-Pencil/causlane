@@ -27,9 +27,10 @@ pub use kernel::{
     reason_from_frontier, reduce_lifecycle, requires_execution_barrier, resolve_constraints,
     route_consistent_with_profile, select_frontier, trace_span_from_audit_event,
     trace_span_kind_from_audit_event_kind, truth_rewrite_of, validate_host_context,
-    validate_host_submission, validate_host_task, why_not_parallel, why_not_parallel_from_index,
-    AuthzEvaluator, CapabilityIssuer, ConflictOracle, ConstraintProvider, DispatchAdmission,
-    DrainSemantics, KernelContracts, LifecycleGrammar, ScopeOverlap, TruthAnchorResolver,
+    validate_host_effect_outcome, validate_host_submission, validate_host_task, why_not_parallel,
+    why_not_parallel_from_index, AuthzEvaluator, CapabilityIssuer, ConflictOracle,
+    ConstraintProvider, DispatchAdmission, DrainSemantics, KernelContracts, LifecycleGrammar,
+    ScopeOverlap, TruthAnchorResolver,
 };
 pub use ports::{
     AuditLogPort, ConstraintProviderPort, ExecutorPort, HostDispatchPort, HostEffectHandler,

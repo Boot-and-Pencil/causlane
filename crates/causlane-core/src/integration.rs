@@ -76,11 +76,11 @@ impl PartitionRoute {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HostEffectClass {
     /// The task reads or projects already committed truth only.
-    ReadOnly,
+    SafeRead,
     /// The task performs a non-destructive operational write.
     SoftWrite,
-    /// The task may perform a hard effect after the host has authorized it.
-    HardEffect,
+    /// The task may perform a controlled effect after owner confirmation or quorum.
+    ControlledEffect,
     /// The task is forbidden at the host boundary and must be rejected.
     Forbidden,
 }
@@ -207,6 +207,10 @@ pub struct HostTaskSpec {
     pub plan_hash: Option<PlanHash>,
     /// Host-visible effect class.
     pub effect_class: HostEffectClass,
+    /// References to an owner-evaluated confirmation or quorum decision.
+    pub confirmation_or_quorum_refs: Vec<String>,
+    /// Append-only audit reference for host admission.
+    pub audit_ref: String,
     /// Optional payload/object reference; raw secret values are forbidden.
     pub payload_ref: Option<String>,
     /// Dependency task ids that must complete before this task is ready.
@@ -228,6 +232,8 @@ pub struct HostTaskSpecBuilder {
     subject_ref: String,
     plan_hash: Option<PlanHash>,
     effect_class: HostEffectClass,
+    confirmation_or_quorum_refs: Vec<String>,
+    audit_ref: String,
     payload_ref: Option<String>,
     dependencies: Vec<String>,
     idempotency_key: Option<String>,
@@ -244,6 +250,7 @@ impl HostTaskSpecBuilder {
         subject_ref: impl Into<String>,
         effect_class: HostEffectClass,
         partition_route: PartitionRoute,
+        audit_ref: impl Into<String>,
     ) -> Self {
         Self {
             task_id: task_id.into(),
@@ -252,6 +259,8 @@ impl HostTaskSpecBuilder {
             subject_ref: subject_ref.into(),
             plan_hash: None,
             effect_class,
+            confirmation_or_quorum_refs: Vec::new(),
+            audit_ref: audit_ref.into(),
             payload_ref: None,
             dependencies: Vec::new(),
             idempotency_key: None,
@@ -291,6 +300,13 @@ impl HostTaskSpecBuilder {
         self
     }
 
+    /// Attach one owner-evaluated confirmation or quorum evidence reference.
+    #[must_use]
+    pub fn with_confirmation_or_quorum_ref(mut self, evidence_ref: impl Into<String>) -> Self {
+        self.confirmation_or_quorum_refs.push(evidence_ref.into());
+        self
+    }
+
     /// Build and validate the task.
     ///
     /// # Errors
@@ -305,6 +321,8 @@ impl HostTaskSpecBuilder {
             subject_ref: self.subject_ref,
             plan_hash: self.plan_hash,
             effect_class: self.effect_class,
+            confirmation_or_quorum_refs: self.confirmation_or_quorum_refs,
+            audit_ref: self.audit_ref,
             payload_ref: self.payload_ref,
             dependencies: self.dependencies,
             idempotency_key: self.idempotency_key,
@@ -332,7 +350,7 @@ pub struct HostDispatcherCapabilities {
     pub supports_partition_coordination: bool,
     /// Whether the host must authorize before submit/drain.
     pub requires_external_authz: bool,
-    /// Whether the host must provide idempotency before hard effects.
+    /// Whether the host must provide idempotency before controlled effects.
     pub requires_external_idempotency: bool,
 }
 
@@ -372,6 +390,10 @@ pub enum HostDrainOutcome {
         task_id: String,
         /// Produced fact/object references.
         produced_refs: Vec<String>,
+        /// Canonical product action receipt reference, when the task wrote or acted.
+        action_receipt_ref: Option<String>,
+        /// Append-only audit reference emitted by the host effect handler.
+        audit_ref: String,
     },
     /// No task was queued.
     Idle,
@@ -384,6 +406,10 @@ pub enum HostDrainOutcome {
 pub struct HostEffectOutcome {
     /// Produced fact/object references.
     pub produced_refs: Vec<String>,
+    /// Canonical product action receipt reference; required after any write/effect.
+    pub action_receipt_ref: Option<String>,
+    /// Append-only audit reference emitted by the host effect handler.
+    pub audit_ref: String,
 }
 
 /// Errors returned by the host-facing dispatch API.
@@ -512,6 +538,7 @@ pub fn validate_host_task(task: &HostTaskSpec) -> Result<(), HostDispatchError> 
     validate_task_ref(task, "action_id", &task.action_id.0)?;
     validate_task_ref(task, "predicate_id", &task.predicate_id.0)?;
     validate_task_ref(task, "subject_ref", &task.subject_ref)?;
+    validate_task_ref(task, "audit_ref", &task.audit_ref)?;
     validate_optional_task_ref(task, "payload_ref", task.payload_ref.as_ref())?;
     validate_optional_task_ref(task, "idempotency_key", task.idempotency_key.as_ref())?;
     validate_task_dependencies(task)?;
@@ -520,12 +547,24 @@ pub fn validate_host_task(task: &HostTaskSpec) -> Result<(), HostDispatchError> 
             task_id: task.task_id.clone(),
         });
     }
-    if task.effect_class == HostEffectClass::HardEffect && task.idempotency_key.is_none() {
-        return Err(invalid_task(
-            task,
-            "idempotency_key",
-            "hard effects require a host task idempotency key",
-        ));
+    if task.effect_class == HostEffectClass::ControlledEffect {
+        if task.confirmation_or_quorum_refs.is_empty() {
+            return Err(invalid_task(
+                task,
+                "confirmation_or_quorum_refs",
+                "controlled effects require confirmation or quorum evidence",
+            ));
+        }
+        if task.idempotency_key.is_none() {
+            return Err(invalid_task(
+                task,
+                "idempotency_key",
+                "controlled effects require a host task idempotency key",
+            ));
+        }
+    }
+    for evidence_ref in &task.confirmation_or_quorum_refs {
+        validate_task_ref(task, "confirmation_or_quorum_refs", evidence_ref)?;
     }
     if let Some(reason) = task.partition_route.invalid_reason() {
         return Err(HostDispatchError::InvalidPartitionRoute {
@@ -547,6 +586,30 @@ pub fn validate_host_submission(
 ) -> Result<(), HostDispatchError> {
     validate_host_context(ctx)?;
     validate_host_task(task)
+}
+
+/// Validate owner-produced evidence returned by a host effect handler.
+///
+/// # Errors
+/// Returns [`HostDispatchError`] when an effect has no canonical receipt or audit.
+#[must_use = "host effect outcome validation result must be handled"]
+pub fn validate_host_effect_outcome(
+    task: &HostTaskSpec,
+    outcome: &HostEffectOutcome,
+) -> Result<(), HostDispatchError> {
+    validate_task_ref(task, "effect_outcome.audit_ref", &outcome.audit_ref)?;
+    if task.effect_class != HostEffectClass::SafeRead && outcome.action_receipt_ref.is_none() {
+        return Err(invalid_task(
+            task,
+            "effect_outcome.action_receipt_ref",
+            "effectful dispatch requires a canonical action receipt",
+        ));
+    }
+    validate_optional_task_ref(
+        task,
+        "effect_outcome.action_receipt_ref",
+        outcome.action_receipt_ref.as_ref(),
+    )
 }
 
 fn validate_context_ref(field: &'static str, value: &str) -> Result<(), HostDispatchError> {

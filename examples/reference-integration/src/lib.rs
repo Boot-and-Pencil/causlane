@@ -126,6 +126,8 @@ impl HostEffectHandler for ReferenceWorker {
                 "object://reference/{}/{}",
                 ctx.correlation_id, task.task_id
             )],
+            action_receipt_ref: Some(format!("receipt://action/{}", task.task_id)),
+            audit_ref: format!("audit://reference/outcome/{}", task.task_id),
         })
     }
 }
@@ -160,7 +162,7 @@ fn build_reference_integration() -> Result<ReferenceIntegrationTrace, ReferenceI
         host_task(
             "worker.project-release",
             vec!["api.accept-release".to_owned()],
-            HostEffectClass::ReadOnly,
+            HostEffectClass::SafeRead,
             "idem-worker-project",
             &plan,
         ),
@@ -307,6 +309,8 @@ fn host_task(
         subject_ref: "subject://release/reference-1".to_owned(),
         plan_hash: Some(plan.clone()),
         effect_class,
+        confirmation_or_quorum_refs: Vec::new(),
+        audit_ref: format!("audit://reference/admission/{task_id}"),
         payload_ref: Some(format!("object://payload/{task_id}")),
         dependencies,
         idempotency_key: Some(idempotency_key.to_owned()),

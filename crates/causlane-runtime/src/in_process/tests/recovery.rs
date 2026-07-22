@@ -42,6 +42,8 @@ impl InProcessEffectHandler for PausingHandler {
 
             Ok(HostEffectOutcome {
                 produced_refs: vec![format!("fact://{}", task.task_id)],
+                action_receipt_ref: Some(format!("receipt://action/{}", task.task_id)),
+                audit_ref: format!("audit://host/outcome/{}", task.task_id),
             })
         })
     }
@@ -90,6 +92,8 @@ impl InProcessEffectHandler for PanickingHandler {
         Box::pin(async move {
             Ok(HostEffectOutcome {
                 produced_refs: vec![format!("fact://{}", task.task_id)],
+                action_receipt_ref: Some(format!("receipt://action/{}", task.task_id)),
+                audit_ref: format!("audit://host/outcome/{}", task.task_id),
             })
         })
     }
