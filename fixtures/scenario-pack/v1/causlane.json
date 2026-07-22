@@ -1,0 +1,832 @@
+{
+  "schema_version": "hopium.scenario-pack.v1",
+  "pack_id": "scenario-pack/causlane/v1",
+  "owner_repo": "causlane",
+  "version": "1.0.0",
+  "mode": "synthetic",
+  "synthetic_marker": "synthetic",
+  "scenarios": [
+    {
+      "scenario_id": "scenario/causlane/authorization-gate",
+      "category": "contract_valid_negative",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/authorization-gate/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/authorization-gate/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/authorization-gate"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "authorization-gate"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/authorization-gate",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "authorization-gate"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/authorization-gate",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/boundary-value",
+      "category": "contract_valid_negative",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/boundary-value/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/boundary-value/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/boundary-value"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "boundary-value"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/boundary-value",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "boundary-value"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/boundary-value",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/business-rejection",
+      "category": "contract_valid_negative",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/business-rejection/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/business-rejection/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/business-rejection"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "business-rejection"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/business-rejection",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "business-rejection"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/business-rejection",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/canonical-success",
+      "category": "happy_path",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/canonical-success/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/canonical-success/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/canonical-success"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "canonical-success"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/canonical-success",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "canonical-success"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/canonical-success",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/concurrency-order",
+      "category": "recovery",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/concurrency-order/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/concurrency-order/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/concurrency-order"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "concurrency-order"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/concurrency-order",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "concurrency-order"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/concurrency-order",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/degraded-unavailable",
+      "category": "degradation",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/degraded-unavailable/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/degraded-unavailable/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/degraded-unavailable"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "degraded-unavailable"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/degraded-unavailable",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "degraded-unavailable"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/degraded-unavailable",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/dependency-failure",
+      "category": "degradation",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/dependency-failure/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/dependency-failure/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/dependency-failure"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "dependency-failure"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/dependency-failure",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "dependency-failure"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/dependency-failure",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/duplicate-retry",
+      "category": "recovery",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/duplicate-retry/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/duplicate-retry/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/duplicate-retry"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "duplicate-retry"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/duplicate-retry",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "duplicate-retry"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/duplicate-retry",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/no-live",
+      "category": "controlled_effect",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/no-live/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/no-live/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/no-live"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "no-live"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/no-live",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "no-live"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/no-live",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/recovery",
+      "category": "recovery",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/recovery/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/recovery/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/recovery"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "recovery"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/recovery",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "recovery"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/recovery",
+          "truth_class": "synthetic"
+        }
+      ]
+    },
+    {
+      "scenario_id": "scenario/causlane/truth-classification",
+      "category": "happy_path",
+      "truth_class": "synthetic",
+      "context": {
+        "fixed_clock_millis": 1700000000000,
+        "timezone": "UTC",
+        "calendar_id": "calendar/always-open",
+        "id_allocator_seed": 14,
+        "random_seed": 14,
+        "scheduler_order": [
+          "step/causlane/truth-classification/0"
+        ],
+        "retry_plan": [],
+        "external_observations": []
+      },
+      "steps": [
+        {
+          "step_id": "step/causlane/truth-classification/0",
+          "stimulus": {
+            "operation_id": "operation/causlane/publish-public-projections-actions",
+            "arguments": [
+              {
+                "name": "truth_class",
+                "value": "synthetic"
+              }
+            ]
+          },
+          "argument_predicates": [],
+          "required_state_tokens": [],
+          "emitted_state_tokens": [
+            "state/causlane/truth-classification"
+          ],
+          "emitted_facts": [
+            {
+              "name": "coverage_class",
+              "value": "truth-classification"
+            }
+          ],
+          "observation": {
+            "outcome_id": "outcome/causlane/truth-classification",
+            "fields": [
+              {
+                "name": "synthetic",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "expected_audit": [
+        {
+          "event_type": "audit/causlane/scenario-observed",
+          "fields": [
+            {
+              "name": "coverage_class",
+              "value": "truth-classification"
+            }
+          ],
+          "redaction_required": true,
+          "synthetic_marker_required": true
+        }
+      ],
+      "expected_evidence": [
+        {
+          "evidence_type": "evidence/causlane/scenario",
+          "evidence_ref": "scenario-evidence/causlane/truth-classification",
+          "truth_class": "synthetic"
+        }
+      ]
+    }
+  ],
+  "invalid_wire_cases": [
+    {
+      "case_id": "invalid-wire/causlane/public-boundary",
+      "media_type": "application/json",
+      "payload_ref": "raw-invalid-wire/invalid-wire/causlane/public-boundary.json",
+      "expected_problem_id": "problem/invalid-wire"
+    }
+  ],
+  "coverage": {
+    "requirement_ids": [
+      "coverage/operation/causlane/publish-public-projections-actions/canonical-success",
+      "coverage/operation/causlane/publish-public-projections-actions/business-rejection",
+      "coverage/operation/causlane/publish-public-projections-actions/boundary-value",
+      "coverage/operation/causlane/publish-public-projections-actions/degraded-unavailable",
+      "coverage/operation/causlane/publish-public-projections-actions/malformed-input",
+      "coverage/operation/causlane/publish-public-projections-actions/duplicate-retry",
+      "coverage/operation/causlane/publish-public-projections-actions/authorization-gate",
+      "coverage/operation/causlane/publish-public-projections-actions/dependency-failure",
+      "coverage/operation/causlane/publish-public-projections-actions/recovery",
+      "coverage/operation/causlane/publish-public-projections-actions/concurrency-order",
+      "coverage/operation/causlane/publish-public-projections-actions/no-live",
+      "coverage/operation/causlane/publish-public-projections-actions/truth-classification"
+    ],
+    "scenario_ids": [
+      "scenario/causlane/authorization-gate",
+      "scenario/causlane/boundary-value",
+      "scenario/causlane/business-rejection",
+      "scenario/causlane/canonical-success",
+      "scenario/causlane/concurrency-order",
+      "scenario/causlane/degraded-unavailable",
+      "scenario/causlane/dependency-failure",
+      "scenario/causlane/duplicate-retry",
+      "scenario/causlane/no-live",
+      "scenario/causlane/recovery",
+      "scenario/causlane/truth-classification"
+    ],
+    "generated_artifact_paths": [
+      "fixtures/scenario-pack/v1/causlane.json"
+    ]
+  },
+  "dependencies": []
+}

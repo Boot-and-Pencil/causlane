@@ -1,0 +1,122 @@
+{
+  "schema_version": "hopium.owner-scenario-descriptor.v1",
+  "owner_repo": "causlane",
+  "owner_tech_id": "dispatch.causlane",
+  "version": "1.0.0",
+  "generated_artifact_path": "fixtures/scenario-pack/v1/causlane.json",
+  "contract_fingerprints": [
+    {
+      "contract_id": "repository-governance/causlane",
+      "algorithm": "blake3",
+      "digest": "387b49ba37f7d3adeca747aa4b4b8b3252bd85c5d60a2e8e09fafbb2fbc2861e"
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "operation/causlane/publish-public-projections-actions",
+      "source_operation": "publish public projections/actions",
+      "lanes": [
+        "in_process"
+      ],
+      "outcomes": [
+        {
+          "outcome_class": "canonical_success",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/canonical-success"
+          }
+        },
+        {
+          "outcome_class": "business_rejection",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/business-rejection"
+          }
+        },
+        {
+          "outcome_class": "boundary_value",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/boundary-value"
+          }
+        },
+        {
+          "outcome_class": "degraded_unavailable",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/degraded-unavailable"
+          }
+        },
+        {
+          "outcome_class": "malformed_input",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "raw_invalid_wire",
+            "case_id": "invalid-wire/causlane/public-boundary"
+          }
+        },
+        {
+          "outcome_class": "duplicate_retry",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/duplicate-retry"
+          }
+        },
+        {
+          "outcome_class": "authorization_gate",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/authorization-gate"
+          }
+        },
+        {
+          "outcome_class": "dependency_failure",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/dependency-failure"
+          }
+        },
+        {
+          "outcome_class": "recovery",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/recovery"
+          }
+        },
+        {
+          "outcome_class": "concurrency_order",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/concurrency-order"
+          }
+        },
+        {
+          "outcome_class": "no_live",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/no-live"
+          }
+        },
+        {
+          "outcome_class": "truth_classification",
+          "truth_class": "synthetic",
+          "resolution": {
+            "disposition": "scenario",
+            "scenario_id": "scenario/causlane/truth-classification"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": []
+}
