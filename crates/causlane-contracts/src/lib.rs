@@ -20,6 +20,7 @@ pub mod examples;
 pub mod plan_hash;
 pub mod plan_template_cache;
 pub mod registry;
+pub mod scenario_runtime;
 #[doc(hidden)]
 pub mod serde_numeric;
 pub mod template;
@@ -58,6 +59,9 @@ pub use registry::{
     EffectTemplateManifest, LifecycleClassDto, MergeProtocolApplicabilityManifest,
     PredicateManifest, ProjectionPolicyDto, RegistryManifest, RequiredWitnessManifest,
     RouteDerivationDto, SchemaHashesManifest, TruthCommitPolicyDto, WitnessSelectorManifest,
+};
+pub use scenario_runtime::{
+    ScenarioResetSemantics, ScenarioRuntimeProviderManifest, SCENARIO_RUNTIME_PROVIDER_SCHEMA,
 };
 pub use template::{
     resolve_template, validate_template_expression, TemplateBinding, TemplateBindings,

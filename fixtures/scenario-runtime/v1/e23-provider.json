@@ -1,0 +1,20 @@
+{
+  "schema_version": "causlane.scenario-runtime-provider.v1",
+  "provider_id": "causlane",
+  "scenario_pack_ref": "fixtures/scenario-pack/v1/causlane.json",
+  "fixed_clock_millis": 1700000000000,
+  "reset_semantics": "restore_fixture_baseline",
+  "replay_supported": true,
+  "runtime_switch_supported": false,
+  "scenario_ids": [
+    "scenario/causlane/authorization-gate",
+    "scenario/causlane/boundary-value",
+    "scenario/causlane/business-rejection",
+    "scenario/causlane/canonical-success"
+  ],
+  "evidence_paths": [
+    "contracts/contract-tests.yaml",
+    "contracts/scenarios/release_promote_success.scenario.yaml",
+    "fixtures/scenario-pack/v1/causlane.json"
+  ]
+}
