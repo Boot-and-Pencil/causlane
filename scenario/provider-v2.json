@@ -1,0 +1,85 @@
+{
+  "schema_version": "hopium.scenario-provider.v2",
+  "coordinate": {
+    "owner_repo": "causlane",
+    "provider_id": "scenario-provider/causlane/runtime",
+    "version": "1.0.0"
+  },
+  "scenario_pack_id": "scenario-pack/causlane/v1",
+  "scenario_pack_fingerprint": {
+    "profile": {
+      "algorithm": "Blake3",
+      "encoding": "CanonicalJsonV1",
+      "domain": "contracts/scenario-pack/v1"
+    },
+    "digest": "ad5923ff8c36a1fb07c79d75bd11ff6b7f7dcfcdcbe76acbf3ea6e9a5f63e958"
+  },
+  "truth_classes": [
+    "synthetic"
+  ],
+  "eligibility": "production_eligible",
+  "implementation": {
+    "artifact_kind": "declarative_runtime",
+    "artifact_id": "scenario-provider/causlane/declarative",
+    "source_artifact": "fixtures/scenario-pack/v1/causlane.json",
+    "source_fingerprint": {
+      "profile": {
+        "algorithm": "Blake3",
+        "encoding": "CanonicalJsonV1",
+        "domain": "contracts/scenario-pack/v1"
+      },
+      "digest": "ad5923ff8c36a1fb07c79d75bd11ff6b7f7dcfcdcbe76acbf3ea6e9a5f63e958"
+    }
+  },
+  "contract_ids": [
+    "hopium.scenario-pack.v1",
+    "hopium.scenario-provider.v2",
+    "repository-governance/causlane"
+  ],
+  "operations": [
+    {
+      "operation_id": "operation/causlane/publish-public-projections-actions",
+      "outcome_classes": [
+        "contract_valid_rejection",
+        "controlled_effect",
+        "degradation",
+        "recovery",
+        "success"
+      ]
+    }
+  ],
+  "scenario_ids": [
+    "scenario/causlane/authorization-gate",
+    "scenario/causlane/boundary-value",
+    "scenario/causlane/business-rejection",
+    "scenario/causlane/canonical-success",
+    "scenario/causlane/concurrency-order",
+    "scenario/causlane/degraded-unavailable",
+    "scenario/causlane/dependency-failure",
+    "scenario/causlane/duplicate-retry",
+    "scenario/causlane/no-live",
+    "scenario/causlane/recovery",
+    "scenario/causlane/truth-classification"
+  ],
+  "world_ids": [
+    "product.cex-dex-failure-reorg",
+    "product.degraded-data",
+    "product.derivatives-lifecycle",
+    "product.empty",
+    "product.execution-unavailable",
+    "product.fast-mft-emulated",
+    "product.identity-expired",
+    "product.incident-recovery",
+    "product.leakage-blocked",
+    "product.normal",
+    "product.policy-denied",
+    "product.quota-blocked",
+    "product.replay-backtest",
+    "product.schema-drift",
+    "product.source-rate-limited"
+  ],
+  "route_bindings": [],
+  "uses_live_connector": false,
+  "carries_secret_material": false,
+  "permits_external_effects": false
+}
