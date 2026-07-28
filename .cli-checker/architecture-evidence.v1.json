@@ -1,0 +1,48 @@
+{
+  "schema": "cli-checker.architecture-evidence.v1",
+  "repository_id": "causlane",
+  "producer_id": "causlane-scenario-provider",
+  "completeness": "complete",
+  "facts": [
+    {
+      "relation": "ProviderOperation",
+      "values": ["scenario-provider/causlane/declarative-pack", "operation/causlane/publish-public-projections-actions", "active"]
+    },
+    {
+      "relation": "Provider",
+      "values": ["MSK-GAP-SCENARIO-CATALOG-ADMIN", "causlane", "scenario-provider/causlane/declarative-pack", "production", "owner_source", "active"]
+    },
+    {
+      "relation": "ScenarioBinding",
+      "values": ["MSK-GAP-SCENARIO-CATALOG-ADMIN", "scenario-provider/causlane/declarative-pack", "selected"]
+    },
+    {
+      "relation": "FixtureDerivation",
+      "values": ["MSK-GAP-SCENARIO-CATALOG-ADMIN", "fixtures/scenario-pack/v1/causlane.json", "canonical_pack", "derived"]
+    },
+    {
+      "relation": "Provider",
+      "values": ["MSK-GAP-DISPATCHER-JOBS-PROJECTION", "causlane", "scenario-provider/causlane/declarative-pack", "production", "owner_source", "active"]
+    },
+    {
+      "relation": "ScenarioBinding",
+      "values": ["MSK-GAP-DISPATCHER-JOBS-PROJECTION", "scenario-provider/causlane/declarative-pack", "selected"]
+    },
+    {
+      "relation": "FixtureDerivation",
+      "values": ["MSK-GAP-DISPATCHER-JOBS-PROJECTION", "fixtures/scenario-pack/v1/causlane.json", "canonical_pack", "derived"]
+    },
+    {
+      "relation": "Provider",
+      "values": ["MSK-GAP-CAUSALITY-REPLAY-WITNESS", "causlane", "scenario-provider/causlane/declarative-pack", "production", "owner_source", "active"]
+    },
+    {
+      "relation": "ScenarioBinding",
+      "values": ["MSK-GAP-CAUSALITY-REPLAY-WITNESS", "scenario-provider/causlane/declarative-pack", "selected"]
+    },
+    {
+      "relation": "FixtureDerivation",
+      "values": ["MSK-GAP-CAUSALITY-REPLAY-WITNESS", "fixtures/scenario-pack/v1/causlane.json", "canonical_pack", "derived"]
+    }
+  ]
+}
