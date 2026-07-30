@@ -90,13 +90,13 @@ mod tests {
 
     fn fixture() -> Result<ScenarioRuntimeProviderManifest, ContractError> {
         serde_json::from_slice(include_bytes!(
-            "../../../fixtures/scenario-runtime/v1/e23-provider.json"
+            "../../../fixtures/scenario-runtime/v1/scenario-provider.json"
         ))
         .map_err(ContractError::from)
     }
 
     #[test]
-    fn e23_provider_fixture_is_deterministic_and_replayable() -> Result<(), ContractError> {
+    fn scenario_provider_fixture_is_deterministic_and_replayable() -> Result<(), ContractError> {
         let manifest = fixture()?;
         manifest.validate()?;
         assert_eq!(
@@ -109,8 +109,8 @@ mod tests {
     }
 
     #[test]
-    fn e23_provider_fails_closed_without_replay_or_with_runtime_switch() -> Result<(), ContractError>
-    {
+    fn scenario_provider_fails_closed_without_replay_or_with_runtime_switch(
+    ) -> Result<(), ContractError> {
         let manifest = fixture()?;
         assert!(ScenarioRuntimeProviderManifest {
             replay_supported: false,

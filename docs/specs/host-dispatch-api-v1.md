@@ -55,7 +55,7 @@ A `HostDispatchPort` implementation must:
 
 ## Refinery/M-CR mapping
 
-Refinery Stage 8 should map its cross-layer foundation types as follows:
+Refinery host dispatch should map its cross-layer foundation types as follows:
 
 ```text
 Refinery CrossLayerContext -> HostDispatchContext

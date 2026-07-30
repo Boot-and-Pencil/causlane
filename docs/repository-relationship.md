@@ -6,7 +6,7 @@ does not claim that product code has been migrated.
 ## Role
 
 `causlane` owns the generic dispatcher kernel/runtime. It must remain reusable
-and should not absorb Hopium-specific business semantics. For Stage 11 contract
+and should not absorb Hopium-specific business semantics. For current integration baseline contract
 closure, the preferred direction is to deepen generic host-dispatch capability
 inside `causlane` while product repositories translate their own contracts into
 that generic API outside this repository.
@@ -37,7 +37,7 @@ that generic API outside this repository.
 - CLI checker policy implementation.
 - Product-specific bridge or compatibility adapters.
 
-## E01 Canonical Governance Projection
+## Canonical Governance Projection
 
 The fingerprinted cross-repository projection for this owner is
 `hopium.repository-governance.v1` in `hopium-contracts` release

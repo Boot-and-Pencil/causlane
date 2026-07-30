@@ -156,7 +156,7 @@ mod tests {
 
     fn ctx() -> HostDispatchContext {
         HostDispatchContext {
-            actor_ref: "actor://stage8/test".to_owned(),
+            actor_ref: "actor://host-dispatch/test".to_owned(),
             trace_id: "trace-1".to_owned(),
             correlation_id: "corr-1".to_owned(),
             request_id: Some("req-1".to_owned()),

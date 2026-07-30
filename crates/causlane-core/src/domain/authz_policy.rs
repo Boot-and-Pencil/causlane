@@ -89,7 +89,7 @@ pub enum AuthzPolicyOutcome {
 ///   2. the decisions must satisfy [`authz_gate`] for that stage under this
 ///      policy's [`AuthzPolicyModel::expected`] view at `now`   (I-009 + temporal).
 ///
-/// Step 2 is delegated to the shared kernel gate (binding, deny-wins, P0-010, and
+/// The decision check is delegated to the shared kernel gate (binding, deny-wins, P0-010, and
 /// freshness/expiry), so this model cannot drift from the live gate or replay.
 #[must_use]
 #[allow(clippy::too_many_arguments)]

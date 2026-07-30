@@ -2,7 +2,7 @@ use super::*;
 
 fn ctx() -> HostDispatchContext {
     HostDispatchContext {
-        actor_ref: "actor://stage8/test".to_owned(),
+        actor_ref: "actor://host-dispatch/test".to_owned(),
         trace_id: "trace-1".to_owned(),
         correlation_id: "corr-1".to_owned(),
         request_id: Some("req-1".to_owned()),
@@ -193,7 +193,7 @@ fn host_submission_validates_context_before_task() {
 #[test]
 fn builders_set_current_api_version_and_validate() -> Result<(), HostDispatchError> {
     let ctx = HostDispatchContextBuilder::new(
-        "actor://stage8/test",
+        "actor://host-dispatch/test",
         "trace-1",
         "corr-1",
         "config://snapshot/1",

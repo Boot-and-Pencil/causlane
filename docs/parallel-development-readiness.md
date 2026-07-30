@@ -3,7 +3,7 @@
 Repository: `causlane`
 Owner role: `generic-runtime`
 
-This repository participates in the Hopium Stage 11 parallel-development
+This repository participates in the Hopium current integration baseline parallel-development
 stabilization model. The model is intentionally interface-first:
 `hopium-foundation` and `hopium-contracts` define the shared vocabulary,
 and downstream repositories consume those surfaces directly.
