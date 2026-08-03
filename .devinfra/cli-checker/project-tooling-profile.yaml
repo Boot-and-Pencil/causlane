@@ -1,6 +1,13 @@
-schema_version: cli_checker.project_tooling_profile.v1
+schema_version: cli-checker.project-profile.v1
 profile_id: causlane-python-retirement
 owner: causlane
+verification_plan_policy:
+  capability_dispositions:
+    formal: required
+    sonar: required
+    browser: not_applicable
+    fuzz: required
+    mutation: not_applicable
 requires_generic_checker_capabilities:
 - configurable_semantic_origin_naming
 - script_inventory_classification
@@ -441,7 +448,7 @@ git_main_only_policy:
   - .github
   - scripts
 sonarqube_policy:
-  server_url: http://sonarqube-server.lan:9000
+  server_url: https://sonarqube-server.lan/
   token_env: SONAR_TOKEN
   scanner_bin: sonar-scanner
   project_key: causlane
