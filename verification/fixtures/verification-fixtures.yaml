@@ -1,4 +1,4 @@
-schema: cli-checker.verification-fixtures.v2
+schema: cli-checker.verification-fixtures.v3
 repository: causlane
 applicability:
   browser:
@@ -10,6 +10,9 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive:
       argv: [verification/fixtures/run.sh, unit, positive]
       expected_exit: 0
@@ -39,6 +42,9 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive:
       argv: [verification/fixtures/run.sh, integration, positive]
       expected_exit: 0
@@ -68,6 +74,9 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive:
       argv: [verification/fixtures/run.sh, property, positive]
       expected_exit: 0
@@ -100,6 +109,9 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/fuzz/Cargo.toml
     positive:
       argv: [verification/fixtures/run.sh, fuzz, positive]
       expected_exit: 0
@@ -131,6 +143,7 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations: []
     positive:
       argv: [verification/fixtures/run.sh, alloy, positive]
       expected_exit: 0
@@ -161,6 +174,7 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations: []
     positive:
       argv: [verification/fixtures/run.sh, p_lang, positive]
       expected_exit: 0
@@ -191,6 +205,7 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations: []
     positive:
       argv: [verification/fixtures/run.sh, verus, positive]
       expected_exit: 0
@@ -221,6 +236,9 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive:
       argv: [verification/fixtures/run.sh, kani, positive]
       expected_exit: 0
@@ -251,6 +269,9 @@ fixtures:
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources:
       - Cargo.toml
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive:
       argv: [verification/fixtures/run.sh, mutation, positive]
       expected_exit: 0
@@ -280,6 +301,7 @@ fixtures:
     family: lean4
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources: [Cargo.toml]
+    preparations: []
     positive: {argv: [verification/fixtures/run.sh, lean4, positive], expected_exit: 0}
     detection: {argv: [verification/fixtures/run.sh, lean4, detection], expected_exit: 1}
     tools:
@@ -294,6 +316,7 @@ fixtures:
     family: souffle
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources: [Cargo.toml]
+    preparations: []
     positive: {argv: [verification/fixtures/run.sh, souffle, positive], expected_exit: 0}
     detection: {argv: [verification/fixtures/run.sh, souffle, detection], expected_exit: 1}
     tools:
@@ -308,6 +331,9 @@ fixtures:
     family: miri
     invariant: discovered verification targets are admitted only by their exact stable identity
     production_sources: [Cargo.toml]
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive: {argv: [verification/fixtures/run.sh, miri, positive], expected_exit: 0}
     detection: {argv: [verification/fixtures/run.sh, miri, detection], expected_exit: 1}
     tools:
@@ -322,6 +348,9 @@ fixtures:
     family: loom
     invariant: published concurrent verification identity is observed exactly after synchronization
     production_sources: [Cargo.toml]
+    preparations:
+      - kind: cargo_fetch_locked
+        manifest: verification/fixtures/model/Cargo.toml
     positive: {argv: [verification/fixtures/run.sh, loom, positive], expected_exit: 0}
     detection: {argv: [verification/fixtures/run.sh, loom, detection], expected_exit: 1}
     tools:
