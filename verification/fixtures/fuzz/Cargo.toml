@@ -1,0 +1,29 @@
+[package]
+name = "cli-checker-verification-fuzz"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[dependencies]
+cli-checker-verification-fixture = { path = "../model" }
+libfuzzer-sys = "0.4"
+
+[[bin]]
+name = "exact_selection"
+path = "fuzz_targets/exact_selection.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "detection"
+path = "fuzz_targets/detection.rs"
+test = false
+doc = false
+bench = false
+

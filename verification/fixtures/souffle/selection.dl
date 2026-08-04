@@ -1,0 +1,12 @@
+.decl requested(identity:number)
+.decl available(identity:number)
+.decl selected(identity:number)
+.output selected
+
+selected(identity) :- requested(identity), available(identity).
+
+requested(3).
+available(1).
+available(3).
+available(5).
+

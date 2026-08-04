@@ -1,0 +1,18 @@
+[package]
+name = "cli-checker-verification-fixture"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ["cfg(kani)"] }
+
+[features]
+detection-fixture = []
+
+[dev-dependencies]
+loom = "=0.7.2"
+proptest = "=1.7.0"
+

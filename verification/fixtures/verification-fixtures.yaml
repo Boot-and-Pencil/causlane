@@ -1,0 +1,335 @@
+schema: cli-checker.verification-fixtures.v2
+repository: causlane
+applicability:
+  browser:
+    status: not_applicable
+    reason: This repository has no browser-consumed product surface in its current active layer.
+fixtures:
+  - id: exact-target-selection.unit
+    family: unit
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, unit, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, unit, detection]
+      expected_exit: 1
+    tools:
+      - id: rust
+        program: cargo
+        version_args: [--version]
+        version: 1.97.1
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      replay: "verification/fixtures/run.sh unit positive"
+  - id: exact-target-selection.integration
+    family: integration
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, integration, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, integration, detection]
+      expected_exit: 1
+    tools:
+      - id: rust
+        program: cargo
+        version_args: [--version]
+        version: 1.97.1
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      replay: "verification/fixtures/run.sh integration positive"
+  - id: exact-target-selection.property
+    family: property
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, property, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, property, detection]
+      expected_exit: 1
+    tools:
+      - id: rust
+        program: cargo
+        version_args: [--version]
+        version: 1.97.1
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      seed: "0x1058"
+      cases: "256"
+      shrinking: "proptest deterministic shrinking with 1024 iterations"
+      replay: "verification/fixtures/run.sh property positive"
+  - id: exact-target-selection.fuzz
+    family: fuzz
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, fuzz, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, fuzz, detection]
+      expected_exit: 1
+    tools:
+      - id: cargo-fuzz
+        program: cargo-fuzz
+        version_args: [--version]
+        version: 0.13.2
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: campaign
+      checkpointable: true
+      background_eligible: true
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      seed_corpus: verification/fixtures/fuzz/corpus/exact_selection
+      bounded_runs: "64"
+      replay: "verification/fixtures/run.sh fuzz positive"
+  - id: exact-target-selection.alloy
+    family: alloy
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, alloy, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, alloy, detection]
+      expected_exit: 1
+    tools:
+      - id: alloy
+        program: java
+        version_args: [-jar, .tools/alloy/alloy.jar, version]
+        version: 6.2.0
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      assumptions: "finite exact-selection scope of four candidates"
+      replay: "verification/fixtures/run.sh alloy positive"
+  - id: exact-target-selection.p-lang
+    family: p_lang
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, p_lang, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, p_lang, detection]
+      expected_exit: 1
+    tools:
+      - id: p-lang
+        program: p
+        version_args: [--version]
+        version: 3.1.0.0
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      assumptions: "selection is observed only after a request event"
+      replay: "verification/fixtures/run.sh p_lang positive"
+  - id: exact-target-selection.verus
+    family: verus
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, verus, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, verus, detection]
+      expected_exit: 1
+    tools:
+      - id: verus
+        program: verus
+        version_args: [--version]
+        version: 0.2026.05.31.5dd6d83
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      assumptions: "selected identity is an integer equal to requested identity"
+      replay: "verification/fixtures/run.sh verus positive"
+  - id: exact-target-selection.kani
+    family: kani
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, kani, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, kani, detection]
+      expected_exit: 1
+    tools:
+      - id: cargo-kani
+        program: cargo-kani
+        version_args: [--version]
+        version: 0.67.0
+    timeout_seconds: 900
+    resource_class: heavy
+    resource_lock: null
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      assumptions: "bounded two-candidate exact-selection model"
+      replay: "verification/fixtures/run.sh kani positive"
+  - id: exact-target-selection.mutation
+    family: mutation
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources:
+      - Cargo.toml
+    positive:
+      argv: [verification/fixtures/run.sh, mutation, positive]
+      expected_exit: 0
+    detection:
+      argv: [verification/fixtures/run.sh, mutation, detection]
+      expected_exit: 1
+    tools:
+      - id: cargo-mutants
+        program: cargo
+        version_args: [mutants, --version]
+        version: 27.1.0
+    timeout_seconds: 900
+    resource_class: heavy
+    resource_lock: cargo-mutants
+    completion:
+      mode: finite
+      checkpointable: false
+      background_eligible: false
+    artifacts:
+      - kind: probe_output
+        path: .agent-state/verification-fixtures
+        required: false
+    evidence:
+      controlled_mutant: "select_exact mutants are killed; unobserved_parent_fallback survives"
+      replay: "verification/fixtures/run.sh mutation positive"
+  - id: exact-target-selection.lean4
+    family: lean4
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources: [Cargo.toml]
+    positive: {argv: [verification/fixtures/run.sh, lean4, positive], expected_exit: 0}
+    detection: {argv: [verification/fixtures/run.sh, lean4, detection], expected_exit: 1}
+    tools:
+      - {id: lean4, program: lean, version_args: [--version], version: 4.31.0}
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
+    evidence: {assumptions: "finite exact-selection list", replay: "verification/fixtures/run.sh lean4 positive"}
+  - id: exact-target-selection.souffle
+    family: souffle
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources: [Cargo.toml]
+    positive: {argv: [verification/fixtures/run.sh, souffle, positive], expected_exit: 0}
+    detection: {argv: [verification/fixtures/run.sh, souffle, detection], expected_exit: 1}
+    tools:
+      - {id: souffle, program: souffle, version_args: [--version], version: "2.5"}
+    timeout_seconds: 300
+    resource_class: standard
+    resource_lock: null
+    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
+    evidence: {assumptions: "closed finite requested and available identity facts", replay: "verification/fixtures/run.sh souffle positive"}
+  - id: exact-target-selection.miri
+    family: miri
+    invariant: discovered verification targets are admitted only by their exact stable identity
+    production_sources: [Cargo.toml]
+    positive: {argv: [verification/fixtures/run.sh, miri, positive], expected_exit: 0}
+    detection: {argv: [verification/fixtures/run.sh, miri, detection], expected_exit: 1}
+    tools:
+      - {id: miri, program: cargo, version_args: [+nightly-2026-04-16, miri, --version], version: 0.1.0}
+    timeout_seconds: 600
+    resource_class: heavy
+    resource_lock: miri
+    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
+    evidence: {assumptions: "pinned nightly interpreter executes the exact-selection model", replay: "verification/fixtures/run.sh miri positive"}
+  - id: exact-target-selection.loom
+    family: loom
+    invariant: published concurrent verification identity is observed exactly after synchronization
+    production_sources: [Cargo.toml]
+    positive: {argv: [verification/fixtures/run.sh, loom, positive], expected_exit: 0}
+    detection: {argv: [verification/fixtures/run.sh, loom, detection], expected_exit: 1}
+    tools:
+      - {id: loom, program: cargo, version_args: [--version], version: 1.97.1}
+    timeout_seconds: 600
+    resource_class: heavy
+    resource_lock: cargo-target
+    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
+    evidence: {assumptions: "bounded two-thread release/acquire publication model", replay: "verification/fixtures/run.sh loom positive"}
+
