@@ -16,14 +16,8 @@ Role:
 
 Generic dispatcher kernel/runtime crate, not a Hopium product component.
 
-Local checks:
-
-- `scripts/parallel-dev/check_parallel_dev.py`
-- `scripts/parallel-dev/check_version_set.py`
-- `scripts/parallel-dev/check_touch_ownership.py`
-- `scripts/parallel-dev/check_long_lane_registry.py`
-- `scripts/parallel-dev/summarize_parallel_dev_readiness.py`
-
-The checks are wired into `scripts/check-migration-gate.sh` and can also
-be run through `make -f Makefile.parallel-dev parallel-dev-check`.
-Runtime reports are written to `.agent-state/parallel-dev/`.
+The active policy is expressed once in
+`.devinfra/cli-checker/project-tooling-profile.yaml`. Run the complete
+repository gate with `scripts/check-repository.sh`, or inspect its generic
+ownership, dependency, clean-break, and assurance-lane decisions through the
+corresponding `cli-checker project` commands.

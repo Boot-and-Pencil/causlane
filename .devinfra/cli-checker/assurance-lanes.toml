@@ -1,0 +1,25 @@
+schema_version = "cli_checker.long_lane_declaration_registry.v1"
+
+[[lanes]]
+id = "property"
+owner = "generic-runtime"
+disposition = "required"
+command = "cli-checker project formal run --profile .devinfra/cli-checker/project-tooling-profile.yaml --lane property --format json"
+reason = "the property canary must remain executable on every supported verification host"
+evidence = "docs/parallel-development-readiness.md"
+
+[[lanes]]
+id = "fuzz"
+owner = "generic-runtime"
+disposition = "required"
+command = "cli-checker project formal run --profile .devinfra/cli-checker/project-tooling-profile.yaml --lane fuzz --format json"
+reason = "the fuzz canary must remain executable on every supported verification host"
+evidence = "docs/parallel-development-readiness.md"
+
+[[lanes]]
+id = "formal"
+owner = "generic-runtime"
+disposition = "required"
+command = "cli-checker project formal run --profile .devinfra/cli-checker/project-tooling-profile.yaml --lane all --format json"
+reason = "the aggregate formal canary must remain executable on every supported verification host"
+evidence = "docs/parallel-development-readiness.md"

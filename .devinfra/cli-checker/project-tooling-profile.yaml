@@ -15,6 +15,9 @@ requires_generic_checker_capabilities:
 - configurable_semantic_origin_naming
 - script_inventory_classification
 - dependency_source_policy
+- clean_break_enforcement
+- changed_file_ownership_policy
+- long_lane_declaration_policy
 - formal_smoke_policy
 - git_main_only_policy
 - sonarqube_analysis_backend
@@ -119,13 +122,6 @@ script_inventory_policy:
   - python
   block_unclassified_inline_interpreters: true
   classifications:
-  - glob: scripts/parallel-dev/**
-    category: replace_with_checker_rule
-    owner: causlane
-    reason: generic ownership, version-set, no-compat and long-lane policy is checker-owned
-    parity_condition: project checker output preserves every blocking parallel-development decision
-    effect_class: read_only_policy
-    blocking: true
   - glob: scripts/**
     category: replace_with_repo_native_tool
     owner: causlane
@@ -443,6 +439,41 @@ dependency_source_policy:
   - .
   forbidden_git_remote_prefixes:
   - ssh://git@github.com/
+  forbidden_dependency_fragments:
+  - hopium-foundation
+  - hopium-contracts
+  - hopium-platform
+  - hopium-refinery
+  - maw
+  - meat-grinder
+  - hopium-strategy-authoring
+  - cli-checker
+  require_git_pin: tag_or_rev
+  forbid_branch_git_dependencies: true
+  forbid_cross_repo_path_dependencies: true
+changed_file_ownership_policy:
+  default_base: HEAD
+  default_change_class: evidence_only
+  default_owner: generic-runtime
+  owners:
+  - owner: generic-runtime
+    paths: [Cargo.toml, Cargo.lock, 'crates/**', 'src/**', 'tests/**', 'benches/**']
+    change_classes: [code, tests]
+  - owner: generic-runtime
+    paths: ['docs/**', 'evidence/**', '.devinfra/cli-checker/**']
+    change_classes: [docs, evidence_only, policy]
+  - owner: generic-runtime
+    paths: ['scripts/**', '.github/**']
+    change_classes: [devinfra, policy]
+no_compat_bridge_policy:
+  scan_roots: [Cargo.toml, crates, scripts, tools]
+  exclude_globs: ['**/tests/**', '**/fixtures/**', '**/generated/**']
+  forbidden_terms: [legacy_bridge, compat_bridge, compat_shim, old_to_new, new_to_old, DeprecatedAlias, LegacyBridge, CompatibilityShim]
+  forbidden_regexes: ['\\b(old_to_new|new_to_old)\\b']
+long_lane_declaration_policy:
+  declaration_paths: [.devinfra/cli-checker/assurance-lanes.toml]
+  accepted_dispositions: [required]
+  require_evidence_path_exists: true
 git_main_only_policy:
   main_branch: main
   allow_detached_head: false
