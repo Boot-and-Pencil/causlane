@@ -6,6 +6,8 @@ mode=$2
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 state="$root/.agent-state/verification-fixtures"
 model="$root/verification/fixtures/model/Cargo.toml"
+fixture_build="${CARGO_TARGET_DIR:-$root/.agent-state/verification-fixture-build}"
+export CARGO_TARGET_DIR="$fixture_build"
 mkdir -p "$state"
 
 if [ "${VERIFICATION_FIXTURE_CAPTURED:-0}" != 1 ]; then
@@ -46,25 +48,25 @@ set +e
 case "$family" in
   unit)
     if [ "$mode" = positive ]; then
-      CARGO_TARGET_DIR="$state/cargo-target" cargo test --manifest-path "$model" unit_exact_selection
+      CARGO_TARGET_DIR="$fixture_build" cargo test --manifest-path "$model" unit_exact_selection
     else
-      CARGO_TARGET_DIR="$state/cargo-target" cargo test --manifest-path "$model" --features detection-fixture unit_detection_control_rejects_parent_fallback
+      CARGO_TARGET_DIR="$fixture_build" cargo test --manifest-path "$model" --features detection-fixture unit_detection_control_rejects_parent_fallback
     fi
     run_status=$?
     ;;
   integration)
     if [ "$mode" = positive ]; then
-      CARGO_TARGET_DIR="$state/cargo-target" cargo test --manifest-path "$model" --test integration integration_exact_selection_is_preserved
+      CARGO_TARGET_DIR="$fixture_build" cargo test --manifest-path "$model" --test integration integration_exact_selection_is_preserved
     else
-      CARGO_TARGET_DIR="$state/cargo-target" cargo test --manifest-path "$model" --features detection-fixture --test integration integration_detection_control_rejects_parent_fallback
+      CARGO_TARGET_DIR="$fixture_build" cargo test --manifest-path "$model" --features detection-fixture --test integration integration_detection_control_rejects_parent_fallback
     fi
     run_status=$?
     ;;
   property)
     if [ "$mode" = positive ]; then
-      CARGO_TARGET_DIR="$state/cargo-target" cargo test --manifest-path "$model" --test property property_exact_selection_never_widens
+      CARGO_TARGET_DIR="$fixture_build" cargo test --manifest-path "$model" --test property property_exact_selection_never_widens
     else
-      CARGO_TARGET_DIR="$state/cargo-target" cargo test --manifest-path "$model" --features detection-fixture --test property property_detection_control_shrinks_parent_fallback
+      CARGO_TARGET_DIR="$fixture_build" cargo test --manifest-path "$model" --features detection-fixture --test property property_detection_control_shrinks_parent_fallback
     fi
     run_status=$?
     ;;
@@ -81,7 +83,7 @@ case "$family" in
     mkdir -p "$corpus"
     cp "$source_corpus/$seed" "$corpus/$seed"
     mkdir -p "$state/fuzz-artifacts/$target"
-    env -u RUSTC_WRAPPER -u CARGO_BUILD_RUSTC_WRAPPER -u RUSTC_WORKSPACE_WRAPPER -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo fuzz run "$target" "$corpus" --fuzz-dir "$root/verification/fixtures/fuzz" --sanitizer none --target x86_64-unknown-linux-gnu --target-dir "$state/fuzz-target/$target" -- -runs=64 -artifact_prefix="$state/fuzz-artifacts/$target/"
+    env -u RUSTC_WRAPPER -u CARGO_BUILD_RUSTC_WRAPPER -u RUSTC_WORKSPACE_WRAPPER -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo fuzz run "$target" "$corpus" --fuzz-dir "$root/verification/fixtures/fuzz" --sanitizer none --target x86_64-unknown-linux-gnu --target-dir "$fixture_build/fuzz/$target" -- -runs=64 -artifact_prefix="$state/fuzz-artifacts/$target/"
     run_status=$?
     ;;
   alloy)
@@ -126,7 +128,7 @@ case "$family" in
     if [ "$mode" = detection ]; then
       harness=exact_selection_kani_detection
     fi
-    env -u RUSTC_WRAPPER -u CARGO_BUILD_RUSTC_WRAPPER -u RUSTC_WORKSPACE_WRAPPER -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo-kani --manifest-path "$model" --harness "$harness" --exact --default-unwind 8 --output-format terse --target-dir "$state/kani-target"
+    env -u RUSTC_WRAPPER -u CARGO_BUILD_RUSTC_WRAPPER -u RUSTC_WORKSPACE_WRAPPER -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo-kani --manifest-path "$model" --harness "$harness" --exact --default-unwind 8 --output-format terse --target-dir "$fixture_build/kani"
     run_status=$?
     ;;
   lean4)
@@ -152,17 +154,17 @@ case "$family" in
   miri)
     miri_args=(+nightly-2026-04-16 miri test --manifest-path "$model")
     if [ "$mode" = positive ]; then
-      CARGO_TARGET_DIR="$state/miri-target" cargo "${miri_args[@]}" unit_exact_selection
+      CARGO_TARGET_DIR="$fixture_build/miri" cargo "${miri_args[@]}" unit_exact_selection
     else
-      CARGO_TARGET_DIR="$state/miri-target" cargo "${miri_args[@]}" --features detection-fixture unit_detection_control_rejects_parent_fallback
+      CARGO_TARGET_DIR="$fixture_build/miri" cargo "${miri_args[@]}" --features detection-fixture unit_detection_control_rejects_parent_fallback
     fi
     run_status=$?
     ;;
   loom)
     if [ "$mode" = positive ]; then
-      CARGO_TARGET_DIR="$state/loom-target" cargo test --manifest-path "$model" --test loom loom_publishes_only_the_exact_selected_identity
+      CARGO_TARGET_DIR="$fixture_build/loom" cargo test --manifest-path "$model" --test loom loom_publishes_only_the_exact_selected_identity
     else
-      CARGO_TARGET_DIR="$state/loom-target" cargo test --manifest-path "$model" --features detection-fixture --test loom loom_detection_control_rejects_a_widened_identity
+      CARGO_TARGET_DIR="$fixture_build/loom" cargo test --manifest-path "$model" --features detection-fixture --test loom loom_detection_control_rejects_a_widened_identity
     fi
     run_status=$?
     ;;
