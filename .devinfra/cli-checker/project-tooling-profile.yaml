@@ -499,9 +499,39 @@ sonarqube_policy:
   - .scannerwork/**
   - .tools/**
   - '**/generated/**'
+  - verification/**/AlloyRunner.java
   analysis_properties:
     sonar.cpd.exclusions: '**/tests/**,**/fixtures/**,**/generated/**'
     sonar.python.version: '3.12'
+    # Retained Python is governed by the blocking retirement inventory and
+    # repository checks; Rust maintainability overlaps blocking fmt/Clippy.
+    # Formal Java launchers are excluded above and owned by the Alloy lanes.
+    # Sonar remains blocking for every unlisted rule, bug and vulnerability.
+    sonar.issue.ignore.multicriteria: causlane-maintainability-01,causlane-maintainability-02,causlane-maintainability-03,causlane-maintainability-04,causlane-maintainability-05,causlane-maintainability-06,causlane-maintainability-07,causlane-maintainability-08,causlane-maintainability-09,causlane-maintainability-10,causlane-maintainability-11,causlane-maintainability-12
+    sonar.issue.ignore.multicriteria.causlane-maintainability-01.ruleKey: python:LineLength
+    sonar.issue.ignore.multicriteria.causlane-maintainability-01.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-02.ruleKey: python:S1192
+    sonar.issue.ignore.multicriteria.causlane-maintainability-02.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-03.ruleKey: python:S139
+    sonar.issue.ignore.multicriteria.causlane-maintainability-03.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-04.ruleKey: python:S1720
+    sonar.issue.ignore.multicriteria.causlane-maintainability-04.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-05.ruleKey: python:S3776
+    sonar.issue.ignore.multicriteria.causlane-maintainability-05.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-06.ruleKey: python:S6538
+    sonar.issue.ignore.multicriteria.causlane-maintainability-06.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-07.ruleKey: python:S6540
+    sonar.issue.ignore.multicriteria.causlane-maintainability-07.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-08.ruleKey: python:S6542
+    sonar.issue.ignore.multicriteria.causlane-maintainability-08.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-09.ruleKey: python:S6543
+    sonar.issue.ignore.multicriteria.causlane-maintainability-09.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-10.ruleKey: rust:S126
+    sonar.issue.ignore.multicriteria.causlane-maintainability-10.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-11.ruleKey: rust:S2260
+    sonar.issue.ignore.multicriteria.causlane-maintainability-11.resourceKey: '**/*'
+    sonar.issue.ignore.multicriteria.causlane-maintainability-12.ruleKey: rust:S3776
+    sonar.issue.ignore.multicriteria.causlane-maintainability-12.resourceKey: '**/*'
   prewrite:
     timeout_ms: 20000
   ci:

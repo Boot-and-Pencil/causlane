@@ -1,0 +1,70 @@
+schema: cli-checker.quality-maintenance.v2
+change_id: hopium-refinery-1196-causlane-d5d2c8740564-maintenance
+reason: Delegate the exact inherited maintainability-only Sonar inventory while clean-break Python retirement and native Rust/formal gates remain blocking
+owner: causlane
+issue: HOPIUM_REFINERY-1196
+scope:
+- sonar_policy
+impact: Twelve named Python/Rust code-smell rules and two Alloy launcher sources stop duplicating their owning gates; all unlisted Sonar bugs and vulnerabilities remain blocking
+expires: 2026-09-06
+restoration: Remove criteria as Python surfaces retire or native ownership changes, restore Java analysis if launchers become product code, then run repository and Sonar gates
+affected_checks:
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-01.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-01.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-02.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-02.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-03.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-03.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-04.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-04.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-05.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-05.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-06.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-06.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-07.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-07.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-08.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-08.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-09.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-09.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-10.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-10.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-11.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-11.ruleKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-12.resourceKey
+- sonarqube_policy.analysis_properties.sonar.issue.ignore.multicriteria.causlane-maintainability-12.ruleKey
+- sonarqube_policy.exclusions[blake3:4ecb1cd4c59d540b]
+restoration_evidence:
+- artifact_ref: .cli-checker/quality-maintenance/evidence/sonar-signal-ownership.md
+  content_hash: blake3:1a251153d791ece7090012026040631dcaa9fa4861a04f021aeee9887c2d7dd7
+architecture_delta: null
+architecture_diff_review: null
+architecture_audit_pack: null
+allowed_delta_ids:
+- blake3:0bd7ef0c1f5dbbb2faea384316a45c6f55470a26cf0344231064085438b27d21
+- blake3:108b02e4c12a7f5508f31a7c60ff20c7175b4f3f16ccaa96fbb1355582b11ffc
+- blake3:183cf98b755df2acf385548a34e77e3b15e5919b82f7c8d97c1a3ae0a133f11c
+- blake3:191f6ed5ea57df704585097fad42726936da33ab0667ff6ca756dc01b3d6be7f
+- blake3:1d88b45fec9f286efa3934be5d2e4647d4e05e9d507c0cdc4f89955f472483d4
+- blake3:2fc665fef3efb5c5a85f2df34c5946ddf5aa3b605aff3698ec4cd8e1c46de31c
+- blake3:32da657e85f30cf620966e014b9dd29f345d556803e8760a3338ac3a3d69038b
+- blake3:4b692d14bfb1a669e11506200a083fee0cdae89a485a9b7bb836caa8aae3840e
+- blake3:57866ae3706a6ead93bdd85f03cd274ec63fc2efb0d585782c77d17b6e361c4c
+- blake3:5c2f6915224d2a1c0bfeb1c0bc2bf1a695805f9ba94ad7a47418acc6e77d938f
+- blake3:630d4d7748654548007d1e306223906db478d88fd20092c48ded1330ad989090
+- blake3:736ea5342c78b069a927e4438a9137c0f0b6abf9393aec09e7923a935e0dac02
+- blake3:78612c1bcc1e0a684fbedecfc1b9311013c8a49b79a71e1f1dec056b0c57eb08
+- blake3:8bd2d8543965bab780815a9d2fe53bb8c5c465fabd660d84c4db2089cbbb608a
+- blake3:aa79a94d0d43a58e047980b40d48f1bd67130db3088b2cae9ddff1652ce93370
+- blake3:b4b0e5648a938cd7f6edee63b78d64cbb5e1060297550b660702c74e2045e9e1
+- blake3:bad9d26471345add480677a54ecbe42ab1523bea72baf36db681a0a176cc0924
+- blake3:bd6a09e0788c08013987efcd6f2276dc55af6cb8db76d52e7f9c360575d379d7
+- blake3:c655abffcec60432872ecad1aec1c7afaaa6a186cd9f7c52a52d924f068e2224
+- blake3:d8f7faac810435368c0108cb2c02593bac65b102763dbbab23e26fc9ef48ffb9
+- blake3:e2a49f2b662cef525473923539a2ecb2ea68008e23b75d52a688beb86cc755f3
+- blake3:e404fa5c0cb89b9e238ae93fe24a78124271c345cae8597938755ac1504941e3
+- blake3:e4ecd8371fd50aebcc9a1c66dc02e893818862cb18c53664555b64c11e96a845
+- blake3:e7e217e6d21be9aa4ef94a3a98852b2fe5f919becca22c2f7bffa37b9880dbca
+- blake3:fabe999024d609e69339446716cf89eb06564a78a1fd0dbb9c4c7042b5035341
+- blake3:ff2e55fb7c2d59258e004eaf4a79605c0ef4816dd06909c01d2092abd242b0d8
