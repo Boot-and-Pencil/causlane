@@ -1,4 +1,4 @@
-schema: cli-checker.verification-fixtures.v3
+schema: cli-checker.verification-fixtures.v4
 repository: causlane
 applicability:
   browser:
@@ -334,6 +334,12 @@ fixtures:
     preparations:
       - kind: cargo_fetch_locked
         manifest: verification/fixtures/model/Cargo.toml
+      - kind: miri_sysroot
+        tool: cargo
+        toolchain: nightly-2026-04-16
+        target: x86_64-unknown-linux-gnu
+        rustc_commit: e8e4541ff19649d95afab52fdde2c2eaa6829965
+        miri_version: "miri 0.1.0 (e8e4541ff1 2026-04-15)"
     positive: {argv: [verification/fixtures/run.sh, miri, positive], expected_exit: 0}
     detection: {argv: [verification/fixtures/run.sh, miri, detection], expected_exit: 1}
     tools:
@@ -361,4 +367,3 @@ fixtures:
     completion: {mode: finite, checkpointable: false, background_eligible: false}
     artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
     evidence: {assumptions: "bounded two-thread release/acquire publication model", replay: "verification/fixtures/run.sh loom positive"}
-
