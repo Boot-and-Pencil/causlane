@@ -1,4 +1,4 @@
-schema: cli-checker.verification-fixtures.v4
+schema: cli-checker.verification-fixtures.v5
 repository: causlane
 applicability:
   browser:
@@ -29,8 +29,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -61,8 +59,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -93,8 +89,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -128,8 +122,10 @@ fixtures:
     resource_lock: null
     completion:
       mode: campaign
-      checkpointable: true
-      background_eligible: true
+      continuation: checkpoint
+      state_paths:
+        - .agent-state/verification-fixtures/fuzz-corpus
+        - .agent-state/verification-fixtures/fuzz-artifacts
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -160,8 +156,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -191,8 +185,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -222,8 +214,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -255,8 +245,6 @@ fixtures:
     resource_lock: null
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -288,8 +276,6 @@ fixtures:
     resource_lock: cargo-mutants
     completion:
       mode: finite
-      checkpointable: false
-      background_eligible: false
     artifacts:
       - kind: probe_output
         path: .agent-state/verification-fixtures
@@ -309,7 +295,7 @@ fixtures:
     timeout_seconds: 300
     resource_class: standard
     resource_lock: null
-    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    completion: {mode: finite}
     artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
     evidence: {assumptions: "finite exact-selection list", replay: "verification/fixtures/run.sh lean4 positive"}
   - id: exact-target-selection.souffle
@@ -324,7 +310,7 @@ fixtures:
     timeout_seconds: 300
     resource_class: standard
     resource_lock: null
-    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    completion: {mode: finite}
     artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
     evidence: {assumptions: "closed finite requested and available identity facts", replay: "verification/fixtures/run.sh souffle positive"}
   - id: exact-target-selection.miri
@@ -347,7 +333,7 @@ fixtures:
     timeout_seconds: 600
     resource_class: heavy
     resource_lock: miri
-    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    completion: {mode: finite}
     artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
     evidence: {assumptions: "pinned nightly interpreter executes the exact-selection model", replay: "verification/fixtures/run.sh miri positive"}
   - id: exact-target-selection.loom
@@ -364,6 +350,6 @@ fixtures:
     timeout_seconds: 600
     resource_class: heavy
     resource_lock: cargo-target
-    completion: {mode: finite, checkpointable: false, background_eligible: false}
+    completion: {mode: finite}
     artifacts: [{kind: probe_output, path: .agent-state/verification-fixtures, required: false}]
     evidence: {assumptions: "bounded two-thread release/acquire publication model", replay: "verification/fixtures/run.sh loom positive"}
