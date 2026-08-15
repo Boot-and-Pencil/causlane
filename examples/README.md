@@ -51,11 +51,11 @@ why-not-parallel
   conflicts, dependency blockers and active writer blockers.
 
 reference-integration
-  runnable: API submission, deterministic worker drain, runtime audit adapter
+  runnable: API submission, deterministic worker drain, runtime causal protocol history adapter
   append and guarded projection redaction for the M12.1 public alpha API story.
 
 runtime-guarded-audit-projection
-  runnable: authz-guarded execution, runtime audit append, trace projection,
+  runnable: authz-guarded execution, runtime protocol-history append, trace projection,
   guarded projection redaction and negative controls for the M12.5 API
   validation loop.
 

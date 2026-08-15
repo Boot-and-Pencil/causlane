@@ -378,7 +378,7 @@ Beta можно выпускать, когда:
 
 - `M09.1` — **Bench suite** (`done_or_near_done`): Criterion baseline for registry normalize, plan_hash, bundle load, replay verify, frontier conflict selection, lease grant, barrier append, explain.
 - `M09.2` — **Partitioned dispatcher** (`done_or_near_done`): Host dispatch v2 partition routes and in-process admission coordinator with deterministic cross-partition ordering.
-- `M09.3` — **Batched durability** (`done_or_near_done`): `AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.
+- `M09.3` — **Batched durability** (`done_or_near_done`): `CausalProtocolHistoryPort::append_batch` gives all-or-nothing ordered group commit over the existing causal protocol history boundary.
 - `M09.4` — **Backpressure policy** (`done_or_near_done`): Runtime-local wait/fail-fast overload policy over bounded in-process partition queues.
 - `M09.5` — **Plan/template caches** (`done_or_near_done`): Pure in-memory plan/template cache keyed by canonical plan material and compile snapshot refs.
 - `M09.6` — **Operational SLOs** (`done_or_near_done`): Typed operational SLO measurement catalog for submit/admission/barrier/replay/explain p50/p95, queue depth and stale snapshot age.
@@ -853,7 +853,7 @@ Beta можно выпускать, когда:
 
 - **Stage:** S09
 - **Status:** `done_or_near_done`
-- **Purpose:** `AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.
+- **Purpose:** `CausalProtocolHistoryPort::append_batch` gives all-or-nothing ordered group commit over the existing causal protocol history boundary.
 
 ## M09.4 — Backpressure policy
 
@@ -1128,7 +1128,7 @@ Beta можно выпускать, когда:
 
 ## TD-004. Single observed truth authority
 
-**Решение:** audit/event journal — единственный авторитет observed truth. Logs, metrics, UI, execution graph, status pages — derived projections.
+**Решение:** causal protocol history — единственный авторитет observed truth. Logs, metrics, UI, execution graph, status pages — derived projections.
 
 **Почему:** иначе replay, расследования и formal checks расходятся с реальным runtime.
 
@@ -1329,7 +1329,7 @@ bounded matrix must prove/test-demonstrate for existing adapters:
 
 - no execution before barrier;
 - executor requires scoped capability;
-- audit append failure fail-closed for hard effects;
+- protocol-history append failure fail-closed for hard effects;
 - telemetry/logging not authority.
 
 Release/production certification additionally requires first-class evidence for:
@@ -1599,13 +1599,13 @@ Runtime adapters spend the contract; they do not create semantics.
 
 ## Persistence adapters
 
-- In-memory append-only audit adapter for tests and examples.
-- SQLite local/dev audit adapter behind `causlane-runtime/sqlite-audit`.
-- Postgres production/server audit adapter behind `causlane-runtime/postgres-audit`.
-- Audit adapters store the stable audit envelope first; full event-store/CQRS
+- In-memory append-only causal protocol history adapter for tests and examples.
+- SQLite local/dev causal protocol history adapter behind `causlane-runtime/sqlite-protocol-history`.
+- Postgres production/server causal protocol history adapter behind `causlane-runtime/postgres-protocol-history`.
+- Audit adapters store the stable causal protocol event envelope first; full event-store/CQRS
   payload serialization remains optional later.
-- Group commit is exposed through the same audit port: `AuditLogPort::append`
-  for immediate single-event writes and `AuditLogPort::append_batch` for
+- Group commit is exposed through the same audit port: `CausalProtocolHistoryPort::append`
+  for immediate single-event writes and `CausalProtocolHistoryPort::append_batch` for
   all-or-nothing ordered batch writes.
 
 ## Execution adapters
@@ -1648,7 +1648,7 @@ Execution-bearing adapters pass by showing simulation to `GuardedExecutor`:
 Audit and observability adapters certify their own boundaries:
 
 - append-only audit state rejects duplicate/non-monotonic truth writes;
-- observability spans emit only after successful audit append;
+- observability spans emit only after successful protocol-history append;
 - observability failure does not affect correctness.
 
 `docs/product-track/adapter-certification-matrix.json` is the machine-readable
@@ -1740,7 +1740,7 @@ actual upload readiness
 Stabilize first:
 
 - core newtypes;
-- AuditEvent/EventKind shapes;
+- CausalProtocolEvent/EventKind shapes;
 - CompiledDispatchBundle shape;
 - ReplayTrace shape;
 - lifecycle stages;
@@ -1975,7 +1975,7 @@ lease_during_drain_invalid
 
 ## Keep Adapters Outside The Semantic Core
 
-Adapters may execute through scoped capability, persist audit events, export
+Adapters may execute through scoped capability, persist causal protocol events, export
 observability and integrate backend runtimes.
 
 Adapters must not decide semantic admissibility, create observed truth outside

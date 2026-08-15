@@ -24,7 +24,7 @@ docs/product-track/stages/s09-performance-reliability.md
 
 This change adds a Criterion benchmark harness for the M09.1 baseline surfaces:
 registry normalization, plan hash computation, bundle load, replay verification,
-frontier conflict selection, lease grant, barrier audit append, and replay
+frontier conflict selection, lease grant, barrier protocol-history append, and replay
 explain rendering.
 
 The harness reuses existing release-promote fixtures and domain APIs. It does

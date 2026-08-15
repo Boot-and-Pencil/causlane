@@ -25,7 +25,7 @@ over the finite/representative input spaces (the same exhaustive-over-bounded-sp
 approach the Kani lane uses).
 
 - **Lifecycle reducer** (`lifecycle.rs`): a new test enumerates the ENTIRE finite
-  `LifecycleStage × AuditEventKind × ConsequenceProfile` space (9×17×6 = 918
+  `LifecycleStage × CausalProtocolEventKind × ConsequenceProfile` space (9×17×6 = 918
   triples) and asserts the grammar's structural invariants for every triple —
   determinism, Closed is absorbing (I-008), only `LifecycleClosed` reaches the
   terminal stage, `is_terminal ⇔ Closed`, `initial_stage == New`. A complete proof.

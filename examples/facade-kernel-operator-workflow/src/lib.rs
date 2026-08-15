@@ -11,9 +11,9 @@ use causlane::core::protocol::{
     Timestamp,
 };
 use causlane::prelude::{
-    ActionCall, ActionId, AuditEventId, ClaimMode, ConsequenceProfile, ConstraintEpoch, FactKind,
-    GraphIndex, GraphNode, ImpactSetHash, KernelContracts, LaneCapacity, LaneId, LeaseId, LeaseRef,
-    LeaseTable, OpId, PlanHash, PredicateId, ResourceId, Scope,
+    ActionCall, ActionId, CausalProtocolEventId, ClaimMode, ConsequenceProfile, ConstraintEpoch,
+    FactKind, GraphIndex, GraphNode, ImpactSetHash, KernelContracts, LaneCapacity, LaneId, LeaseId,
+    LeaseRef, LeaseTable, OpId, PlanHash, PredicateId, ResourceId, Scope,
 };
 
 const PLAN_HASH: &str = "sha256:7777777777777777777777777777777777777777777777777777777777777777";
@@ -648,13 +648,13 @@ fn lease(
         holder_op_index: Some(0),
         epoch: ConstraintEpoch(1),
         expires_at: expires_at.map(Timestamp),
-        lease_event_id: AuditEventId(format!("evt_{id}")),
+        lease_event_id: CausalProtocolEventId(format!("evt_{id}")),
     }
 }
 
 fn barrier(action: &ActionId, plan: &PlanHash, leases: Vec<LeaseRef>) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("evt_barrier_facade_promote".to_owned()),
+        barrier_id: CausalProtocolEventId("evt_barrier_facade_promote".to_owned()),
         action_id: action.clone(),
         plan_hash: plan.clone(),
         op_indexes: vec![0],

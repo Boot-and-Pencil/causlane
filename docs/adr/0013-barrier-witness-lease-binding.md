@@ -65,7 +65,7 @@ Barrier flow:
 2  dispatcher resolves witness selectors against the audit view.
 3  dispatcher evaluates constraints/authz.
 4  lease manager grants leases.
-5  lease grants recorded as audit events or in the same durable transaction.
+5  lease grants recorded as causal protocol events or in the same durable transaction.
 6  ExecutionBarrierLogged references witness refs + lease refs + impact_set_hash.
 7  executor gets a scoped capability derived from the barrier.
 8  replay validates witness existence, causal order, plan binding, impact binding, lease coverage, and absence of active conflicts.

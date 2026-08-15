@@ -6,7 +6,7 @@ use std::sync::{
 };
 
 use causlane_core::{
-    ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, AuthzPolicy, ClaimMode,
+    ActionId, AuthzDecision, AuthzDecisionRef, AuthzPolicy, CausalProtocolEventId, ClaimMode,
     ConstraintEpoch, EffectSignature, ExecutionBarrier, ExecutionCapability, ExecutorPort,
     ImpactHardness, ImpactSetHash, LeaseId, LeaseRef, Op, PlanHash, PlanHashError, ResourceId,
     Scope, Timestamp,
@@ -108,7 +108,7 @@ pub fn plan() -> Result<PlanHash, PlanHashError> {
 #[must_use]
 pub fn barrier(plan: PlanHash) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("barrier".to_owned()),
+        barrier_id: CausalProtocolEventId("barrier".to_owned()),
         action_id: ActionId("act".to_owned()),
         plan_hash: plan.clone(),
         op_indexes: vec![0],
@@ -127,7 +127,7 @@ pub fn barrier(plan: PlanHash) -> ExecutionBarrier {
             holder_op_index: Some(0),
             epoch: ConstraintEpoch(0),
             expires_at: None,
-            lease_event_id: AuditEventId("lease-event".to_owned()),
+            lease_event_id: CausalProtocolEventId("lease-event".to_owned()),
         }],
         authz_decision_refs: Vec::new(),
         constraint_snapshot_id: None,
@@ -148,7 +148,7 @@ pub fn barrier_lease_expiring(plan: PlanHash, expires_at: Timestamp) -> Executio
 #[must_use]
 pub fn allow(plan: PlanHash) -> AuthzDecisionRef {
     AuthzDecisionRef {
-        decision_event_id: AuditEventId("decision".to_owned()),
+        decision_event_id: CausalProtocolEventId("decision".to_owned()),
         action_id: ActionId("act".to_owned()),
         plan_hash: plan,
         predicate_id: "release.promote".to_owned(),

@@ -1,31 +1,31 @@
-//! Append-only audit log adapters.
+//! Append-only causal protocol history adapters.
 
-#[cfg(feature = "postgres-audit")]
+#[cfg(feature = "postgres-protocol-history")]
 mod postgres;
-#[cfg(feature = "sqlite-audit")]
+#[cfg(feature = "sqlite-protocol-history")]
 mod sqlite;
 
 use std::collections::HashSet;
 
-use causlane_core::{AuditEvent, AuditEventId, AuditLogPort};
+use causlane_core::{CausalProtocolEvent, CausalProtocolEventId, CausalProtocolHistoryPort};
 
-#[cfg(feature = "postgres-audit")]
-pub use self::postgres::{PostgresAuditLog, POSTGRES_CREATE_AUDIT_EVENTS};
-#[cfg(feature = "sqlite-audit")]
-pub use self::sqlite::{SqliteAuditLog, SQLITE_CREATE_AUDIT_EVENTS};
+#[cfg(feature = "postgres-protocol-history")]
+pub use self::postgres::{PostgresCausalProtocolHistory, POSTGRES_CREATE_CAUSAL_PROTOCOL_EVENTS};
+#[cfg(feature = "sqlite-protocol-history")]
+pub use self::sqlite::{SqliteCausalProtocolHistory, SQLITE_CREATE_CAUSAL_PROTOCOL_EVENTS};
 
-/// Error returned by runtime audit adapters.
+/// Error returned by runtime causal protocol history adapters.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum AuditAdapterError {
+pub enum CausalProtocolHistoryAdapterError {
     /// The journal already contains this event id.
     DuplicateEventId {
         /// Duplicate event id.
-        event_id: AuditEventId,
+        event_id: CausalProtocolEventId,
     },
     /// A storage projection was requested before an event had a journal index.
     MissingEventIndex {
         /// Event missing its journal position.
-        event_id: AuditEventId,
+        event_id: CausalProtocolEventId,
     },
     /// The supplied event index does not match the next append position.
     NonMonotonicEventIndex {
@@ -48,7 +48,7 @@ pub enum AuditAdapterError {
     },
 }
 
-impl AuditAdapterError {
+impl CausalProtocolHistoryAdapterError {
     pub(crate) fn storage(adapter: &'static str, error: impl std::fmt::Display) -> Self {
         Self::Storage {
             adapter,
@@ -57,47 +57,53 @@ impl AuditAdapterError {
     }
 }
 
-impl std::fmt::Display for AuditAdapterError {
+impl std::fmt::Display for CausalProtocolHistoryAdapterError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::DuplicateEventId { event_id } => {
-                write!(f, "duplicate audit event id {}", event_id.0)
+                write!(f, "duplicate causal protocol event id {}", event_id.0)
             }
             Self::MissingEventIndex { event_id } => {
-                write!(f, "audit event {} is missing event_index", event_id.0)
+                write!(
+                    f,
+                    "causal protocol event {} is missing event_index",
+                    event_id.0
+                )
             }
             Self::NonMonotonicEventIndex { expected, got } => {
                 write!(
                     f,
-                    "non-monotonic audit event index: expected {expected}, got {got}"
+                    "non-monotonic causal protocol event index: expected {expected}, got {got}"
                 )
             }
             Self::EventIndexOverflow { last } => {
-                write!(f, "audit event index overflow after {last}")
+                write!(f, "causal protocol event index overflow after {last}")
             }
-            Self::Storage { adapter, message } => write!(f, "{adapter} audit storage: {message}"),
+            Self::Storage { adapter, message } => {
+                write!(f, "{adapter} causal protocol history storage: {message}")
+            }
         }
     }
 }
 
-impl std::error::Error for AuditAdapterError {}
+impl std::error::Error for CausalProtocolHistoryAdapterError {}
 
-/// Stable storage projection shared by durable audit adapters.
+/// Stable storage projection shared by durable causal protocol history adapters.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AuditEnvelope {
+pub struct CausalProtocolEventEnvelope {
     /// Monotonic journal position.
     pub event_index: u64,
-    /// Unique audit event id.
+    /// Unique causal protocol event id.
     pub event_id: String,
     /// Action id recorded on the event.
     pub action_id: String,
     /// Optional canonical plan hash.
     pub plan_hash: Option<String>,
-    /// Stable dotted audit kind token.
+    /// Stable dotted causal protocol event-kind token.
     pub kind: &'static str,
     /// Correlation id for this action invocation.
     pub correlation_id: String,
-    /// Directly-causing audit event id, when present.
+    /// Directly-causing causal protocol event id, when present.
     pub causation_id: Option<String>,
     /// Occurrence timestamp, when recorded.
     pub occurred_at: Option<u64>,
@@ -107,16 +113,17 @@ pub struct AuditEnvelope {
     pub drain_fence_scope: Option<String>,
 }
 
-impl AuditEnvelope {
-    /// Project an indexed audit event into the stable storage envelope.
-    #[must_use = "audit envelope projection can fail if the event is not indexed"]
-    pub fn from_event(event: &AuditEvent) -> Result<Self, AuditAdapterError> {
-        let event_index =
-            event
-                .event_index
-                .ok_or_else(|| AuditAdapterError::MissingEventIndex {
-                    event_id: event.event_id.clone(),
-                })?;
+impl CausalProtocolEventEnvelope {
+    /// Project an indexed causal protocol event into the stable storage envelope.
+    #[must_use = "causal protocol event envelope projection can fail if the event is not indexed"]
+    pub fn from_event(
+        event: &CausalProtocolEvent,
+    ) -> Result<Self, CausalProtocolHistoryAdapterError> {
+        let event_index = event.event_index.ok_or_else(|| {
+            CausalProtocolHistoryAdapterError::MissingEventIndex {
+                event_id: event.event_id.clone(),
+            }
+        })?;
 
         Ok(Self {
             event_index,
@@ -140,12 +147,14 @@ impl AuditEnvelope {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct PreparedAuditEvent {
-    pub(crate) event_id: AuditEventId,
-    pub(crate) event: AuditEvent,
+pub(crate) struct PreparedCausalProtocolEvent {
+    pub(crate) event_id: CausalProtocolEventId,
+    pub(crate) event: CausalProtocolEvent,
 }
 
-pub(crate) fn prepared_event_ids(prepared: &[PreparedAuditEvent]) -> Vec<AuditEventId> {
+pub(crate) fn prepared_event_ids(
+    prepared: &[PreparedCausalProtocolEvent],
+) -> Vec<CausalProtocolEventId> {
     prepared
         .iter()
         .map(|prepared_event| prepared_event.event_id.clone())
@@ -153,18 +162,18 @@ pub(crate) fn prepared_event_ids(prepared: &[PreparedAuditEvent]) -> Vec<AuditEv
 }
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct AuditAppendState {
+pub(crate) struct CausalProtocolHistoryAppendState {
     next_index: u64,
-    seen_ids: HashSet<AuditEventId>,
+    seen_ids: HashSet<CausalProtocolEventId>,
 }
 
-impl AuditAppendState {
+impl CausalProtocolHistoryAppendState {
     pub(crate) fn prepare_batch<I>(
         &self,
         events: I,
-    ) -> Result<(Self, Vec<PreparedAuditEvent>), AuditAdapterError>
+    ) -> Result<(Self, Vec<PreparedCausalProtocolEvent>), CausalProtocolHistoryAdapterError>
     where
-        I: IntoIterator<Item = AuditEvent>,
+        I: IntoIterator<Item = CausalProtocolEvent>,
     {
         let mut state = self.clone();
         let mut prepared = Vec::new();
@@ -174,67 +183,72 @@ impl AuditAppendState {
         Ok((state, prepared))
     }
 
-    #[cfg(any(feature = "postgres-audit", feature = "sqlite-audit"))]
+    #[cfg(any(
+        feature = "postgres-protocol-history",
+        feature = "sqlite-protocol-history"
+    ))]
     pub(crate) fn record_loaded(
         &mut self,
-        event_id: AuditEventId,
+        event_id: CausalProtocolEventId,
         event_index: u64,
-    ) -> Result<(), AuditAdapterError> {
+    ) -> Result<(), CausalProtocolHistoryAdapterError> {
         self.accept(event_id, event_index)
     }
 
     fn prepare_one(
         &mut self,
-        mut event: AuditEvent,
-    ) -> Result<PreparedAuditEvent, AuditAdapterError> {
+        mut event: CausalProtocolEvent,
+    ) -> Result<PreparedCausalProtocolEvent, CausalProtocolHistoryAdapterError> {
         let event_id = event.event_id.clone();
         let event_index = event.event_index.unwrap_or(self.next_index);
         self.accept(event_id.clone(), event_index)?;
         event.event_index = Some(event_index);
 
-        Ok(PreparedAuditEvent { event_id, event })
+        Ok(PreparedCausalProtocolEvent { event_id, event })
     }
 
     fn accept(
         &mut self,
-        event_id: AuditEventId,
+        event_id: CausalProtocolEventId,
         event_index: u64,
-    ) -> Result<(), AuditAdapterError> {
+    ) -> Result<(), CausalProtocolHistoryAdapterError> {
         if self.seen_ids.contains(&event_id) {
-            return Err(AuditAdapterError::DuplicateEventId { event_id });
+            return Err(CausalProtocolHistoryAdapterError::DuplicateEventId { event_id });
         }
         if event_index != self.next_index {
-            return Err(AuditAdapterError::NonMonotonicEventIndex {
+            return Err(CausalProtocolHistoryAdapterError::NonMonotonicEventIndex {
                 expected: self.next_index,
                 got: event_index,
             });
         }
-        let next_index =
-            self.next_index
-                .checked_add(1)
-                .ok_or(AuditAdapterError::EventIndexOverflow {
-                    last: self.next_index,
-                })?;
+        let next_index = self.next_index.checked_add(1).ok_or(
+            CausalProtocolHistoryAdapterError::EventIndexOverflow {
+                last: self.next_index,
+            },
+        )?;
         self.seen_ids.insert(event_id);
         self.next_index = next_index;
         Ok(())
     }
 }
 
-/// In-memory append-only [`AuditLogPort`] adapter.
+/// In-memory append-only [`CausalProtocolHistoryPort`] adapter.
 #[derive(Clone, Debug, Default)]
-pub struct InMemoryAuditLog {
+pub struct InMemoryCausalProtocolHistory {
     /// Events appended so far, in journal order.
-    pub events: Vec<AuditEvent>,
-    state: AuditAppendState,
+    pub events: Vec<CausalProtocolEvent>,
+    state: CausalProtocolHistoryAppendState,
 }
 
-impl InMemoryAuditLog {
+impl InMemoryCausalProtocolHistory {
     /// Append a batch atomically.
-    #[must_use = "audit append failures must be handled"]
-    pub fn append_batch<I>(&mut self, events: I) -> Result<Vec<AuditEventId>, AuditAdapterError>
+    #[must_use = "protocol-history append failures must be handled"]
+    pub fn append_batch<I>(
+        &mut self,
+        events: I,
+    ) -> Result<Vec<CausalProtocolEventId>, CausalProtocolHistoryAdapterError>
     where
-        I: IntoIterator<Item = AuditEvent>,
+        I: IntoIterator<Item = CausalProtocolEvent>,
     {
         let (state, prepared) = self.state.prepare_batch(events)?;
         let event_ids = prepared_event_ids(&prepared);
@@ -249,32 +263,39 @@ impl InMemoryAuditLog {
 
     /// Borrow appended events in journal order.
     #[must_use]
-    pub fn events(&self) -> &[AuditEvent] {
+    pub fn events(&self) -> &[CausalProtocolEvent] {
         &self.events
     }
 }
 
-impl AuditLogPort for InMemoryAuditLog {
-    type Error = AuditAdapterError;
+impl CausalProtocolHistoryPort for InMemoryCausalProtocolHistory {
+    type Error = CausalProtocolHistoryAdapterError;
 
-    fn append_batch(&mut self, events: Vec<AuditEvent>) -> Result<Vec<AuditEventId>, Self::Error> {
-        InMemoryAuditLog::append_batch(self, events)
+    fn append_batch(
+        &mut self,
+        events: Vec<CausalProtocolEvent>,
+    ) -> Result<Vec<CausalProtocolEventId>, Self::Error> {
+        InMemoryCausalProtocolHistory::append_batch(self, events)
     }
 
-    fn append(&mut self, event: AuditEvent) -> Result<AuditEventId, Self::Error> {
-        let mut event_ids = <Self as AuditLogPort>::append_batch(self, vec![event])?;
-        event_ids
-            .pop()
-            .ok_or_else(|| AuditAdapterError::storage("memory", "append produced no event id"))
+    fn append(&mut self, event: CausalProtocolEvent) -> Result<CausalProtocolEventId, Self::Error> {
+        let mut event_ids = <Self as CausalProtocolHistoryPort>::append_batch(self, vec![event])?;
+        event_ids.pop().ok_or_else(|| {
+            CausalProtocolHistoryAdapterError::storage("memory", "append produced no event id")
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{AuditAdapterError, AuditEnvelope, InMemoryAuditLog};
+    use super::{
+        CausalProtocolEventEnvelope, CausalProtocolHistoryAdapterError,
+        InMemoryCausalProtocolHistory,
+    };
     use causlane_core::{
-        ActionId, AuditEvent, AuditEventId, AuditEventKind, AuditLogPort, CorrelationId,
-        ImpactSetHash, PlanHash, PlanHashError, Scope, Timestamp,
+        ActionId, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind,
+        CausalProtocolHistoryPort, CorrelationId, ImpactSetHash, PlanHash, PlanHashError, Scope,
+        Timestamp,
     };
 
     #[derive(Debug, PartialEq, Eq)]
@@ -283,8 +304,8 @@ mod tests {
         PlanHash,
     }
 
-    impl From<AuditAdapterError> for TestError {
-        fn from(_error: AuditAdapterError) -> Self {
+    impl From<CausalProtocolHistoryAdapterError> for TestError {
+        fn from(_error: CausalProtocolHistoryAdapterError) -> Self {
             Self::Audit
         }
     }
@@ -295,13 +316,13 @@ mod tests {
         }
     }
 
-    fn event(id: &str) -> AuditEvent {
-        event_kind(id, AuditEventKind::ExecutionStarted)
+    fn event(id: &str) -> CausalProtocolEvent {
+        event_kind(id, CausalProtocolEventKind::ExecutionStarted)
     }
 
-    fn event_kind(id: &str, kind: AuditEventKind) -> AuditEvent {
-        AuditEvent::new(
-            AuditEventId(id.to_owned()),
+    fn event_kind(id: &str, kind: CausalProtocolEventKind) -> CausalProtocolEvent {
+        CausalProtocolEvent::new(
+            CausalProtocolEventId(id.to_owned()),
             ActionId("action-1".to_owned()),
             kind,
         )
@@ -313,15 +334,15 @@ mod tests {
 
     #[test]
     fn in_memory_assigns_missing_indexes_monotonically() {
-        let mut audit = InMemoryAuditLog::default();
+        let mut audit = InMemoryCausalProtocolHistory::default();
 
         assert_eq!(
             audit.append(event("event-1")),
-            Ok(AuditEventId("event-1".to_owned()))
+            Ok(CausalProtocolEventId("event-1".to_owned()))
         );
         assert_eq!(
             audit.append(event("event-2")),
-            Ok(AuditEventId("event-2".to_owned()))
+            Ok(CausalProtocolEventId("event-2".to_owned()))
         );
 
         let indexes: Vec<_> = audit
@@ -334,16 +355,16 @@ mod tests {
 
     #[test]
     fn in_memory_rejects_duplicate_event_ids() {
-        let mut audit = InMemoryAuditLog::default();
+        let mut audit = InMemoryCausalProtocolHistory::default();
         assert_eq!(
             audit.append(event("event-1")),
-            Ok(AuditEventId("event-1".to_owned()))
+            Ok(CausalProtocolEventId("event-1".to_owned()))
         );
 
         assert_eq!(
             audit.append(event("event-1")),
-            Err(AuditAdapterError::DuplicateEventId {
-                event_id: AuditEventId("event-1".to_owned())
+            Err(CausalProtocolHistoryAdapterError::DuplicateEventId {
+                event_id: CausalProtocolEventId("event-1".to_owned())
             })
         );
         assert_eq!(audit.events().len(), 1);
@@ -351,11 +372,11 @@ mod tests {
 
     #[test]
     fn in_memory_rejects_non_monotonic_supplied_index() {
-        let mut audit = InMemoryAuditLog::default();
+        let mut audit = InMemoryCausalProtocolHistory::default();
 
         assert_eq!(
             audit.append(event("event-1").with_event_index(7)),
-            Err(AuditAdapterError::NonMonotonicEventIndex {
+            Err(CausalProtocolHistoryAdapterError::NonMonotonicEventIndex {
                 expected: 0,
                 got: 7
             })
@@ -365,19 +386,19 @@ mod tests {
 
     #[test]
     fn in_memory_batch_is_all_or_nothing() {
-        let mut audit = InMemoryAuditLog::default();
+        let mut audit = InMemoryCausalProtocolHistory::default();
 
         assert_eq!(
             audit.append_batch([event("event-1"), event("event-1")]),
-            Err(AuditAdapterError::DuplicateEventId {
-                event_id: AuditEventId("event-1".to_owned())
+            Err(CausalProtocolHistoryAdapterError::DuplicateEventId {
+                event_id: CausalProtocolEventId("event-1".to_owned())
             })
         );
         assert!(audit.events().is_empty());
 
         assert_eq!(
             audit.append(event("event-2")),
-            Ok(AuditEventId("event-2".to_owned()))
+            Ok(CausalProtocolEventId("event-2".to_owned()))
         );
         assert_eq!(
             audit.events().first().map(|event| event.event_index),
@@ -386,23 +407,24 @@ mod tests {
     }
 
     #[test]
-    fn audit_log_port_batch_preserves_barrier_write_ahead_order() -> Result<(), AuditAdapterError> {
-        let mut audit = InMemoryAuditLog::default();
+    fn causal_protocol_history_port_batch_preserves_barrier_write_ahead_order(
+    ) -> Result<(), CausalProtocolHistoryAdapterError> {
+        let mut audit = InMemoryCausalProtocolHistory::default();
 
-        let event_ids = AuditLogPort::append_batch(
+        let event_ids = CausalProtocolHistoryPort::append_batch(
             &mut audit,
             vec![
-                event_kind("barrier", AuditEventKind::ExecutionBarrierLogged),
-                event_kind("started", AuditEventKind::ExecutionStarted)
-                    .with_causation_id(AuditEventId("barrier".to_owned())),
+                event_kind("barrier", CausalProtocolEventKind::ExecutionBarrierLogged),
+                event_kind("started", CausalProtocolEventKind::ExecutionStarted)
+                    .with_causation_id(CausalProtocolEventId("barrier".to_owned())),
             ],
         )?;
 
         assert_eq!(
             event_ids,
             vec![
-                AuditEventId("barrier".to_owned()),
-                AuditEventId("started".to_owned())
+                CausalProtocolEventId("barrier".to_owned()),
+                CausalProtocolEventId("started".to_owned())
             ]
         );
         let recorded = audit
@@ -415,13 +437,13 @@ mod tests {
             vec![
                 (
                     Some(0),
-                    AuditEventId("barrier".to_owned()),
-                    AuditEventKind::ExecutionBarrierLogged
+                    CausalProtocolEventId("barrier".to_owned()),
+                    CausalProtocolEventKind::ExecutionBarrierLogged
                 ),
                 (
                     Some(1),
-                    AuditEventId("started".to_owned()),
-                    AuditEventKind::ExecutionStarted
+                    CausalProtocolEventId("started".to_owned()),
+                    CausalProtocolEventKind::ExecutionStarted
                 )
             ]
         );
@@ -429,24 +451,27 @@ mod tests {
     }
 
     #[test]
-    fn audit_log_port_batch_failure_leaves_state_unchanged() {
-        let mut audit = InMemoryAuditLog::default();
+    fn causal_protocol_history_port_batch_failure_leaves_state_unchanged() {
+        let mut audit = InMemoryCausalProtocolHistory::default();
         assert_eq!(
             audit.append(event("event-1")),
-            Ok(AuditEventId("event-1".to_owned()))
+            Ok(CausalProtocolEventId("event-1".to_owned()))
         );
 
         assert_eq!(
-            AuditLogPort::append_batch(&mut audit, vec![event("event-2"), event("event-2")]),
-            Err(AuditAdapterError::DuplicateEventId {
-                event_id: AuditEventId("event-2".to_owned())
+            CausalProtocolHistoryPort::append_batch(
+                &mut audit,
+                vec![event("event-2"), event("event-2")]
+            ),
+            Err(CausalProtocolHistoryAdapterError::DuplicateEventId {
+                event_id: CausalProtocolEventId("event-2".to_owned())
             })
         );
         assert_eq!(audit.events().len(), 1);
 
         assert_eq!(
             audit.append(event("event-3")),
-            Ok(AuditEventId("event-3".to_owned()))
+            Ok(CausalProtocolEventId("event-3".to_owned()))
         );
         assert_eq!(
             audit.events().last().map(|event| event.event_index),
@@ -455,15 +480,15 @@ mod tests {
     }
 
     #[test]
-    fn audit_log_port_batch_rejects_non_monotonic_without_advancing() {
-        let mut audit = InMemoryAuditLog::default();
+    fn causal_protocol_history_port_batch_rejects_non_monotonic_without_advancing() {
+        let mut audit = InMemoryCausalProtocolHistory::default();
 
         assert_eq!(
-            AuditLogPort::append_batch(
+            CausalProtocolHistoryPort::append_batch(
                 &mut audit,
                 vec![event("event-1"), event("event-2").with_event_index(7)]
             ),
-            Err(AuditAdapterError::NonMonotonicEventIndex {
+            Err(CausalProtocolHistoryAdapterError::NonMonotonicEventIndex {
                 expected: 1,
                 got: 7,
             })
@@ -472,7 +497,7 @@ mod tests {
 
         assert_eq!(
             audit.append(event("event-3")),
-            Ok(AuditEventId("event-3".to_owned()))
+            Ok(CausalProtocolEventId("event-3".to_owned()))
         );
         assert_eq!(
             audit.events().first().map(|event| event.event_index),
@@ -481,17 +506,17 @@ mod tests {
     }
 
     #[test]
-    fn storage_envelope_preserves_audit_boundary_fields() -> Result<(), TestError> {
+    fn storage_envelope_preserves_protocol_history_boundary_fields() -> Result<(), TestError> {
         let event = event("event-1")
             .with_plan_hash(plan_hash()?)
             .with_correlation_id(CorrelationId("corr-1".to_owned()))
-            .with_causation_id(AuditEventId("parent-1".to_owned()))
+            .with_causation_id(CausalProtocolEventId("parent-1".to_owned()))
             .with_occurred_at(Timestamp(42))
             .with_impact_set_hash(ImpactSetHash("impact-1".to_owned()))
             .with_drain_fence_scope(Scope("scope-1".to_owned()))
             .with_event_index(3);
 
-        let envelope = AuditEnvelope::from_event(&event)?;
+        let envelope = CausalProtocolEventEnvelope::from_event(&event)?;
 
         assert_eq!(envelope.event_index, 3);
         assert_eq!(envelope.event_id, "event-1");

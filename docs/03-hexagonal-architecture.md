@@ -31,7 +31,7 @@ Domain must not depend on adapters, storage, Tokio, SQL, HTTP, tracing or policy
 |                                                                  |
 | Ports:                                                          |
 | - PlannerPort                                                    |
-| - AuditLogPort                                                   |
+| - CausalProtocolHistoryPort                                                   |
 | - ConstraintProviderPort                                         |
 | - LeaseManagerPort                                               |
 | - AuthorizerPort                                                 |

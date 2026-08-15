@@ -42,7 +42,7 @@ actual upload readiness
 Stabilize first:
 
 - core newtypes;
-- AuditEvent/EventKind shapes;
+- CausalProtocolEvent/EventKind shapes;
 - CompiledDispatchBundle shape;
 - ReplayTrace shape;
 - lifecycle stages;

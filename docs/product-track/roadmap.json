@@ -1025,7 +1025,7 @@
     },
     "M09.3": {
       "title": "Batched durability",
-      "description": "`AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.",
+      "description": "`CausalProtocolHistoryPort::append_batch` gives all-or-nothing ordered group commit over the existing causal protocol history boundary.",
       "status": "done_or_near_done",
       "stage": "S09"
     },

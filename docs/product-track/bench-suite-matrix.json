@@ -37,8 +37,8 @@
       "fixture": "exclusive release-promote lease on empty lease table"
     },
     {
-      "id": "barrier_audit_append",
-      "measures": "InMemoryAuditLog::append",
+      "id": "barrier_protocol_history_append",
+      "measures": "InMemoryCausalProtocolHistory::append",
       "fixture": "execution barrier event with lease and impact-set hash"
     },
     {
@@ -48,7 +48,7 @@
     },
     {
       "id": "runtime_guarded_audit_projection_flow",
-      "measures": "GuardedExecutor plus TraceProjectingAuditLog plus guard_projection_read",
+      "measures": "GuardedExecutor plus TraceProjectingCausalProtocolHistory plus guard_projection_read",
       "fixture": "512-op runtime guarded execution, audit trace and projection flow"
     }
   ],

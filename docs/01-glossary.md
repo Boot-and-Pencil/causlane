@@ -106,13 +106,13 @@ EvidenceMeta;
 OutsideKernel.
 ```
 
-## AuditEvent
+## CausalProtocolEvent
 
 Typed authoritative event in the run-scoped event journal.
 
 ## Observed truth
 
-The authoritative record of what actually happened. In this architecture, observed truth has one author: the append-only audit/event journal.
+The authoritative record of what actually happened. In this architecture, observed truth has one author: the append-only causal protocol history.
 
 ## Projection
 

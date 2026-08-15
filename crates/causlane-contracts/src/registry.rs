@@ -271,7 +271,7 @@ pub struct RequiredWitnessManifest {
     pub id: String,
     /// Lifecycle stage at which the witness must already exist.
     pub target_stage: String,
-    /// Selector that resolves the witness against the audit journal.
+    /// Selector that resolves the witness against the causal protocol history.
     pub selector: WitnessSelectorManifest,
 }
 

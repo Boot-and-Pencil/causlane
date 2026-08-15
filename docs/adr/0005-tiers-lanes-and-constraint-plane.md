@@ -145,7 +145,7 @@ property (`safe_point_agrees_with_the_i007_authority`) asserts, over the lease
 active/expired/overlap space, that `at_safe_point` agrees with the I-007 authority (and the
 global generalization), with a non-vacuity guard exercising both safe and unsafe outcomes;
 plus unit tests for covers/independence/sidecar/epoch. Pure additive `causlane-core`; no
-change to `DrainFenceCheck` / `fence_acquirable` / `can_acquire_fence` / `AuditEventKind` /
+change to `DrainFenceCheck` / `fence_acquirable` / `can_acquire_fence` / `CausalProtocolEventKind` /
 codegen, so no bundle-hash or formal-IR regeneration. **Scoped out** (follow-ups): applying a
 drain as a runtime `Freeze` + rebuilding the frontier on the epoch bump (M05.7); surfacing the
 blocking reason (M05.8); deeper Lean/Verus modeling of the drain-epoch protocol (S10).
@@ -174,7 +174,7 @@ capacity tightening rebuild a smaller frontier). The load-bearing property
 strict epoch advance + committed-truth preservation (over every committed state) + stale-lease
 drop, with a non-vacuity guard that constraint-resident kinds change the constraints while
 lane-side/rate-limit kinds do not. Pure additive `causlane-core`; no change to `CommittedTruth`
-/ `ConstraintUpdate` / `preserves_committed_truth` / `AuditEventKind` / codegen, so the I-010
+/ `ConstraintUpdate` / `preserves_committed_truth` / `CausalProtocolEventKind` / codegen, so the I-010
 Kani/Verus/P receipts stand with no regeneration. **Scoped out** (follow-ups): `RateLimit`
 *enforcement* (no constraint-plane primitive yet — the kind exists and bumps the epoch but is
 not wired into `resolve_constraints`); unfreeze (Freeze is add-only here); surfacing the

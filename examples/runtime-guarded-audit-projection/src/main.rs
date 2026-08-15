@@ -6,8 +6,8 @@ fn main() {
     {
         Ok(summary) => {
             println!(
-                "runtime-guarded-audit-projection: authz execution audit and projection verified ({} executed, {} audit events, {} controls)",
-                summary.executed_ops, summary.audit_events, summary.negative_controls,
+                "runtime-guarded-audit-projection: authz execution audit and projection verified ({} executed, {} causal protocol events, {} controls)",
+                summary.executed_ops, summary.causal_protocol_events, summary.negative_controls,
             );
         }
         Err(error) => {

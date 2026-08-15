@@ -14,13 +14,13 @@ Runtime adapters spend the contract; they do not create semantics.
 
 ## Persistence adapters
 
-- In-memory append-only audit adapter for tests and examples.
-- SQLite local/dev audit adapter behind `causlane-runtime/sqlite-audit`.
-- Postgres production/server audit adapter behind `causlane-runtime/postgres-audit`.
-- Audit adapters store the stable audit envelope first; full event-store/CQRS
+- In-memory append-only causal protocol history adapter for tests and examples.
+- SQLite local/dev causal protocol history adapter behind `causlane-runtime/sqlite-protocol-history`.
+- Postgres production/server causal protocol history adapter behind `causlane-runtime/postgres-protocol-history`.
+- Audit adapters store the stable causal protocol event envelope first; full event-store/CQRS
   payload serialization remains optional later.
-- Group commit is exposed through the same audit port: `AuditLogPort::append`
-  for immediate single-event writes and `AuditLogPort::append_batch` for
+- Group commit is exposed through the same audit port: `CausalProtocolHistoryPort::append`
+  for immediate single-event writes and `CausalProtocolHistoryPort::append_batch` for
   all-or-nothing ordered batch writes.
 
 ## Execution adapters
@@ -63,7 +63,7 @@ Execution-bearing adapters pass by showing simulation to `GuardedExecutor`:
 Audit and observability adapters certify their own boundaries:
 
 - append-only audit state rejects duplicate/non-monotonic truth writes;
-- observability spans emit only after successful audit append;
+- observability spans emit only after successful protocol-history append;
 - observability failure does not affect correctness.
 
 `docs/product-track/adapter-certification-matrix.json` is the machine-readable

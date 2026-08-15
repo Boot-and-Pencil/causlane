@@ -9,7 +9,7 @@ Complex systems often allow UI state, worker memory, logs, queue state or projec
 
 ## Decision
 
-Only the append-only audit/event journal may be the authority for observed truth.
+Only the append-only causal protocol history may be the authority for observed truth.
 
 Derived surfaces include:
 

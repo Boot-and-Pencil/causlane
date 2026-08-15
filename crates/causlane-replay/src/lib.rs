@@ -2,7 +2,7 @@
 //!
 //! Two responsibilities:
 //! 1. Load a JSON trace (the on-disk `*.trace.json` shape) into typed core
-//!    [`AuditEvent`]s, failing closed on unknown event kinds or malformed plan
+//!    [`CausalProtocolEvent`]s, failing closed on unknown event kinds or malformed plan
 //!    hashes (invariant I-008).
 //! 2. Verify the loaded events against the protocol invariants, scoped per
 //!    `(action_id, plan_hash)` rather than globally:
@@ -24,10 +24,10 @@ use causlane_contracts::{
     ConsequenceProfileDto, TemplateBindings, TemplateResolver,
 };
 use causlane_core::{
-    lease_covers_claim, ActionId, AuditEvent, AuditEventId, AuditEventKind, CapabilityIssuer,
-    DrainSemantics, ExecutionCapability, ExecutionCapabilityError, ImpactSetHash, KernelContracts,
-    LeaseTable, PlanHash, PredicateId, ResourceClaim, ResourceId, Scope, Timestamp,
-    TruthAnchorResolver, WitnessAttestation, WitnessKind,
+    lease_covers_claim, ActionId, CapabilityIssuer, CausalProtocolEvent, CausalProtocolEventId,
+    CausalProtocolEventKind, DrainSemantics, ExecutionCapability, ExecutionCapabilityError,
+    ImpactSetHash, KernelContracts, LeaseTable, PlanHash, PredicateId, ResourceClaim, ResourceId,
+    Scope, Timestamp, TruthAnchorResolver, WitnessAttestation, WitnessKind,
 };
 mod authz;
 pub mod contract;
@@ -174,7 +174,7 @@ impl ReplayTrace {
                 .enumerate()
                 .find(|(_index, event)| {
                     event.action_id.0 == self.action_id
-                        && event.kind == AuditEventKind::ExecutionBarrierLogged
+                        && event.kind == CausalProtocolEventKind::ExecutionBarrierLogged
                 })
                 .ok_or_else(|| ReplayError::MissingRequiredBarrier {
                     action_id: self.action_id.clone(),
@@ -182,7 +182,8 @@ impl ReplayTrace {
 
             let prior_events = events.iter().take(barrier_index);
             let has_dispatch_before_barrier = prior_events.clone().any(|event| {
-                event.action_id.0 == self.action_id && event.kind == AuditEventKind::DispatchLogged
+                event.action_id.0 == self.action_id
+                    && event.kind == CausalProtocolEventKind::DispatchLogged
             });
             if !has_dispatch_before_barrier {
                 return Err(ReplayError::MissingDispatchBeforeBarrier {
@@ -236,7 +237,7 @@ impl ReplayTrace {
 }
 
 fn validate_execution_capabilities(
-    events: &[AuditEvent],
+    events: &[CausalProtocolEvent],
     barrier_index: usize,
     barrier: &causlane_core::ExecutionBarrier,
     attestation_key: Option<&[u8]>,
@@ -244,7 +245,7 @@ fn validate_execution_capabilities(
     for event in events.iter().skip(barrier_index.saturating_add(1)) {
         if event.action_id != barrier.action_id
             || event.plan_hash.as_ref() != Some(&barrier.plan_hash)
-            || event.kind != AuditEventKind::ExecutionStarted
+            || event.kind != CausalProtocolEventKind::ExecutionStarted
         {
             continue;
         }
@@ -274,7 +275,7 @@ fn validate_execution_capabilities(
 fn validate_capability_attestation(
     capability: &ExecutionCapability,
     secret: &[u8],
-    event_id: &AuditEventId,
+    event_id: &CausalProtocolEventId,
 ) -> Result<(), ReplayError> {
     let Some(attestation) = &capability.attestation else {
         return Err(ReplayError::CapabilityMismatch {
@@ -298,7 +299,7 @@ fn validate_capability_attestation(
 fn validate_expected_capability(
     capability: &ExecutionCapability,
     barrier: &causlane_core::ExecutionBarrier,
-    event_id: &AuditEventId,
+    event_id: &CausalProtocolEventId,
 ) -> Result<(), ReplayError> {
     let expected = KernelContracts
         .derive_capability(barrier, capability.op_index)
@@ -321,44 +322,44 @@ fn validate_expected_capability(
 }
 
 fn lease_table_before<'a>(
-    events: impl Iterator<Item = &'a AuditEvent>,
+    events: impl Iterator<Item = &'a CausalProtocolEvent>,
     mergeable_scopes: &HashSet<Scope>,
 ) -> Result<LeaseTable, ReplayError> {
     let mut table = LeaseTable::with_mergeable_scopes(mergeable_scopes.clone());
     for event in events {
         match event.kind {
-            AuditEventKind::ConstraintLeaseGranted => {
+            CausalProtocolEventKind::ConstraintLeaseGranted => {
                 for lease in &event.leases {
                     table.grant(lease.clone(), &KernelContracts)?;
                 }
             }
-            AuditEventKind::ConstraintLeaseReleased => {
+            CausalProtocolEventKind::ConstraintLeaseReleased => {
                 for lease in &event.leases {
                     let _released = table.release(&lease.lease_id)?;
                 }
             }
-            AuditEventKind::ActionAdmitted
-            | AuditEventKind::ActionPlanned
-            | AuditEventKind::DispatchLogged
-            | AuditEventKind::ExecutionBarrierLogged
-            | AuditEventKind::ExecutionStarted
-            | AuditEventKind::ExecutionCompleted
-            | AuditEventKind::ObservedTruthCommitted
-            | AuditEventKind::ProjectionEmitted
-            | AuditEventKind::LifecycleClosed
-            | AuditEventKind::GateApproved
-            | AuditEventKind::GateDenied
-            | AuditEventKind::AuthzDecisionRecorded
-            | AuditEventKind::DrainFenceRequested
-            | AuditEventKind::DrainFenceAcquired
-            | AuditEventKind::ViolationDetected => {}
+            CausalProtocolEventKind::ActionAdmitted
+            | CausalProtocolEventKind::ActionPlanned
+            | CausalProtocolEventKind::DispatchLogged
+            | CausalProtocolEventKind::ExecutionBarrierLogged
+            | CausalProtocolEventKind::ExecutionStarted
+            | CausalProtocolEventKind::ExecutionCompleted
+            | CausalProtocolEventKind::ObservedTruthCommitted
+            | CausalProtocolEventKind::ProjectionEmitted
+            | CausalProtocolEventKind::LifecycleClosed
+            | CausalProtocolEventKind::GateApproved
+            | CausalProtocolEventKind::GateDenied
+            | CausalProtocolEventKind::AuthzDecisionRecorded
+            | CausalProtocolEventKind::DrainFenceRequested
+            | CausalProtocolEventKind::DrainFenceAcquired
+            | CausalProtocolEventKind::ViolationDetected => {}
         }
     }
     Ok(table)
 }
 
 fn validate_typed_witnesses<'a>(
-    prior_events: impl Iterator<Item = &'a AuditEvent>,
+    prior_events: impl Iterator<Item = &'a CausalProtocolEvent>,
     barrier: &causlane_core::ExecutionBarrier,
     predicate: &causlane_contracts::CompiledPredicate,
     impact_set_hash: &ImpactSetHash,
@@ -425,26 +426,25 @@ fn validate_typed_witnesses<'a>(
     Ok(())
 }
 
-fn witness_kind_for_event(kind: AuditEventKind) -> WitnessKind {
+fn witness_kind_for_event(kind: CausalProtocolEventKind) -> WitnessKind {
     match kind {
-        AuditEventKind::ObservedTruthCommitted => WitnessKind::ObservedFact,
-        AuditEventKind::GateApproved => WitnessKind::GateApproval,
-        AuditEventKind::ConstraintLeaseGranted | AuditEventKind::ConstraintLeaseReleased => {
-            WitnessKind::ConstraintDecision
-        }
-        AuditEventKind::AuthzDecisionRecorded => WitnessKind::AuthzDecision,
-        AuditEventKind::ActionAdmitted
-        | AuditEventKind::ActionPlanned
-        | AuditEventKind::DispatchLogged
-        | AuditEventKind::ExecutionBarrierLogged
-        | AuditEventKind::ExecutionStarted
-        | AuditEventKind::ExecutionCompleted
-        | AuditEventKind::ProjectionEmitted
-        | AuditEventKind::LifecycleClosed
-        | AuditEventKind::GateDenied
-        | AuditEventKind::DrainFenceRequested
-        | AuditEventKind::DrainFenceAcquired
-        | AuditEventKind::ViolationDetected => WitnessKind::ExternalEvidence,
+        CausalProtocolEventKind::ObservedTruthCommitted => WitnessKind::ObservedFact,
+        CausalProtocolEventKind::GateApproved => WitnessKind::GateApproval,
+        CausalProtocolEventKind::ConstraintLeaseGranted
+        | CausalProtocolEventKind::ConstraintLeaseReleased => WitnessKind::ConstraintDecision,
+        CausalProtocolEventKind::AuthzDecisionRecorded => WitnessKind::AuthzDecision,
+        CausalProtocolEventKind::ActionAdmitted
+        | CausalProtocolEventKind::ActionPlanned
+        | CausalProtocolEventKind::DispatchLogged
+        | CausalProtocolEventKind::ExecutionBarrierLogged
+        | CausalProtocolEventKind::ExecutionStarted
+        | CausalProtocolEventKind::ExecutionCompleted
+        | CausalProtocolEventKind::ProjectionEmitted
+        | CausalProtocolEventKind::LifecycleClosed
+        | CausalProtocolEventKind::GateDenied
+        | CausalProtocolEventKind::DrainFenceRequested
+        | CausalProtocolEventKind::DrainFenceAcquired
+        | CausalProtocolEventKind::ViolationDetected => WitnessKind::ExternalEvidence,
     }
 }
 
@@ -506,12 +506,12 @@ fn resolve_mergeable_scopes(
         })
 }
 
-/// Verify a sequence of audit events against the protocol invariants.
+/// Verify a sequence of causal protocol events against the protocol invariants.
 ///
 /// # Errors
 /// Returns the first [`ReplayError`] encountered (the trace is invalid).
 #[must_use = "the verification result must be used"]
-pub fn verify_events(events: &[AuditEvent]) -> Result<(), ReplayError> {
+pub fn verify_events(events: &[CausalProtocolEvent]) -> Result<(), ReplayError> {
     verify_events_with_mergeable(events, &HashSet::new())
 }
 
@@ -520,11 +520,11 @@ pub fn verify_events(events: &[AuditEvent]) -> Result<(), ReplayError> {
 /// bundle-aware caller). Fail-closed: an empty set forbids all overlaps.
 #[allow(clippy::too_many_lines)]
 pub(crate) fn verify_events_with_mergeable(
-    events: &[AuditEvent],
+    events: &[CausalProtocolEvent],
     mergeable_scopes: &HashSet<Scope>,
 ) -> Result<(), ReplayError> {
     let mut state: HashMap<(ActionId, Option<PlanHash>), KeyState> = HashMap::new();
-    let mut observed: HashMap<AuditEventId, ObservedTruth> = HashMap::new();
+    let mut observed: HashMap<CausalProtocolEventId, ObservedTruth> = HashMap::new();
     let mut action_plan: HashMap<ActionId, PlanHash> = HashMap::new();
     let mut leases = LeaseTable::with_mergeable_scopes(mergeable_scopes.clone());
     let mut closed: HashSet<ActionId> = HashSet::new();
@@ -556,10 +556,10 @@ pub(crate) fn verify_events_with_mergeable(
         }
 
         match event.kind {
-            AuditEventKind::ExecutionBarrierLogged => {
+            CausalProtocolEventKind::ExecutionBarrierLogged => {
                 state.entry((action, plan)).or_default().barrier = true;
             }
-            AuditEventKind::ExecutionStarted => {
+            CausalProtocolEventKind::ExecutionStarted => {
                 let st = state.entry((action.clone(), plan.clone())).or_default();
                 if !st.barrier {
                     return Err(ReplayError::ExecutionWithoutBarrier {
@@ -569,7 +569,7 @@ pub(crate) fn verify_events_with_mergeable(
                 }
                 st.executed = true;
             }
-            AuditEventKind::ObservedTruthCommitted => {
+            CausalProtocolEventKind::ObservedTruthCommitted => {
                 let st = state.entry((action.clone(), plan.clone())).or_default();
                 if !st.executed {
                     return Err(ReplayError::ObservedWithoutExecution {
@@ -592,7 +592,7 @@ pub(crate) fn verify_events_with_mergeable(
                     );
                 }
             }
-            AuditEventKind::ProjectionEmitted => {
+            CausalProtocolEventKind::ProjectionEmitted => {
                 if event.anchors.is_empty() {
                     return Err(ReplayError::ProjectionWithoutAnchor {
                         event_id: event.event_id.0.clone(),
@@ -634,17 +634,17 @@ pub(crate) fn verify_events_with_mergeable(
                     }
                 }
             }
-            AuditEventKind::ConstraintLeaseGranted => {
+            CausalProtocolEventKind::ConstraintLeaseGranted => {
                 for lease in &event.leases {
                     leases.grant(lease.clone(), &KernelContracts)?;
                 }
             }
-            AuditEventKind::ConstraintLeaseReleased => {
+            CausalProtocolEventKind::ConstraintLeaseReleased => {
                 for lease in &event.leases {
                     let _released = leases.release(&lease.lease_id)?;
                 }
             }
-            AuditEventKind::DrainFenceAcquired => {
+            CausalProtocolEventKind::DrainFenceAcquired => {
                 // I-007 (expiry-aware): a drain fence may be acquired only when no
                 // lease is still actively overlapping the fence scope AND not yet
                 // expired at the fence's acquisition time. Routed through the single
@@ -662,19 +662,19 @@ pub(crate) fn verify_events_with_mergeable(
                     }
                 }
             }
-            AuditEventKind::ActionAdmitted
-            | AuditEventKind::ActionPlanned
-            | AuditEventKind::DispatchLogged
-            | AuditEventKind::ExecutionCompleted
-            | AuditEventKind::LifecycleClosed
-            | AuditEventKind::GateApproved
-            | AuditEventKind::GateDenied
-            | AuditEventKind::AuthzDecisionRecorded
-            | AuditEventKind::DrainFenceRequested
-            | AuditEventKind::ViolationDetected => {}
+            CausalProtocolEventKind::ActionAdmitted
+            | CausalProtocolEventKind::ActionPlanned
+            | CausalProtocolEventKind::DispatchLogged
+            | CausalProtocolEventKind::ExecutionCompleted
+            | CausalProtocolEventKind::LifecycleClosed
+            | CausalProtocolEventKind::GateApproved
+            | CausalProtocolEventKind::GateDenied
+            | CausalProtocolEventKind::AuthzDecisionRecorded
+            | CausalProtocolEventKind::DrainFenceRequested
+            | CausalProtocolEventKind::ViolationDetected => {}
         }
 
-        if event.kind == AuditEventKind::LifecycleClosed {
+        if event.kind == CausalProtocolEventKind::LifecycleClosed {
             let _existing = closed.insert(event.action_id.clone());
         }
     }
@@ -682,7 +682,7 @@ pub(crate) fn verify_events_with_mergeable(
     Ok(())
 }
 
-/// Reconcile the deprecated legacy `AuditEvent.witnesses` list against the typed
+/// Reconcile the deprecated legacy `CausalProtocolEvent.witnesses` list against the typed
 /// barrier payload (P0-006). The typed `ExecutionBarrier.witnesses` is the
 /// authoritative evidence (validated by [`validate_typed_witnesses`], which checks
 /// prior-ness, binding, scope and producer attestation). The legacy list is a
@@ -691,7 +691,7 @@ pub(crate) fn verify_events_with_mergeable(
 /// witnesses are never sufficient on their own. An empty legacy list is the
 /// canonical typed-only path.
 fn validate_legacy_witness_consistency(
-    barrier: &AuditEvent,
+    barrier: &CausalProtocolEvent,
     barrier_payload: &causlane_core::ExecutionBarrier,
 ) -> Result<(), ReplayError> {
     if barrier.witnesses.is_empty() {

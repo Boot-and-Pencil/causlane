@@ -40,7 +40,7 @@ projection_policy.
 
 The digest MUST include: `action_id`; predicate + version; bundle hash/version; planner fingerprint/version; subject and circumstance fingerprints; route; consequence profile; ordered ops; effect signatures; planned impacts; required witnesses; required claims; barrier/projection policy. If a constraint snapshot/fact influences COMPILE (not just dispatch), its stable reference `snapshot_id` + `snapshot_hash` MUST be included (see ADR-0005).
 
-The digest MUST NOT include: the `plan_hash` itself; audit event ids; timestamps/wall-clock; leases actually granted; witness event ids actually selected; observed results; runtime route rationale text; logs/telemetry; worker ids; a dispatch-only constraint snapshot.
+The digest MUST NOT include: the `plan_hash` itself; causal protocol event ids; timestamps/wall-clock; leases actually granted; witness event ids actually selected; observed results; runtime route rationale text; logs/telemetry; worker ids; a dispatch-only constraint snapshot.
 
 Order of operations MUST be:
 

@@ -40,12 +40,12 @@ public `causlane` and `causlane-runtime` APIs only.
 |---|---|---|---|
 | Synthetic examples | multi-op guarded execution, audit trace projection and guarded dashboard projection redaction | Current public runtime composition APIs are usable without private helpers or API workarounds. | `accepted_for_freeze` |
 | Property/fuzz | runtime negative controls and 15-minute dispatcher fuzz long-run with no crash or reproducer | No API shape change required from current findings. | `accepted_for_freeze` |
-| Performance scale | 512 guarded ops, 1,028 audit events and one projection read measured at 1.4399 ms mean | No latency threshold or API shape change is introduced by this run. | `accepted_for_freeze` |
+| Performance scale | 512 guarded ops, 1,028 causal protocol events and one projection read measured at 1.4399 ms mean | No latency threshold or API shape change is introduced by this run. | `accepted_for_freeze` |
 
 ## Affected invariants
 
 No invariant semantics change. The examples and classification exercise the
-existing authorization, capability spend, audit append, trace projection and
+existing authorization, capability spend, protocol-history append, trace projection and
 projection redaction semantics without replacing their authorities.
 
 ## Affected formal models
@@ -69,7 +69,7 @@ Verus or Lean artifact changes.
 | expired lease-derived capability | runtime example tests | capability spend refused | pass |
 | missing projection authorization | runtime example tests | projection read denied | pass |
 | wrong projection actor | runtime example tests | other actor's allow is not reusable | pass |
-| duplicate audit event id | runtime example tests | duplicate rejected and no extra span emitted | pass |
+| duplicate causal protocol event id | runtime example tests | duplicate rejected and no extra span emitted | pass |
 | runtime fuzz long-run | dispatcher fuzz | no crash/reproducer artifacts | pass |
 | runtime performance run | dispatcher Criterion | evidence recorded, no threshold claim | pass |
 

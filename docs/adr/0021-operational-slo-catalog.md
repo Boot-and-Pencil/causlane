@@ -7,7 +7,7 @@ Accepted.
 ## Context
 
 M09.1 established benchmark coverage without pass/fail thresholds. M09.2-M09.5
-then stabilized partition admission, batched audit append, backpressure policy
+then stabilized partition admission, batched protocol-history append, backpressure policy
 and plan/template cache identity. M09.6 needs a durable operational contract for
 what must be measured without making deployment-specific latency promises in the
 repo.

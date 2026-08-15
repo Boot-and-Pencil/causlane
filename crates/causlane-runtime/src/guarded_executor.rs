@@ -249,8 +249,8 @@ mod tests {
         GuardedExecutor, SpendError,
     };
     use causlane_core::{
-        ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, AuthzPolicy,
-        CapabilitySpendRefusal, ClaimMode, ConstraintEpoch, EffectSignature, ExecutionBarrier,
+        ActionId, AuthzDecision, AuthzDecisionRef, AuthzPolicy, CapabilitySpendRefusal,
+        CausalProtocolEventId, ClaimMode, ConstraintEpoch, EffectSignature, ExecutionBarrier,
         ExecutionCapability, ExecutorPort, ImpactHardness, ImpactSetHash, LeaseId, LeaseRef, Op,
         PlanHash, PlanHashError, ResourceId, Scope, Timestamp,
     };
@@ -284,7 +284,7 @@ mod tests {
 
     fn barrier(plan: PlanHash) -> ExecutionBarrier {
         ExecutionBarrier {
-            barrier_id: AuditEventId("barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("barrier".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan.clone(),
             op_indexes: vec![0],
@@ -304,7 +304,7 @@ mod tests {
                 holder_op_index: Some(0),
                 epoch: ConstraintEpoch(0),
                 expires_at: None,
-                lease_event_id: AuditEventId("evt_leases".to_owned()),
+                lease_event_id: CausalProtocolEventId("evt_leases".to_owned()),
             }],
             authz_decision_refs: Vec::new(),
             constraint_snapshot_id: None,
@@ -313,7 +313,7 @@ mod tests {
 
     fn allow(plan: PlanHash) -> AuthzDecisionRef {
         AuthzDecisionRef {
-            decision_event_id: AuditEventId("d".to_owned()),
+            decision_event_id: CausalProtocolEventId("d".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan,
             predicate_id: "release.promote".to_owned(),

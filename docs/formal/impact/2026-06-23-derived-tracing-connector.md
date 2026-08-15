@@ -18,23 +18,23 @@ crates/causlane-core/src/domain/tracing.rs
 
 ## Summary
 
-M07.3 adds a typed `AuditEvent -> TraceSpan` projection in `causlane-core` and a
-runtime adapter that emits one span after a successful `AuditLogPort::append`.
-The audit/event journal remains the only authority for observed truth. Spans are
+M07.3 adds a typed `CausalProtocolEvent -> TraceSpan` projection in `causlane-core` and a
+runtime adapter that emits one span after a successful `CausalProtocolHistoryPort::append`.
+The causal protocol history remains the only authority for observed truth. Spans are
 diagnostic projections over already-recorded events and are not replay inputs.
 
 The change deliberately keeps the mapping in one core function,
-`trace_span_from_audit_event`, so runtime sinks and future exporters do not
+`trace_span_from_causal_protocol_event`, so runtime sinks and future exporters do not
 reclassify event semantics. The runtime wrapper is fail-open for telemetry sink
-errors and fail-closed for audit append errors: if the audit append fails, no
+errors and fail-closed for protocol-history append errors: if the protocol-history append fails, no
 span is recorded.
 
 ## Affected invariants
 
 ```text
-I-003: unchanged — projection truth anchors are still validated from audit events,
+I-003: unchanged — projection truth anchors are still validated from causal protocol events,
        not from trace spans.
-I-008: unchanged — lifecycle authority remains the audit event stream.
+I-008: unchanged — lifecycle authority remains the causal protocol event stream.
 ADR-0014 / TD-017: observability is derived, not truth; now backed by a typed
        projection and negative runtime controls.
 new invariant ids: none
@@ -50,7 +50,7 @@ changes. Tracing spans are not consumed by replay/formal lanes.
 ## Affected protocols
 
 ```text
-PR-observability-derived: tracing/logging projections are derived from audit events.
+PR-observability-derived: tracing/logging projections are derived from causal protocol events.
 No dispatch, barrier, lease, authz, lifecycle or replay protocol semantics change.
 ```
 
@@ -61,17 +61,17 @@ No dispatch, barrier, lease, authz, lifecycle or replay protocol semantics chang
 - Replay trace/scenario fields added/changed/removed: none.
 - Receipt/coverage fields added/changed/removed: none.
 - Public Rust API added: `TraceSpan`, `TraceSpanKind`, `TraceAttribute`,
-  `TraceSpanId`, `trace_span_from_audit_event`,
-  `trace_span_kind_from_audit_event_kind`, `ALL_AUDIT_EVENT_KINDS`.
+  `TraceSpanId`, `trace_span_from_causal_protocol_event`,
+  `trace_span_kind_from_causal_protocol_event_kind`, `ALL_CAUSAL_PROTOCOL_EVENT_KINDS`.
 
 ## Required negative controls
 
 | Scenario | Expected lane | Expected check | Status |
 |---|---|---|---|
-| every audit event kind maps through the single projector | core unit | span kind is total over `ALL_AUDIT_EVENT_KINDS` | new |
+| every causal protocol event kind maps through the single projector | core unit | span kind is total over `ALL_CAUSAL_PROTOCOL_EVENT_KINDS` | new |
 | optional audit fields become typed attributes only when present | core unit | no empty-field attributes are synthesized | new |
-| audit append failure | runtime unit | no span is recorded | new |
-| trace sink failure | runtime unit | audit append still succeeds | new |
+| protocol-history append failure | runtime unit | no span is recorded | new |
+| trace sink failure | runtime unit | protocol-history append still succeeds | new |
 
 ## Required proof/model changes
 
@@ -88,7 +88,7 @@ No dispatch, barrier, lease, authz, lifecycle or replay protocol semantics chang
 ## Not applicable lanes
 
 Replay and generated formal lanes do not consume spans. They continue to consume
-the audit/event trace and bundle-derived artifacts. This change adds a derived
+the causal protocol trace and bundle-derived artifacts. This change adds a derived
 observability view over that authority, so unit tests are the applicable lane
 for the new projection and runtime sink behavior.
 

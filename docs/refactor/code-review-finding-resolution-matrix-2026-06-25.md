@@ -132,7 +132,7 @@ Untriaged findings block PUB5.
 
 These may be deferred only with explicit release-note disclosure:
 
-- L5/L6: audit retention/migration story, if SQL audit adapters are documented as experimental.
+- L5/L6: audit retention/migration story, if SQL causal protocol history adapters are documented as experimental.
 - L10/L14: Verus/Lean fidelity nuance, if formal claims are narrowed to “abstract lane” in public docs.
 - L15: MSRV CI gate, if README says MSRV is declared but not yet CI-enforced.
 - N1-N8: nits, except where they are cheap and adjacent to a touched module.

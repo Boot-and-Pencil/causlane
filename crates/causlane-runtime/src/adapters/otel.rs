@@ -453,8 +453,8 @@ mod tests {
     };
     use crate::adapters::tracing::TraceSinkPort;
     use causlane_core::{
-        ActionId, AuditEventId, AuditEventKind, AuthzDecision, CorrelationId, ImpactSetHash,
-        PlanHash, TraceAttribute, TraceSpan, TraceSpanId, TraceSpanKind,
+        ActionId, AuthzDecision, CausalProtocolEventId, CausalProtocolEventKind, CorrelationId,
+        ImpactSetHash, PlanHash, TraceAttribute, TraceSpan, TraceSpanId, TraceSpanKind,
     };
     use opentelemetry::{logs::AnyValue, trace::Status, Key, Value};
     use opentelemetry_sdk::{
@@ -487,8 +487,8 @@ mod tests {
             parent_span_id: Some(TraceSpanId("audit:parent-1".to_owned())),
             trace_id: CorrelationId("corr-1".to_owned()),
             action_id: ActionId("action-1".to_owned()),
-            event_id: AuditEventId("event-1".to_owned()),
-            event_kind: AuditEventKind::AuthzDecisionRecorded,
+            event_id: CausalProtocolEventId("event-1".to_owned()),
+            event_kind: CausalProtocolEventKind::AuthzDecisionRecorded,
             span_kind: kind,
             plan_hash: Some(plan_hash),
             occurred_at: Some(causlane_core::Timestamp(123)),

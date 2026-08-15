@@ -43,7 +43,7 @@ bypass spend-time admission.
 ## Affected invariants
 
 ```text
-I-003: unchanged - projection truth remains audit/event anchored.
+I-003: unchanged - projection truth remains causal protocol anchored.
 I-007: unchanged - drain/fence semantics remain in the kernel/formal lanes.
 I-008: unchanged - lifecycle authority remains audit/replay input.
 ADR-0011: unchanged - authz remains deny-by-default before execution.

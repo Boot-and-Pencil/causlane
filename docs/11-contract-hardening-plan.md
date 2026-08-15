@@ -36,7 +36,7 @@ started; **pending** = specified by an ADR but not yet built.
 |---|---|---|---|
 | TZ-001 | Bundle format v0.1 (`RegistryManifest` → `CompiledDispatchBundle` + `bundle_hash`) | P0 | **done** — `causlane-contracts::{registry,bundle}`, parses `release_promote.registry.yaml` |
 | TZ-002 | Canonical serialization + validated `PlanHash` + `PlanHashMaterial` + `impact_set_hash` | P0 | **done** — `causlane-contracts::plan_hash`; fixtures carry real hashes; `sha256:TODO` rejected |
-| TZ-003 | Event model v0.1 (`AuditEvent` + anchors + leases + correlation/causation + impact-set hash) | P0 | **done** — `causlane-core::domain::audit` |
+| TZ-003 | Event model v0.1 (`CausalProtocolEvent` + anchors + leases + correlation/causation + impact-set hash) | P0 | **done** — `causlane-core::domain::protocol_history` |
 | TZ-004 | Witness model + selector validation (`WitnessRef`, `RequiredWitnessSpec`, resolver) | P0 | **done** — typed `WitnessRef`/binding plus exact subject/circumstance template resolver; bundle replay checks prior evidence, kind, fact, scope and action/plan/impact binding |
 | TZ-005 | Anchor model (`TruthAnchor`, projection policy) | P0 | **done** — `TruthAnchor` in core; replay uses anchors, not `witnesses.is_empty()` |
 | TZ-006 | Lease + barrier mechanics (`LeaseRef`, epoch, `ExecutionBarrier`, capability) | P0 | **done for MVP** — typed `ExecutionBarrier`, `ExecutionCapability`, `LeaseTable`, lease grant/release and barrier claim coverage checks landed |

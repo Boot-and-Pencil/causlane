@@ -34,8 +34,8 @@ class is revealable.
 ## Affected invariants
 
 ```text
-I-003: unchanged — projection truth anchors are still validated from audit events.
-I-008: unchanged — lifecycle authority remains the audit event stream.
+I-003: unchanged — projection truth anchors are still validated from causal protocol events.
+I-008: unchanged — lifecycle authority remains the causal protocol event stream.
 ADR-0011/ADR-0014: unchanged — authz remains deny-by-default and observability
        outputs are derived, not authority.
 new invariant ids: none

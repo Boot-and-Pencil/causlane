@@ -19,7 +19,7 @@ pub struct ContentHash(pub String);
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ImpactSetHash(pub String);
 
-/// Hash of a single canonicalized audit event, used to pin truth anchors.
+/// Hash of a single canonicalized causal protocol event, used to pin truth anchors.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct EventHash(pub String);
 

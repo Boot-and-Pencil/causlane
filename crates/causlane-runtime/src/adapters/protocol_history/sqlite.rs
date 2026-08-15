@@ -1,14 +1,15 @@
-//! `SQLite` audit adapter.
+//! `SQLite` causal protocol history adapter.
 
-use causlane_core::{AuditEvent, AuditEventId, AuditLogPort};
+use causlane_core::{CausalProtocolEvent, CausalProtocolEventId, CausalProtocolHistoryPort};
 use rusqlite::{params, Connection, Transaction};
 
 use super::{
-    prepared_event_ids, AuditAdapterError, AuditAppendState, AuditEnvelope, PreparedAuditEvent,
+    prepared_event_ids, CausalProtocolEventEnvelope, CausalProtocolHistoryAdapterError,
+    CausalProtocolHistoryAppendState, PreparedCausalProtocolEvent,
 };
 
-/// `SQLite` DDL for the append-only audit envelope table.
-pub const SQLITE_CREATE_AUDIT_EVENTS: &str = r"
+/// `SQLite` DDL for the append-only causal protocol event envelope table.
+pub const SQLITE_CREATE_CAUSAL_PROTOCOL_EVENTS: &str = r"
 CREATE TABLE IF NOT EXISTS causlane_audit_events (
     event_index INTEGER NOT NULL PRIMARY KEY,
     event_id TEXT NOT NULL UNIQUE,
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS causlane_audit_events (
 );
 ";
 
-const SQLITE_INSERT_AUDIT_EVENT: &str = r"
+const SQLITE_INSERT_CAUSAL_PROTOCOL_EVENT: &str = r"
 INSERT INTO causlane_audit_events (
     event_index,
     event_id,
@@ -44,41 +45,44 @@ FROM causlane_audit_events
 ORDER BY event_index ASC;
 ";
 
-/// SQLite-backed append-only [`AuditLogPort`] adapter.
-pub struct SqliteAuditLog {
+/// SQLite-backed append-only [`CausalProtocolHistoryPort`] adapter.
+pub struct SqliteCausalProtocolHistory {
     connection: Connection,
-    state: AuditAppendState,
+    state: CausalProtocolHistoryAppendState,
 }
 
-impl SqliteAuditLog {
-    /// Open an in-memory `SQLite` audit log.
-    #[must_use = "opening the SQLite audit log can fail"]
-    pub fn open_in_memory() -> Result<Self, AuditAdapterError> {
+impl SqliteCausalProtocolHistory {
+    /// Open an in-memory `SQLite` causal protocol history.
+    #[must_use = "opening the SQLite causal protocol history can fail"]
+    pub fn open_in_memory() -> Result<Self, CausalProtocolHistoryAdapterError> {
         let connection = Connection::open_in_memory().map_err(sqlite_error)?;
         Self::new(connection)
     }
 
     /// Create an adapter around an existing `SQLite` connection.
-    #[must_use = "creating the SQLite audit log can fail"]
-    pub fn new(connection: Connection) -> Result<Self, AuditAdapterError> {
+    #[must_use = "creating the SQLite causal protocol history can fail"]
+    pub fn new(connection: Connection) -> Result<Self, CausalProtocolHistoryAdapterError> {
         Self::ensure_schema(&connection)?;
         let state = load_state(&connection)?;
         Ok(Self { connection, state })
     }
 
-    /// Ensure the audit envelope schema exists.
+    /// Ensure the causal protocol event envelope schema exists.
     #[must_use = "schema creation failures must be handled"]
-    pub fn ensure_schema(connection: &Connection) -> Result<(), AuditAdapterError> {
+    pub fn ensure_schema(connection: &Connection) -> Result<(), CausalProtocolHistoryAdapterError> {
         connection
-            .execute_batch(SQLITE_CREATE_AUDIT_EVENTS)
+            .execute_batch(SQLITE_CREATE_CAUSAL_PROTOCOL_EVENTS)
             .map_err(sqlite_error)
     }
 
     /// Append a batch transactionally.
-    #[must_use = "audit append failures must be handled"]
-    pub fn append_batch<I>(&mut self, events: I) -> Result<Vec<AuditEventId>, AuditAdapterError>
+    #[must_use = "protocol-history append failures must be handled"]
+    pub fn append_batch<I>(
+        &mut self,
+        events: I,
+    ) -> Result<Vec<CausalProtocolEventId>, CausalProtocolHistoryAdapterError>
     where
-        I: IntoIterator<Item = AuditEvent>,
+        I: IntoIterator<Item = CausalProtocolEvent>,
     {
         let (state, prepared) = self.state.prepare_batch(events)?;
         insert_batch(&mut self.connection, &prepared)?;
@@ -106,28 +110,31 @@ impl SqliteAuditLog {
     }
 }
 
-impl AuditLogPort for SqliteAuditLog {
-    type Error = AuditAdapterError;
+impl CausalProtocolHistoryPort for SqliteCausalProtocolHistory {
+    type Error = CausalProtocolHistoryAdapterError;
 
-    fn append_batch(&mut self, events: Vec<AuditEvent>) -> Result<Vec<AuditEventId>, Self::Error> {
-        SqliteAuditLog::append_batch(self, events)
+    fn append_batch(
+        &mut self,
+        events: Vec<CausalProtocolEvent>,
+    ) -> Result<Vec<CausalProtocolEventId>, Self::Error> {
+        SqliteCausalProtocolHistory::append_batch(self, events)
     }
 
-    fn append(&mut self, event: AuditEvent) -> Result<AuditEventId, Self::Error> {
-        let mut event_ids = <Self as AuditLogPort>::append_batch(self, vec![event])?;
-        event_ids
-            .pop()
-            .ok_or_else(|| AuditAdapterError::storage("sqlite", "append produced no event id"))
+    fn append(&mut self, event: CausalProtocolEvent) -> Result<CausalProtocolEventId, Self::Error> {
+        let mut event_ids = <Self as CausalProtocolHistoryPort>::append_batch(self, vec![event])?;
+        event_ids.pop().ok_or_else(|| {
+            CausalProtocolHistoryAdapterError::storage("sqlite", "append produced no event id")
+        })
     }
 }
 
 fn insert_batch(
     connection: &mut Connection,
-    prepared: &[PreparedAuditEvent],
-) -> Result<(), AuditAdapterError> {
+    prepared: &[PreparedCausalProtocolEvent],
+) -> Result<(), CausalProtocolHistoryAdapterError> {
     let transaction = connection.transaction().map_err(sqlite_error)?;
     for prepared_event in prepared {
-        let envelope = AuditEnvelope::from_event(&prepared_event.event)?;
+        let envelope = CausalProtocolEventEnvelope::from_event(&prepared_event.event)?;
         insert_envelope(&transaction, &envelope)?;
     }
     transaction.commit().map_err(sqlite_error)
@@ -135,13 +142,13 @@ fn insert_batch(
 
 fn insert_envelope(
     transaction: &Transaction<'_>,
-    envelope: &AuditEnvelope,
-) -> Result<(), AuditAdapterError> {
+    envelope: &CausalProtocolEventEnvelope,
+) -> Result<(), CausalProtocolHistoryAdapterError> {
     let event_index = sqlite_i64(envelope.event_index)?;
     let occurred_at = envelope.occurred_at.map(sqlite_i64).transpose()?;
     transaction
         .execute(
-            SQLITE_INSERT_AUDIT_EVENT,
+            SQLITE_INSERT_CAUSAL_PROTOCOL_EVENT,
             params![
                 event_index,
                 envelope.event_id,
@@ -159,59 +166,70 @@ fn insert_envelope(
         .map_err(sqlite_error)
 }
 
-fn load_state(connection: &Connection) -> Result<AuditAppendState, AuditAdapterError> {
+fn load_state(
+    connection: &Connection,
+) -> Result<CausalProtocolHistoryAppendState, CausalProtocolHistoryAdapterError> {
     let mut statement = connection
         .prepare(SQLITE_SELECT_AUDIT_STATE)
         .map_err(sqlite_error)?;
     let mut rows = statement.query([]).map_err(sqlite_error)?;
-    let mut state = AuditAppendState::default();
+    let mut state = CausalProtocolHistoryAppendState::default();
 
     while let Some(row) = rows.next().map_err(sqlite_error)? {
         let event_index = sqlite_u64(row.get::<_, i64>(0).map_err(sqlite_error)?)?;
-        let event_id = AuditEventId(row.get::<_, String>(1).map_err(sqlite_error)?);
+        let event_id = CausalProtocolEventId(row.get::<_, String>(1).map_err(sqlite_error)?);
         state.record_loaded(event_id, event_index)?;
     }
 
     Ok(state)
 }
 
-fn sqlite_i64(value: u64) -> Result<i64, AuditAdapterError> {
+fn sqlite_i64(value: u64) -> Result<i64, CausalProtocolHistoryAdapterError> {
     i64::try_from(value).map_err(|_error| {
-        AuditAdapterError::storage("sqlite", format!("event_index {value} exceeds i64"))
+        CausalProtocolHistoryAdapterError::storage(
+            "sqlite",
+            format!("event_index {value} exceeds i64"),
+        )
     })
 }
 
-fn sqlite_u64(value: i64) -> Result<u64, AuditAdapterError> {
+fn sqlite_u64(value: i64) -> Result<u64, CausalProtocolHistoryAdapterError> {
     u64::try_from(value).map_err(|_error| {
-        AuditAdapterError::storage("sqlite", format!("negative event_index {value}"))
+        CausalProtocolHistoryAdapterError::storage(
+            "sqlite",
+            format!("negative event_index {value}"),
+        )
     })
 }
 
-fn sqlite_error(error: rusqlite::Error) -> AuditAdapterError {
-    AuditAdapterError::storage("sqlite", error)
+fn sqlite_error(error: rusqlite::Error) -> CausalProtocolHistoryAdapterError {
+    CausalProtocolHistoryAdapterError::storage("sqlite", error)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{SqliteAuditLog, SQLITE_CREATE_AUDIT_EVENTS};
-    use crate::adapters::audit::AuditAdapterError;
-    use causlane_core::{ActionId, AuditEvent, AuditEventId, AuditEventKind, AuditLogPort};
+    use super::{SqliteCausalProtocolHistory, SQLITE_CREATE_CAUSAL_PROTOCOL_EVENTS};
+    use crate::adapters::protocol_history::CausalProtocolHistoryAdapterError;
+    use causlane_core::{
+        ActionId, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind,
+        CausalProtocolHistoryPort,
+    };
 
-    fn event(id: &str) -> AuditEvent {
-        event_kind(id, AuditEventKind::ExecutionStarted)
+    fn event(id: &str) -> CausalProtocolEvent {
+        event_kind(id, CausalProtocolEventKind::ExecutionStarted)
     }
 
-    fn event_kind(id: &str, kind: AuditEventKind) -> AuditEvent {
-        AuditEvent::new(
-            AuditEventId(id.to_owned()),
+    fn event_kind(id: &str, kind: CausalProtocolEventKind) -> CausalProtocolEvent {
+        CausalProtocolEvent::new(
+            CausalProtocolEventId(id.to_owned()),
             ActionId("action-1".to_owned()),
             kind,
         )
     }
 
     #[test]
-    fn creates_schema_for_in_memory_sqlite() -> Result<(), AuditAdapterError> {
-        let audit = SqliteAuditLog::open_in_memory()?;
+    fn creates_schema_for_in_memory_sqlite() -> Result<(), CausalProtocolHistoryAdapterError> {
+        let audit = SqliteCausalProtocolHistory::open_in_memory()?;
         let table_count: i64 = audit
             .connection()
             .query_row(
@@ -222,17 +240,17 @@ mod tests {
             .map_err(super::sqlite_error)?;
 
         assert_eq!(table_count, 1);
-        assert!(SQLITE_CREATE_AUDIT_EVENTS.contains("event_id TEXT NOT NULL UNIQUE"));
+        assert!(SQLITE_CREATE_CAUSAL_PROTOCOL_EVENTS.contains("event_id TEXT NOT NULL UNIQUE"));
         Ok(())
     }
 
     #[test]
-    fn append_persists_envelope_row() -> Result<(), AuditAdapterError> {
-        let mut audit = SqliteAuditLog::open_in_memory()?;
+    fn append_persists_envelope_row() -> Result<(), CausalProtocolHistoryAdapterError> {
+        let mut audit = SqliteCausalProtocolHistory::open_in_memory()?;
 
         assert_eq!(
             audit.append(event("event-1"))?,
-            AuditEventId("event-1".to_owned())
+            CausalProtocolEventId("event-1".to_owned())
         );
 
         let row: (i64, String, String, String) = audit
@@ -257,30 +275,30 @@ mod tests {
     }
 
     #[test]
-    fn duplicate_event_id_fails() -> Result<(), AuditAdapterError> {
-        let mut audit = SqliteAuditLog::open_in_memory()?;
+    fn duplicate_event_id_fails() -> Result<(), CausalProtocolHistoryAdapterError> {
+        let mut audit = SqliteCausalProtocolHistory::open_in_memory()?;
         assert_eq!(
             audit.append(event("event-1"))?,
-            AuditEventId("event-1".to_owned())
+            CausalProtocolEventId("event-1".to_owned())
         );
 
         assert_eq!(
             audit.append(event("event-1")),
-            Err(AuditAdapterError::DuplicateEventId {
-                event_id: AuditEventId("event-1".to_owned())
+            Err(CausalProtocolHistoryAdapterError::DuplicateEventId {
+                event_id: CausalProtocolEventId("event-1".to_owned())
             })
         );
         Ok(())
     }
 
     #[test]
-    fn batch_rolls_back_on_duplicate() -> Result<(), AuditAdapterError> {
-        let mut audit = SqliteAuditLog::open_in_memory()?;
+    fn batch_rolls_back_on_duplicate() -> Result<(), CausalProtocolHistoryAdapterError> {
+        let mut audit = SqliteCausalProtocolHistory::open_in_memory()?;
 
         assert_eq!(
             audit.append_batch([event("event-1"), event("event-1")]),
-            Err(AuditAdapterError::DuplicateEventId {
-                event_id: AuditEventId("event-1".to_owned())
+            Err(CausalProtocolHistoryAdapterError::DuplicateEventId {
+                event_id: CausalProtocolEventId("event-1".to_owned())
             })
         );
 
@@ -294,27 +312,28 @@ mod tests {
 
         assert_eq!(
             audit.append(event("event-2"))?,
-            AuditEventId("event-2".to_owned())
+            CausalProtocolEventId("event-2".to_owned())
         );
         Ok(())
     }
 
     #[test]
-    fn batch_persists_ordered_rows_transactionally() -> Result<(), AuditAdapterError> {
-        let mut audit = SqliteAuditLog::open_in_memory()?;
+    fn batch_persists_ordered_rows_transactionally() -> Result<(), CausalProtocolHistoryAdapterError>
+    {
+        let mut audit = SqliteCausalProtocolHistory::open_in_memory()?;
 
-        let event_ids = AuditLogPort::append_batch(
+        let event_ids = CausalProtocolHistoryPort::append_batch(
             &mut audit,
             vec![
-                event_kind("barrier", AuditEventKind::ExecutionBarrierLogged),
-                event_kind("started", AuditEventKind::ExecutionStarted),
+                event_kind("barrier", CausalProtocolEventKind::ExecutionBarrierLogged),
+                event_kind("started", CausalProtocolEventKind::ExecutionStarted),
             ],
         )?;
         assert_eq!(
             event_ids,
             vec![
-                AuditEventId("barrier".to_owned()),
-                AuditEventId("started".to_owned())
+                CausalProtocolEventId("barrier".to_owned()),
+                CausalProtocolEventId("started".to_owned())
             ]
         );
 

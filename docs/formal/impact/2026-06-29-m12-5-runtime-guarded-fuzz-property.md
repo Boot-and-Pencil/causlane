@@ -23,7 +23,7 @@ validation loop. The target byte-drives the public `causlane` facade and
 `causlane-runtime` APIs for:
 
 - guarded execution authorization and capability spend;
-- in-memory audit append plus trace projection;
+- in-memory protocol-history append plus trace projection;
 - guarded projection authorization and redaction partitioning.
 
 The target does not re-implement authorization, capability, audit or redaction
@@ -33,7 +33,7 @@ kernel authorities.
 ## Affected invariants
 
 No invariant semantics change. The slice strengthens property/fuzz evidence for
-the already implemented fail-closed runtime execution, audit append and
+the already implemented fail-closed runtime execution, protocol-history append and
 projection-read behavior.
 
 ## Affected formal models
@@ -54,7 +54,7 @@ Verus or Lean artifact changes.
 | Scenario | Expected lane | Expected check | Status |
 |---|---|---|---|
 | invalid execution authz, expired lease or uncovered op | cargo-fuzz | guarded execution refuses before returning executor marker | new |
-| duplicate audit event id | cargo-fuzz | audit append fails and trace span count does not grow | new |
+| duplicate causal protocol event id | cargo-fuzz | protocol-history append fails and trace span count does not grow | new |
 | invalid `may_project` decision | cargo-fuzz | projection read is denied | new |
 | projection redaction mask | cargo-fuzz | revealed/redacted sets partition requested fields by allowlist | new |
 

@@ -148,7 +148,6 @@
           "src/domain/action.rs",
           "src/domain/approval.rs",
           "src/domain/approval_stepup.rs",
-          "src/domain/audit.rs",
           "src/domain/authz.rs",
           "src/domain/authz_policy.rs",
           "src/domain/capability.rs",
@@ -167,6 +166,7 @@
           "src/domain/mod.rs",
           "src/domain/overlay.rs",
           "src/domain/projection_authz.rs",
+          "src/domain/protocol_history.rs",
           "src/domain/redaction.rs",
           "src/domain/redaction_policy.rs",
           "src/domain/routing.rs",
@@ -208,6 +208,7 @@
           "src/plan_hash.rs",
           "src/plan_template_cache.rs",
           "src/registry.rs",
+          "src/scenario_runtime.rs",
           "src/serde_numeric.rs",
           "src/sha256.rs",
           "src/template.rs",
@@ -296,9 +297,6 @@
           "Cargo.toml.orig",
           "README.md",
           "src/adapters/apalis.rs",
-          "src/adapters/audit/postgres.rs",
-          "src/adapters/audit/sqlite.rs",
-          "src/adapters/audit.rs",
           "src/adapters/authzen.rs",
           "src/adapters/casbin.rs",
           "src/adapters/cedar.rs",
@@ -308,6 +306,9 @@
           "src/adapters/mod.rs",
           "src/adapters/openfga.rs",
           "src/adapters/otel.rs",
+          "src/adapters/protocol_history/postgres.rs",
+          "src/adapters/protocol_history/sqlite.rs",
+          "src/adapters/protocol_history.rs",
           "src/adapters/restate.rs",
           "src/adapters/tracing.rs",
           "src/authz.rs",
@@ -499,9 +500,9 @@
           "apalis",
           "default",
           "otel",
-          "postgres-audit",
+          "postgres-protocol-history",
           "restate",
-          "sqlite-audit",
+          "sqlite-protocol-history",
           "tokio-runtime"
         ],
         "optional_dependencies": [
@@ -532,7 +533,7 @@
           {
             "name": "postgres",
             "feature_flags": [
-              "postgres-audit"
+              "postgres-protocol-history"
             ]
           },
           {
@@ -544,7 +545,7 @@
           {
             "name": "rusqlite",
             "feature_flags": [
-              "sqlite-audit"
+              "sqlite-protocol-history"
             ]
           },
           {
@@ -705,7 +706,7 @@
       "summary": "Workspace feature flags keep the facade minimal and optional integrations explicit.",
       "evidence": [
         "policy: m11_2_default_minimal_optional_integrations",
-        "feature-bearing packages: causlane-runtime features=apalis, default, otel, postgres-audit, restate, sqlite-audit, tokio-runtime",
+        "feature-bearing packages: causlane-runtime features=apalis, default, otel, postgres-protocol-history, restate, sqlite-protocol-history, tokio-runtime",
         "all workspace crates have empty default features and explicit optional integration flags"
       ],
       "remediation": "Move optional integrations behind non-default features and keep docs.rs metadata explicit."

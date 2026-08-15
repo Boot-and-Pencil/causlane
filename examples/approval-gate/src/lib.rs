@@ -6,7 +6,7 @@ use std::fmt;
 use causlane::core::kernel::approval_gate_stepup;
 use causlane::core::protocol::{
     ActionId, ApprovalDenyReason, ApprovalOutcome, ApprovalRef, ApprovalRequirement, ApprovalVerb,
-    AssuranceLevel, AuditEventId, ImpactSetHash, PlanHash, PlanHashError, Timestamp,
+    AssuranceLevel, CausalProtocolEventId, ImpactSetHash, PlanHash, PlanHashError, Timestamp,
 };
 use causlane_contracts::{CompiledDispatchBundle, ContractError, RegistryManifest};
 use causlane_replay::{ReplayError, ReplayScenario};
@@ -350,7 +350,7 @@ fn deny(
 
 fn approval(parts: ApprovalParts<'_>) -> ApprovalRef {
     ApprovalRef {
-        approval_event_id: AuditEventId(parts.event_id.to_owned()),
+        approval_event_id: CausalProtocolEventId(parts.event_id.to_owned()),
         verdict: parts.verdict,
         action_id: parts.action.clone(),
         plan_hash: parts.plan.clone(),

@@ -1,13 +1,13 @@
-//! Audit event model.
+//! Causal protocol history event model.
 
 use super::{
     ActionId, CorrelationId, EventHash, ExecutionBarrier, ExecutionCapability, FactKind,
     ImpactSetHash, LeaseRef, PlanHash, Scope, Timestamp,
 };
 
-/// Identifies a single entry in the audit/event journal.
+/// Identifies a single entry in the causal protocol history.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct AuditEventId(pub String);
+pub struct CausalProtocolEventId(pub String);
 
 /// A causal reference proving that a projection is derived from a specific
 /// committed observed truth (ADR-0010). Distinct from a witness: a witness
@@ -16,7 +16,7 @@ pub struct AuditEventId(pub String);
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TruthAnchor {
     /// The `ObservedTruthCommitted` event this projection is anchored to.
-    pub event_id: AuditEventId,
+    pub event_id: CausalProtocolEventId,
     /// Action the anchored truth belongs to.
     pub action_id: ActionId,
     /// Plan hash the anchored truth was produced under.
@@ -32,8 +32,8 @@ pub struct TruthAnchor {
 /// Return whether an event kind is allowed to serve as a projection truth
 /// anchor source.
 #[must_use]
-pub fn projection_anchor_source_is_observed(kind: AuditEventKind) -> bool {
-    kind == AuditEventKind::ObservedTruthCommitted
+pub fn projection_anchor_source_is_observed(kind: CausalProtocolEventKind) -> bool {
+    kind == CausalProtocolEventKind::ObservedTruthCommitted
 }
 
 /// The kind of evidence a witness reference points at (ADR-0013).
@@ -47,7 +47,7 @@ pub enum WitnessKind {
     AuthzDecision,
     /// Constraint-plane decision evidence.
     ConstraintDecision,
-    /// Evidence imported from outside the audit journal.
+    /// Evidence imported from outside the causal protocol history.
     ExternalEvidence,
 }
 
@@ -66,8 +66,8 @@ pub struct WitnessBinding {
 /// A typed witness reference used by execution barriers (ADR-0013).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WitnessRef {
-    /// Audit event satisfying the witness requirement.
-    pub event_id: AuditEventId,
+    /// Causal protocol event satisfying the witness requirement.
+    pub event_id: CausalProtocolEventId,
     /// Required-witness id from the compiled bundle.
     pub requirement_id: String,
     /// Witness evidence kind.
@@ -110,11 +110,11 @@ pub enum AuthzDecision {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AuthzAttestation(pub String);
 
-/// Typed authorization evidence recorded in the audit journal (ADR-0011).
+/// Typed authorization evidence recorded in the causal protocol history (ADR-0011).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AuthzDecisionRef {
     /// Event id that recorded the decision.
-    pub decision_event_id: AuditEventId,
+    pub decision_event_id: CausalProtocolEventId,
     /// Action the decision is bound to.
     pub action_id: ActionId,
     /// Plan hash the decision is bound to.
@@ -176,25 +176,25 @@ impl AuthzDecisionRef {
     }
 }
 
-/// An append-only audit/event journal entry — the single authority for observed
+/// An append-only causal protocol history entry — the single authority for observed
 /// truth (ADR-0003). Carries the causal and binding metadata replay needs:
 /// correlation/causation, witnesses, truth anchors, leases and the impact set.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AuditEvent {
+pub struct CausalProtocolEvent {
     /// Unique id of this journal entry.
-    pub event_id: AuditEventId,
+    pub event_id: CausalProtocolEventId,
     /// Action this event belongs to.
     pub action_id: ActionId,
     /// Plan hash this event was produced under, if any.
     pub plan_hash: Option<PlanHash>,
     /// The kind of event recorded.
-    pub kind: AuditEventKind,
+    pub kind: CausalProtocolEventKind,
     /// Run-scoped correlation id grouping all events of one action.
     pub correlation_id: CorrelationId,
     /// The event that directly caused this one, if any.
-    pub causation_id: Option<AuditEventId>,
+    pub causation_id: Option<CausalProtocolEventId>,
     /// Causal witnesses justifying a transition (e.g. a readiness fact).
-    pub witnesses: Vec<AuditEventId>,
+    pub witnesses: Vec<CausalProtocolEventId>,
     /// Typed witness refs used by protocol-critical barriers.
     pub witness_refs: Vec<WitnessRef>,
     /// Truth anchors for projection events (see [`TruthAnchor`]).
@@ -227,11 +227,15 @@ pub struct AuditEvent {
     pub occurred_at: Option<Timestamp>,
 }
 
-impl AuditEvent {
+impl CausalProtocolEvent {
     /// Create a minimal event. `correlation_id` defaults to the action id; use
     /// the builder methods to attach plan hash, witnesses, anchors, etc.
     #[must_use]
-    pub fn new(event_id: AuditEventId, action_id: ActionId, kind: AuditEventKind) -> Self {
+    pub fn new(
+        event_id: CausalProtocolEventId,
+        action_id: ActionId,
+        kind: CausalProtocolEventKind,
+    ) -> Self {
         let correlation_id = CorrelationId(action_id.0.clone());
         Self {
             event_id,
@@ -271,14 +275,14 @@ impl AuditEvent {
 
     /// Set the directly-causing event.
     #[must_use]
-    pub fn with_causation_id(mut self, causation_id: AuditEventId) -> Self {
+    pub fn with_causation_id(mut self, causation_id: CausalProtocolEventId) -> Self {
         self.causation_id = Some(causation_id);
         self
     }
 
     /// Attach causal witnesses.
     #[must_use]
-    pub fn with_witnesses(mut self, witnesses: Vec<AuditEventId>) -> Self {
+    pub fn with_witnesses(mut self, witnesses: Vec<CausalProtocolEventId>) -> Self {
         self.witnesses = witnesses;
         self
     }
@@ -364,7 +368,7 @@ impl AuditEvent {
 
 /// The kind of fact a journal entry records.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AuditEventKind {
+pub enum CausalProtocolEventKind {
     /// An action was admitted into dispatch.
     ActionAdmitted,
     /// An admitted action was compiled into a plan.
@@ -402,7 +406,7 @@ pub enum AuditEventKind {
     DrainFenceAcquired,
 }
 
-impl AuditEventKind {
+impl CausalProtocolEventKind {
     /// Stable dotted token used at serialization/storage boundaries.
     #[must_use]
     pub const fn stable_token(self) -> &'static str {
@@ -428,32 +432,33 @@ impl AuditEventKind {
     }
 }
 
-/// All currently defined audit event kinds.
-pub const ALL_AUDIT_EVENT_KINDS: [AuditEventKind; 17] = [
-    AuditEventKind::ActionAdmitted,
-    AuditEventKind::ActionPlanned,
-    AuditEventKind::DispatchLogged,
-    AuditEventKind::ExecutionBarrierLogged,
-    AuditEventKind::ExecutionStarted,
-    AuditEventKind::ExecutionCompleted,
-    AuditEventKind::ObservedTruthCommitted,
-    AuditEventKind::ProjectionEmitted,
-    AuditEventKind::LifecycleClosed,
-    AuditEventKind::GateApproved,
-    AuditEventKind::GateDenied,
-    AuditEventKind::ConstraintLeaseGranted,
-    AuditEventKind::ConstraintLeaseReleased,
-    AuditEventKind::ViolationDetected,
-    AuditEventKind::AuthzDecisionRecorded,
-    AuditEventKind::DrainFenceRequested,
-    AuditEventKind::DrainFenceAcquired,
+/// All currently defined causal protocol event kinds.
+pub const ALL_CAUSAL_PROTOCOL_EVENT_KINDS: [CausalProtocolEventKind; 17] = [
+    CausalProtocolEventKind::ActionAdmitted,
+    CausalProtocolEventKind::ActionPlanned,
+    CausalProtocolEventKind::DispatchLogged,
+    CausalProtocolEventKind::ExecutionBarrierLogged,
+    CausalProtocolEventKind::ExecutionStarted,
+    CausalProtocolEventKind::ExecutionCompleted,
+    CausalProtocolEventKind::ObservedTruthCommitted,
+    CausalProtocolEventKind::ProjectionEmitted,
+    CausalProtocolEventKind::LifecycleClosed,
+    CausalProtocolEventKind::GateApproved,
+    CausalProtocolEventKind::GateDenied,
+    CausalProtocolEventKind::ConstraintLeaseGranted,
+    CausalProtocolEventKind::ConstraintLeaseReleased,
+    CausalProtocolEventKind::ViolationDetected,
+    CausalProtocolEventKind::AuthzDecisionRecorded,
+    CausalProtocolEventKind::DrainFenceRequested,
+    CausalProtocolEventKind::DrainFenceAcquired,
 ];
 
 #[cfg(test)]
 mod tests {
     use super::{
-        projection_anchor_source_is_observed, ActionId, AuditEventId, AuditEventKind,
-        AuthzDecision, AuthzDecisionRef, PlanHash, Timestamp, ALL_AUDIT_EVENT_KINDS,
+        projection_anchor_source_is_observed, ActionId, AuthzDecision, AuthzDecisionRef,
+        CausalProtocolEventId, CausalProtocolEventKind, PlanHash, Timestamp,
+        ALL_CAUSAL_PROTOCOL_EVENT_KINDS,
     };
     use crate::PlanHashError;
 
@@ -462,8 +467,8 @@ mod tests {
     // event vocabulary).
     #[test]
     fn only_observed_truth_is_a_valid_anchor_source() {
-        for kind in ALL_AUDIT_EVENT_KINDS {
-            let expected = kind == AuditEventKind::ObservedTruthCommitted;
+        for kind in ALL_CAUSAL_PROTOCOL_EVENT_KINDS {
+            let expected = kind == CausalProtocolEventKind::ObservedTruthCommitted;
             assert_eq!(
                 projection_anchor_source_is_observed(kind),
                 expected,
@@ -473,7 +478,7 @@ mod tests {
     }
 
     #[test]
-    fn every_audit_event_kind_has_one_stable_token() {
+    fn every_causal_protocol_event_kind_has_one_stable_token() {
         let expected = [
             "action.admitted",
             "action.planned",
@@ -493,14 +498,14 @@ mod tests {
             "drain.fence_requested",
             "drain.fence_acquired",
         ];
-        let actual = ALL_AUDIT_EVENT_KINDS.map(AuditEventKind::stable_token);
+        let actual = ALL_CAUSAL_PROTOCOL_EVENT_KINDS.map(CausalProtocolEventKind::stable_token);
 
         assert_eq!(actual, expected);
     }
 
     fn authz_decision() -> Result<AuthzDecisionRef, PlanHashError> {
         Ok(AuthzDecisionRef {
-            decision_event_id: AuditEventId("d".to_owned()),
+            decision_event_id: CausalProtocolEventId("d".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: PlanHash::new(format!("sha256:{}", "1".repeat(PlanHash::DIGEST_LEN)))?,
             predicate_id: "pred".to_owned(),
@@ -542,7 +547,7 @@ mod tests {
 
         // The recording event id is journal-assigned, not signed by the PDP.
         let mut other_event = authz_decision()?;
-        other_event.decision_event_id = AuditEventId("other".to_owned());
+        other_event.decision_event_id = CausalProtocolEventId("other".to_owned());
         assert_eq!(base, other_event.attestation_message());
         Ok(())
     }

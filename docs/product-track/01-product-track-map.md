@@ -169,7 +169,7 @@
 
 - `M09.1` — **Bench suite** (`done_or_near_done`): Criterion baseline for registry normalize, plan_hash, bundle load, replay verify, frontier conflict selection, lease grant, barrier append, explain.
 - `M09.2` — **Partitioned dispatcher** (`done_or_near_done`): Host dispatch v2 partition routes and in-process admission coordinator with deterministic cross-partition ordering.
-- `M09.3` — **Batched durability** (`done_or_near_done`): `AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.
+- `M09.3` — **Batched durability** (`done_or_near_done`): `CausalProtocolHistoryPort::append_batch` gives all-or-nothing ordered group commit over the existing causal protocol history boundary.
 - `M09.4` — **Backpressure policy** (`done_or_near_done`): Runtime-local wait/fail-fast overload policy over bounded in-process partition queues.
 - `M09.5` — **Plan/template caches** (`done_or_near_done`): Pure in-memory plan/template cache keyed by canonical plan material and compile snapshot refs.
 - `M09.6` — **Operational SLOs** (`done_or_near_done`): Typed operational SLO measurement catalog for submit/admission/barrier/replay/explain p50/p95, queue depth and stale snapshot age.

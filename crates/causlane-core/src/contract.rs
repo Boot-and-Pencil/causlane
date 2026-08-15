@@ -12,10 +12,10 @@
 
 use crate::domain::{
     authz_gate, claim_modes_conflict, projection_anchor_source_is_observed, reduce_lifecycle,
-    resolve_constraints, ActionId, AuditEventKind, AuthzDecisionRef, AuthzGateOutcome, AuthzPolicy,
-    ConsequenceProfile, ConstraintDecision, ConstraintSnapshot, ExecutionBarrier,
-    ExecutionCapability, ExecutionCapabilityError, LeaseRef, LifecycleStage, LifecycleViolation,
-    PlanHash, ResourceClaim, Scope, Timestamp, TruthAnchor,
+    resolve_constraints, ActionId, AuthzDecisionRef, AuthzGateOutcome, AuthzPolicy,
+    CausalProtocolEventKind, ConsequenceProfile, ConstraintDecision, ConstraintSnapshot,
+    ExecutionBarrier, ExecutionCapability, ExecutionCapabilityError, LeaseRef, LifecycleStage,
+    LifecycleViolation, PlanHash, ResourceClaim, Scope, Timestamp, TruthAnchor,
 };
 
 /// §7.5 — the lifecycle grammar every consumer reduces against. The same
@@ -34,7 +34,7 @@ pub trait LifecycleGrammar {
     fn reduce(
         &self,
         current: LifecycleStage,
-        event: AuditEventKind,
+        event: CausalProtocolEventKind,
         profile: ConsequenceProfile,
     ) -> Result<LifecycleStage, LifecycleViolation>;
 
@@ -130,7 +130,7 @@ pub trait CapabilityIssuer {
 /// action/plan.
 pub trait TruthAnchorResolver {
     /// Whether an event kind may serve as a projection's truth-anchor source.
-    fn anchor_source_is_valid(&self, kind: AuditEventKind) -> bool;
+    fn anchor_source_is_valid(&self, kind: CausalProtocolEventKind) -> bool;
 
     /// Whether a resolved anchor binds the same action and plan as its source.
     fn anchor_matches(
@@ -215,7 +215,7 @@ impl LifecycleGrammar for KernelContracts {
     fn reduce(
         &self,
         current: LifecycleStage,
-        event: AuditEventKind,
+        event: CausalProtocolEventKind,
         profile: ConsequenceProfile,
     ) -> Result<LifecycleStage, LifecycleViolation> {
         reduce_lifecycle(current, event, profile)
@@ -256,7 +256,7 @@ impl CapabilityIssuer for KernelContracts {
 }
 
 impl TruthAnchorResolver for KernelContracts {
-    fn anchor_source_is_valid(&self, kind: AuditEventKind) -> bool {
+    fn anchor_source_is_valid(&self, kind: CausalProtocolEventKind) -> bool {
         projection_anchor_source_is_observed(kind)
     }
 
@@ -311,10 +311,10 @@ mod tests {
     };
     use crate::domain::ExecutionCapabilityError;
     use crate::domain::{
-        AuditEventId, AuditEventKind, AuthzDecision, AuthzDecisionRef, AuthzDenyReason,
-        AuthzGateOutcome, AuthzPolicy, ClaimMode, ConsequenceProfile, ConstraintEpoch,
-        ExecutionBarrier, ImpactSetHash, LeaseId, LeaseRef, LifecycleStage, ResourceId, Scope,
-        Timestamp,
+        AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzGateOutcome, AuthzPolicy,
+        CausalProtocolEventId, CausalProtocolEventKind, ClaimMode, ConsequenceProfile,
+        ConstraintEpoch, ExecutionBarrier, ImpactSetHash, LeaseId, LeaseRef, LifecycleStage,
+        ResourceId, Scope, Timestamp,
     };
     use crate::{ActionId, PlanHash, PlanHashError};
 
@@ -361,7 +361,7 @@ mod tests {
             max_age: None,
         };
         let decision = |verdict| AuthzDecisionRef {
-            decision_event_id: AuditEventId("d".to_owned()),
+            decision_event_id: CausalProtocolEventId("d".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: ph.clone(),
             predicate_id: "release.promote".to_owned(),
@@ -422,7 +422,7 @@ mod tests {
             holder_op_index: Some(0),
             epoch: ConstraintEpoch(1),
             expires_at: expires_at.map(Timestamp),
-            lease_event_id: AuditEventId("e".to_owned()),
+            lease_event_id: CausalProtocolEventId("e".to_owned()),
         })
     }
 
@@ -448,7 +448,7 @@ mod tests {
         let k = KernelContracts;
         let result = k.reduce(
             LifecycleStage::DispatchLogged,
-            AuditEventKind::ObservedTruthCommitted,
+            CausalProtocolEventKind::ObservedTruthCommitted,
             ConsequenceProfile::RuntimeExecution,
         );
         assert!(result.is_err());
@@ -501,8 +501,8 @@ mod tests {
     #[test]
     fn anchor_source_must_be_observed_truth() {
         let k = KernelContracts;
-        assert!(k.anchor_source_is_valid(AuditEventKind::ObservedTruthCommitted));
-        assert!(!k.anchor_source_is_valid(AuditEventKind::ProjectionEmitted));
+        assert!(k.anchor_source_is_valid(CausalProtocolEventKind::ObservedTruthCommitted));
+        assert!(!k.anchor_source_is_valid(CausalProtocolEventKind::ProjectionEmitted));
     }
 
     // §7.8: a forged capability with a wrong barrier id fails validation.
@@ -510,7 +510,7 @@ mod tests {
     fn capability_validation_requires_structural_binding() -> TestResult {
         let k = KernelContracts;
         let barrier = ExecutionBarrier {
-            barrier_id: AuditEventId("barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("barrier".to_owned()),
             action_id: ActionId("a".to_owned()),
             plan_hash: plan_hash()?,
             op_indexes: vec![0],
@@ -527,7 +527,7 @@ mod tests {
         assert!(k.validate_capability(&capability, &barrier).is_ok());
         // A capability pointing at a different barrier id is refused.
         let mut forged = capability;
-        forged.barrier_event_id = AuditEventId("other".to_owned());
+        forged.barrier_event_id = CausalProtocolEventId("other".to_owned());
         assert!(k.validate_capability(&forged, &barrier).is_err());
         Ok(())
     }

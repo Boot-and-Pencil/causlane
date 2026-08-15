@@ -67,8 +67,8 @@ impl AuthzGuard {
 mod tests {
     use super::AuthzGuard;
     use causlane_core::{
-        ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzPolicy,
-        ExecutionBarrier, ImpactSetHash, PlanHash, PlanHashError, Timestamp,
+        ActionId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzPolicy,
+        CausalProtocolEventId, ExecutionBarrier, ImpactSetHash, PlanHash, PlanHashError, Timestamp,
     };
 
     /// The policy the `allow` helper issues decisions under.
@@ -84,7 +84,7 @@ mod tests {
 
     fn barrier(plan: PlanHash) -> ExecutionBarrier {
         ExecutionBarrier {
-            barrier_id: AuditEventId("barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("barrier".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan,
             op_indexes: vec![0],
@@ -101,7 +101,7 @@ mod tests {
 
     fn allow(plan: PlanHash) -> AuthzDecisionRef {
         AuthzDecisionRef {
-            decision_event_id: AuditEventId("d".to_owned()),
+            decision_event_id: CausalProtocolEventId("d".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan,
             predicate_id: "release.promote".to_owned(),

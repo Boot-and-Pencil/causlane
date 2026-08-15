@@ -125,8 +125,9 @@ mod tests {
         at_safe_point, drains_independent, op_admissible_during_drain, DrainRequest, DrainTarget,
     };
     use crate::{
-        ActionId, AuditEventId, ClaimMode, ConstraintEpoch, DrainSemantics, EffectSignature,
-        KernelContracts, LeaseId, LeaseRef, PlanHash, PlanHashError, ResourceId, Scope, Timestamp,
+        ActionId, CausalProtocolEventId, ClaimMode, ConstraintEpoch, DrainSemantics,
+        EffectSignature, KernelContracts, LeaseId, LeaseRef, PlanHash, PlanHashError, ResourceId,
+        Scope, Timestamp,
     };
 
     type TestResult = Result<(), PlanHashError>;
@@ -147,7 +148,7 @@ mod tests {
             holder_op_index: Some(0),
             epoch: ConstraintEpoch(0),
             expires_at: expires_at.map(Timestamp),
-            lease_event_id: AuditEventId("evt".to_owned()),
+            lease_event_id: CausalProtocolEventId("evt".to_owned()),
         }
     }
 

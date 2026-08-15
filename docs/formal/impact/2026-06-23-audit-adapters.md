@@ -1,4 +1,4 @@
-# Formal Impact Record: audit adapters (M08.2)
+# Formal Impact Record: causal protocol history adapters (M08.2)
 
 ## Change metadata
 
@@ -25,28 +25,28 @@ docs/product-track/milestones/m08.2-audit-adapters.md
 
 ## Summary
 
-M08.2 replaces the placeholder in-memory audit adapter with append-only runtime
-audit adapters. The public audit boundary remains
-`causlane_core::AuditLogPort::append`; no duplicate audit port or async audit
+M08.2 replaces the placeholder in-memory causal protocol history adapter with append-only runtime
+causal protocol history adapters. The public causal protocol history boundary remains
+`causlane_core::CausalProtocolHistoryPort::append`; no duplicate audit port or async audit
 API is introduced.
 
 The default runtime build includes an in-memory append-only adapter. Optional
 features add durable SQL adapters:
 
-- `causlane-runtime/sqlite-audit` using `rusqlite`;
-- `causlane-runtime/postgres-audit` using `postgres`.
+- `causlane-runtime/sqlite-protocol-history` using `rusqlite`;
+- `causlane-runtime/postgres-protocol-history` using `postgres`.
 
 All adapters share one append admission path for unique event ids, monotonic
 event indexes, overflow checks and batch preparation. SQL adapters persist the
-shared `AuditEnvelope` and commit batch appends transactionally.
+shared `CausalProtocolEventEnvelope` and commit batch appends transactionally.
 
 ## Affected invariants
 
 ```text
-I-003: unchanged - projection truth remains anchored in committed audit events.
+I-003: unchanged - projection truth remains anchored in committed causal protocol events.
 I-007: unchanged - drain/fence semantics remain in the kernel/formal lanes.
 I-008: unchanged - lifecycle authority remains audit/replay input.
-ADR-0003: strengthened at adapter boundary - audit journal append is fail-closed
+ADR-0003: strengthened at adapter boundary - causal protocol history append is fail-closed
           and append-only for supported runtime adapters.
 ADR-0011 / ADR-0013: unchanged - authz and capability validity are not decided
                      by storage adapters.
@@ -65,7 +65,7 @@ envelope and is not a replay trace schema.
 
 ```text
 PR-runtime-adapter-boundary: runtime adapters spend host/kernel authority and
-must not create semantic authority. M08.2 persists accepted audit envelopes
+must not create semantic authority. M08.2 persists accepted causal protocol event envelopes
 under that boundary only.
 ```
 
@@ -76,11 +76,11 @@ under that boundary only.
 - Replay trace/scenario fields added/changed/removed: none.
 - Receipt/coverage fields added/changed/removed: none.
 - Core Rust API added:
-  `AuditEventKind::stable_token`.
+  `CausalProtocolEventKind::stable_token`.
 - Runtime Rust API added:
-  `AuditAdapterError`, `AuditEnvelope`, append-only `InMemoryAuditLog`,
-  `SqliteAuditLog` behind `sqlite-audit`, and `PostgresAuditLog` behind
-  `postgres-audit`.
+  `CausalProtocolHistoryAdapterError`, `CausalProtocolEventEnvelope`, append-only `InMemoryCausalProtocolHistory`,
+  `SqliteCausalProtocolHistory` behind `sqlite-protocol-history`, and `PostgresCausalProtocolHistory` behind
+  `postgres-protocol-history`.
 
 ## Required negative controls
 
@@ -97,7 +97,7 @@ under that boundary only.
 
 | Lane | Artifact/check/theorem ID | Generated from IR? | Blocking profile |
 |---|---|---:|---|
-| Unit (runtime) | audit adapter tests | no | rust |
+| Unit (runtime) | causal protocol history adapter tests | no | rust |
 | Replay | unchanged | yes | rust |
 | Alloy | unchanged | yes | rust |
 | P | unchanged | yes | rust |
@@ -116,8 +116,8 @@ later schema boundary.
 
 ```bash
 ./tools/cargo-dev check -p causlane-runtime --lib --locked
-./tools/cargo-dev check -p causlane-runtime --all-targets --features sqlite-audit --locked
-./tools/cargo-dev check -p causlane-runtime --all-targets --features postgres-audit --locked
+./tools/cargo-dev check -p causlane-runtime --all-targets --features sqlite-protocol-history --locked
+./tools/cargo-dev check -p causlane-runtime --all-targets --features postgres-protocol-history --locked
 ./tools/cargo-dev fmt --all --check
 just check
 just clippy

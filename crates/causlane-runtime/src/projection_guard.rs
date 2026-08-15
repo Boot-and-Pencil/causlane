@@ -50,9 +50,9 @@ pub fn guard_projection_read(
 mod tests {
     use super::{guard_projection_read, ProjectionReadError};
     use causlane_core::{
-        ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzPolicy,
-        FieldPath, PlanHash, PlanHashError, ProjectionReadRequest, RedactionPolicy, RedactionView,
-        Timestamp,
+        ActionId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzPolicy,
+        CausalProtocolEventId, FieldPath, PlanHash, PlanHashError, ProjectionReadRequest,
+        RedactionPolicy, RedactionView, Timestamp,
     };
 
     const HASH: &str = "sha256:1111111111111111111111111111111111111111111111111111111111111111";
@@ -65,7 +65,7 @@ mod tests {
 
     fn allow(actor: &str, plan: &PlanHash) -> AuthzDecisionRef {
         AuthzDecisionRef {
-            decision_event_id: AuditEventId("evt".to_owned()),
+            decision_event_id: CausalProtocolEventId("evt".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan.clone(),
             predicate_id: PRED.to_owned(),

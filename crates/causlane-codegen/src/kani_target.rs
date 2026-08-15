@@ -17,7 +17,7 @@ use crate::{artifact_header, CodegenError, FormalIr, FormalTarget, GeneratedArti
 pub fn generate_kani_harness(ir: &FormalIr) -> Result<GeneratedArtifact, CodegenError> {
     let mut text = artifact_header(ir, FormalTarget::Kani, "harness");
     text.push_str("#![allow(dead_code)]\n\n");
-    text.push_str("use causlane_core::{capability_binding_matches, claim_modes_conflict, lifecycle_class_for_profile, mergeable, projection_anchor_source_is_observed, reduce_lifecycle, route_consistent_with_profile, ActionId, AuditEventId, AuditEventKind, ClaimMode, ConstraintEpoch, ConsequenceProfile, CommittedTruth, ConstraintUpdate, DrainFenceCheck, ExecutionBarrier, ImpactSetHash, LeaseId, LeaseRef, LifecycleClass, LifecycleStage, ObligationSet, PlanHash, PlanHashError, ResourceId, Scope, Timestamp, WitnessBinding, WitnessKind, WitnessRef};\n");
+    text.push_str("use causlane_core::{capability_binding_matches, claim_modes_conflict, lifecycle_class_for_profile, mergeable, projection_anchor_source_is_observed, reduce_lifecycle, route_consistent_with_profile, ActionId, CausalProtocolEventId, CausalProtocolEventKind, ClaimMode, ConstraintEpoch, ConsequenceProfile, CommittedTruth, ConstraintUpdate, DrainFenceCheck, ExecutionBarrier, ImpactSetHash, LeaseId, LeaseRef, LifecycleClass, LifecycleStage, ObligationSet, PlanHash, PlanHashError, ResourceId, Scope, Timestamp, WitnessBinding, WitnessKind, WitnessRef};\n");
     push_kani_helpers(&mut text);
     push_kani_harnesses(&mut text);
     text.push_str("fn main() {}\n\n");
@@ -60,13 +60,13 @@ fn lease(
         holder_op_index: op_index,
         epoch: ConstraintEpoch(0),
         expires_at,
-        lease_event_id: AuditEventId(format!("evt_{id}")),
+        lease_event_id: CausalProtocolEventId(format!("evt_{id}")),
     }
 }
 
 fn barrier(plan: &PlanHash) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("barrier".to_owned()),
+        barrier_id: CausalProtocolEventId("barrier".to_owned()),
         action_id: ActionId("act".to_owned()),
         plan_hash: plan.clone(),
         op_indexes: vec![0],
@@ -89,25 +89,25 @@ fn push_kani_harnesses(text: &mut String) {
 #[kani::proof]
 fn lifecycle_reducer_forbidden_transitions_fail_closed() {
     assert_eq!(
-        reduce_lifecycle(LifecycleStage::DispatchLogged, AuditEventKind::ExecutionBarrierLogged, ConsequenceProfile::RuntimeExecution),
+        reduce_lifecycle(LifecycleStage::DispatchLogged, CausalProtocolEventKind::ExecutionBarrierLogged, ConsequenceProfile::RuntimeExecution),
         Ok(LifecycleStage::ExecutionBarrierLogged)
     );
     assert_eq!(
-        reduce_lifecycle(LifecycleStage::ExecutionBarrierLogged, AuditEventKind::ExecutionStarted, ConsequenceProfile::RuntimeExecution),
+        reduce_lifecycle(LifecycleStage::ExecutionBarrierLogged, CausalProtocolEventKind::ExecutionStarted, ConsequenceProfile::RuntimeExecution),
         Ok(LifecycleStage::Executing)
     );
     assert_eq!(
-        reduce_lifecycle(LifecycleStage::Executing, AuditEventKind::ObservedTruthCommitted, ConsequenceProfile::RuntimeExecution),
+        reduce_lifecycle(LifecycleStage::Executing, CausalProtocolEventKind::ObservedTruthCommitted, ConsequenceProfile::RuntimeExecution),
         Ok(LifecycleStage::Observed)
     );
     assert_eq!(
-        reduce_lifecycle(LifecycleStage::Observed, AuditEventKind::ProjectionEmitted, ConsequenceProfile::RuntimeExecution),
+        reduce_lifecycle(LifecycleStage::Observed, CausalProtocolEventKind::ProjectionEmitted, ConsequenceProfile::RuntimeExecution),
         Ok(LifecycleStage::Projected)
     );
-    assert!(reduce_lifecycle(LifecycleStage::DispatchLogged, AuditEventKind::ExecutionStarted, ConsequenceProfile::RuntimeExecution).is_err());
-    assert!(reduce_lifecycle(LifecycleStage::DispatchLogged, AuditEventKind::ObservedTruthCommitted, ConsequenceProfile::RuntimeExecution).is_err());
-    assert!(reduce_lifecycle(LifecycleStage::Closed, AuditEventKind::ExecutionStarted, ConsequenceProfile::RuntimeExecution).is_err());
-    assert!(reduce_lifecycle(LifecycleStage::DispatchLogged, AuditEventKind::ObservedTruthCommitted, ConsequenceProfile::ProjectionRead).is_err());
+    assert!(reduce_lifecycle(LifecycleStage::DispatchLogged, CausalProtocolEventKind::ExecutionStarted, ConsequenceProfile::RuntimeExecution).is_err());
+    assert!(reduce_lifecycle(LifecycleStage::DispatchLogged, CausalProtocolEventKind::ObservedTruthCommitted, ConsequenceProfile::RuntimeExecution).is_err());
+    assert!(reduce_lifecycle(LifecycleStage::Closed, CausalProtocolEventKind::ExecutionStarted, ConsequenceProfile::RuntimeExecution).is_err());
+    assert!(reduce_lifecycle(LifecycleStage::DispatchLogged, CausalProtocolEventKind::ObservedTruthCommitted, ConsequenceProfile::ProjectionRead).is_err());
 }
 
 #[cfg(kani)]
@@ -223,16 +223,16 @@ fn lease_conflict_rule_is_fail_closed_without_verified_merge() {
 #[kani::proof]
 fn projection_anchor_source_kind_is_observed_truth_only() {
     assert!(projection_anchor_source_is_observed(
-        AuditEventKind::ObservedTruthCommitted
+        CausalProtocolEventKind::ObservedTruthCommitted
     ));
     assert!(!projection_anchor_source_is_observed(
-        AuditEventKind::ExecutionStarted
+        CausalProtocolEventKind::ExecutionStarted
     ));
     assert!(!projection_anchor_source_is_observed(
-        AuditEventKind::ProjectionEmitted
+        CausalProtocolEventKind::ProjectionEmitted
     ));
     assert!(!projection_anchor_source_is_observed(
-        AuditEventKind::GateApproved
+        CausalProtocolEventKind::GateApproved
     ));
 }
 
@@ -254,7 +254,7 @@ fn witness_binding_is_exact_for_action_plan_and_impact() {
         impact_set_hash: Some(impact.clone()),
     };
     let witness = WitnessRef {
-        event_id: AuditEventId("approval".to_owned()),
+        event_id: CausalProtocolEventId("approval".to_owned()),
         requirement_id: "readiness_before_promotion".to_owned(),
         kind: WitnessKind::GateApproval,
         fact_kind: None,
@@ -340,23 +340,23 @@ fn nondet_stage() -> LifecycleStage {
 }
 
 #[cfg(kani)]
-fn nondet_event() -> AuditEventKind {
+fn nondet_event() -> CausalProtocolEventKind {
     match kani::any::<u8>() {
-        0 => AuditEventKind::ActionAdmitted,
-        1 => AuditEventKind::ActionPlanned,
-        2 => AuditEventKind::DispatchLogged,
-        3 => AuditEventKind::ExecutionBarrierLogged,
-        4 => AuditEventKind::ExecutionStarted,
-        5 => AuditEventKind::ExecutionCompleted,
-        6 => AuditEventKind::ObservedTruthCommitted,
-        7 => AuditEventKind::ProjectionEmitted,
-        8 => AuditEventKind::LifecycleClosed,
-        9 => AuditEventKind::GateApproved,
-        10 => AuditEventKind::GateDenied,
-        11 => AuditEventKind::ConstraintLeaseGranted,
-        12 => AuditEventKind::ConstraintLeaseReleased,
-        13 => AuditEventKind::ViolationDetected,
-        _rest => AuditEventKind::AuthzDecisionRecorded,
+        0 => CausalProtocolEventKind::ActionAdmitted,
+        1 => CausalProtocolEventKind::ActionPlanned,
+        2 => CausalProtocolEventKind::DispatchLogged,
+        3 => CausalProtocolEventKind::ExecutionBarrierLogged,
+        4 => CausalProtocolEventKind::ExecutionStarted,
+        5 => CausalProtocolEventKind::ExecutionCompleted,
+        6 => CausalProtocolEventKind::ObservedTruthCommitted,
+        7 => CausalProtocolEventKind::ProjectionEmitted,
+        8 => CausalProtocolEventKind::LifecycleClosed,
+        9 => CausalProtocolEventKind::GateApproved,
+        10 => CausalProtocolEventKind::GateDenied,
+        11 => CausalProtocolEventKind::ConstraintLeaseGranted,
+        12 => CausalProtocolEventKind::ConstraintLeaseReleased,
+        13 => CausalProtocolEventKind::ViolationDetected,
+        _rest => CausalProtocolEventKind::AuthzDecisionRecorded,
     }
 }
 
@@ -380,7 +380,7 @@ fn nondet_profile() -> ConsequenceProfile {
 fn observed_truth_requires_prior_execution_nondet() {
     let stage = nondet_stage();
     let profile = nondet_profile();
-    let outcome = reduce_lifecycle(stage, AuditEventKind::ObservedTruthCommitted, profile);
+    let outcome = reduce_lifecycle(stage, CausalProtocolEventKind::ObservedTruthCommitted, profile);
     if outcome.is_ok() {
         assert!(stage == LifecycleStage::Executing);
         assert!(profile == ConsequenceProfile::RuntimeExecution);
@@ -394,7 +394,7 @@ fn observed_truth_requires_prior_execution_nondet() {
 fn execution_requires_prior_barrier_nondet() {
     let stage = nondet_stage();
     let profile = nondet_profile();
-    let outcome = reduce_lifecycle(stage, AuditEventKind::ExecutionStarted, profile);
+    let outcome = reduce_lifecycle(stage, CausalProtocolEventKind::ExecutionStarted, profile);
     if outcome.is_ok() {
         assert!(stage == LifecycleStage::ExecutionBarrierLogged);
         assert!(profile == ConsequenceProfile::RuntimeExecution);

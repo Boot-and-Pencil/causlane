@@ -6,7 +6,7 @@ This standalone crate demonstrates one in-process service shape:
 
 - an API surface submits host tasks through the host-dispatch v2 seam;
 - a worker drains them through the deterministic linear runtime adapter;
-- audit events are appended through the runtime audit adapter;
+- causal protocol events are appended through the runtime causal protocol history adapter;
 - a projection read is authorized and redacted through the guarded projection helper.
 
 It is intentionally not a production service claim: there is no durable queue,

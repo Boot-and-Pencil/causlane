@@ -1,21 +1,21 @@
 //! Derived tracing model.
 //!
-//! Spans are a projection of audit events. They are useful for observability but
-//! never replace the audit journal as the authority for observed truth.
+//! Spans are a projection of causal protocol events. They are useful for observability but
+//! never replace the causal protocol history as the authority for observed truth.
 
 use super::{
-    ActionId, AuditEvent, AuditEventId, AuditEventKind, AuthzDecision, CorrelationId,
-    ImpactSetHash, PlanHash, Scope, Timestamp,
+    ActionId, AuthzDecision, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind,
+    CorrelationId, ImpactSetHash, PlanHash, Scope, Timestamp,
 };
 
-/// Stable span id derived from an audit event id.
+/// Stable span id derived from an causal protocol event id.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct TraceSpanId(pub String);
 
 impl TraceSpanId {
     /// Build the canonical span id for a journal event.
     #[must_use]
-    pub fn from_audit_event_id(event_id: &AuditEventId) -> Self {
+    pub fn from_causal_protocol_event_id(event_id: &CausalProtocolEventId) -> Self {
         Self(format!("audit:{}", event_id.0))
     }
 }
@@ -55,7 +55,7 @@ pub enum TraceSpanKind {
 /// but the semantic mapping lives here.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TraceAttribute {
-    /// Monotonic journal index, when the audit partition supplied one.
+    /// Monotonic journal index, when the protocol-history partition supplied one.
     EventIndex(u64),
     /// Number of causal witness event ids attached to the journal event.
     WitnessCount(usize),
@@ -85,21 +85,21 @@ pub enum TraceAttribute {
     HasAttestedFact,
 }
 
-/// A structured span derived from a single audit event.
+/// A structured span derived from a single causal protocol event.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TraceSpan {
-    /// Span id derived from the audit event id.
+    /// Span id derived from the causal protocol event id.
     pub span_id: TraceSpanId,
-    /// Parent span derived from the causing audit event, if any.
+    /// Parent span derived from the causing causal protocol event, if any.
     pub parent_span_id: Option<TraceSpanId>,
-    /// Trace id derived from the audit correlation id.
+    /// Trace id derived from the causal protocol correlation id.
     pub trace_id: CorrelationId,
     /// Action this span belongs to.
     pub action_id: ActionId,
-    /// Source audit event.
-    pub event_id: AuditEventId,
-    /// Source audit event kind.
-    pub event_kind: AuditEventKind,
+    /// Source causal protocol event.
+    pub event_id: CausalProtocolEventId,
+    /// Source causal protocol event kind.
+    pub event_kind: CausalProtocolEventKind,
     /// Coarse tracing category.
     pub span_kind: TraceSpanKind,
     /// Plan hash bound to the source event, if any.
@@ -110,53 +110,55 @@ pub struct TraceSpan {
     pub attributes: Vec<TraceAttribute>,
 }
 
-/// Classify an audit event kind into a tracing span category.
+/// Classify an causal protocol event kind into a tracing span category.
 #[must_use]
-pub fn trace_span_kind_from_audit_event_kind(kind: AuditEventKind) -> TraceSpanKind {
+pub fn trace_span_kind_from_causal_protocol_event_kind(
+    kind: CausalProtocolEventKind,
+) -> TraceSpanKind {
     match kind {
-        AuditEventKind::ActionAdmitted => TraceSpanKind::Admission,
-        AuditEventKind::ActionPlanned => TraceSpanKind::Planning,
-        AuditEventKind::DispatchLogged => TraceSpanKind::Dispatch,
-        AuditEventKind::ExecutionBarrierLogged => TraceSpanKind::Barrier,
-        AuditEventKind::ExecutionStarted | AuditEventKind::ExecutionCompleted => {
+        CausalProtocolEventKind::ActionAdmitted => TraceSpanKind::Admission,
+        CausalProtocolEventKind::ActionPlanned => TraceSpanKind::Planning,
+        CausalProtocolEventKind::DispatchLogged => TraceSpanKind::Dispatch,
+        CausalProtocolEventKind::ExecutionBarrierLogged => TraceSpanKind::Barrier,
+        CausalProtocolEventKind::ExecutionStarted | CausalProtocolEventKind::ExecutionCompleted => {
             TraceSpanKind::Execution
         }
-        AuditEventKind::ObservedTruthCommitted => TraceSpanKind::Observation,
-        AuditEventKind::ProjectionEmitted => TraceSpanKind::Projection,
-        AuditEventKind::LifecycleClosed => TraceSpanKind::Lifecycle,
-        AuditEventKind::GateApproved | AuditEventKind::GateDenied => TraceSpanKind::Gate,
-        AuditEventKind::ConstraintLeaseGranted | AuditEventKind::ConstraintLeaseReleased => {
-            TraceSpanKind::Constraint
+        CausalProtocolEventKind::ObservedTruthCommitted => TraceSpanKind::Observation,
+        CausalProtocolEventKind::ProjectionEmitted => TraceSpanKind::Projection,
+        CausalProtocolEventKind::LifecycleClosed => TraceSpanKind::Lifecycle,
+        CausalProtocolEventKind::GateApproved | CausalProtocolEventKind::GateDenied => {
+            TraceSpanKind::Gate
         }
-        AuditEventKind::ViolationDetected => TraceSpanKind::Violation,
-        AuditEventKind::AuthzDecisionRecorded => TraceSpanKind::Authorization,
-        AuditEventKind::DrainFenceRequested | AuditEventKind::DrainFenceAcquired => {
-            TraceSpanKind::Drain
-        }
+        CausalProtocolEventKind::ConstraintLeaseGranted
+        | CausalProtocolEventKind::ConstraintLeaseReleased => TraceSpanKind::Constraint,
+        CausalProtocolEventKind::ViolationDetected => TraceSpanKind::Violation,
+        CausalProtocolEventKind::AuthzDecisionRecorded => TraceSpanKind::Authorization,
+        CausalProtocolEventKind::DrainFenceRequested
+        | CausalProtocolEventKind::DrainFenceAcquired => TraceSpanKind::Drain,
     }
 }
 
-/// Project one audit event into one observability span.
+/// Project one causal protocol event into one observability span.
 #[must_use]
-pub fn trace_span_from_audit_event(event: &AuditEvent) -> TraceSpan {
+pub fn trace_span_from_causal_protocol_event(event: &CausalProtocolEvent) -> TraceSpan {
     TraceSpan {
-        span_id: TraceSpanId::from_audit_event_id(&event.event_id),
+        span_id: TraceSpanId::from_causal_protocol_event_id(&event.event_id),
         parent_span_id: event
             .causation_id
             .as_ref()
-            .map(TraceSpanId::from_audit_event_id),
+            .map(TraceSpanId::from_causal_protocol_event_id),
         trace_id: event.correlation_id.clone(),
         action_id: event.action_id.clone(),
         event_id: event.event_id.clone(),
         event_kind: event.kind,
-        span_kind: trace_span_kind_from_audit_event_kind(event.kind),
+        span_kind: trace_span_kind_from_causal_protocol_event_kind(event.kind),
         plan_hash: event.plan_hash.clone(),
         occurred_at: event.occurred_at,
-        attributes: trace_attributes_from_audit_event(event),
+        attributes: trace_attributes_from_causal_protocol_event(event),
     }
 }
 
-fn trace_attributes_from_audit_event(event: &AuditEvent) -> Vec<TraceAttribute> {
+fn trace_attributes_from_causal_protocol_event(event: &CausalProtocolEvent) -> Vec<TraceAttribute> {
     let mut attributes = Vec::new();
     if let Some(event_index) = event.event_index {
         attributes.push(TraceAttribute::EventIndex(event_index));
@@ -204,17 +206,18 @@ fn trace_attributes_from_audit_event(event: &AuditEvent) -> Vec<TraceAttribute> 
 #[cfg(test)]
 mod tests {
     use super::{
-        trace_span_from_audit_event, trace_span_kind_from_audit_event_kind, TraceAttribute,
-        TraceSpanId, TraceSpanKind,
+        trace_span_from_causal_protocol_event, trace_span_kind_from_causal_protocol_event_kind,
+        TraceAttribute, TraceSpanId, TraceSpanKind,
     };
     use crate::{
-        ActionId, AuditEvent, AuditEventId, AuditEventKind, AuthzDecision, AuthzDecisionRef,
-        CorrelationId, ImpactSetHash, PlanHash, PlanHashError, Timestamp, ALL_AUDIT_EVENT_KINDS,
+        ActionId, AuthzDecision, AuthzDecisionRef, CausalProtocolEvent, CausalProtocolEventId,
+        CausalProtocolEventKind, CorrelationId, ImpactSetHash, PlanHash, PlanHashError, Timestamp,
+        ALL_CAUSAL_PROTOCOL_EVENT_KINDS,
     };
 
-    fn event(kind: AuditEventKind) -> AuditEvent {
-        AuditEvent::new(
-            AuditEventId("event-1".to_owned()),
+    fn event(kind: CausalProtocolEventKind) -> CausalProtocolEvent {
+        CausalProtocolEvent::new(
+            CausalProtocolEventId("event-1".to_owned()),
             ActionId("action-1".to_owned()),
             kind,
         )
@@ -226,7 +229,7 @@ mod tests {
 
     fn authz_decision() -> Result<AuthzDecisionRef, PlanHashError> {
         Ok(AuthzDecisionRef {
-            decision_event_id: AuditEventId("authz-1".to_owned()),
+            decision_event_id: CausalProtocolEventId("authz-1".to_owned()),
             action_id: ActionId("action-1".to_owned()),
             plan_hash: plan_hash()?,
             predicate_id: "predicate".to_owned(),
@@ -242,12 +245,12 @@ mod tests {
     }
 
     #[test]
-    fn every_audit_event_kind_has_a_span_kind() {
-        for kind in ALL_AUDIT_EVENT_KINDS {
-            let span = trace_span_from_audit_event(&event(kind));
+    fn every_causal_protocol_event_kind_has_a_span_kind() {
+        for kind in ALL_CAUSAL_PROTOCOL_EVENT_KINDS {
+            let span = trace_span_from_causal_protocol_event(&event(kind));
             assert_eq!(
                 span.span_kind,
-                trace_span_kind_from_audit_event_kind(kind),
+                trace_span_kind_from_causal_protocol_event_kind(kind),
                 "{kind:?}"
             );
         }
@@ -256,47 +259,71 @@ mod tests {
     #[test]
     fn selected_event_kinds_keep_their_observability_categories() {
         let cases = [
-            (AuditEventKind::ActionAdmitted, TraceSpanKind::Admission),
-            (AuditEventKind::ActionPlanned, TraceSpanKind::Planning),
-            (AuditEventKind::DispatchLogged, TraceSpanKind::Dispatch),
             (
-                AuditEventKind::ExecutionBarrierLogged,
+                CausalProtocolEventKind::ActionAdmitted,
+                TraceSpanKind::Admission,
+            ),
+            (
+                CausalProtocolEventKind::ActionPlanned,
+                TraceSpanKind::Planning,
+            ),
+            (
+                CausalProtocolEventKind::DispatchLogged,
+                TraceSpanKind::Dispatch,
+            ),
+            (
+                CausalProtocolEventKind::ExecutionBarrierLogged,
                 TraceSpanKind::Barrier,
             ),
-            (AuditEventKind::ExecutionStarted, TraceSpanKind::Execution),
             (
-                AuditEventKind::ObservedTruthCommitted,
+                CausalProtocolEventKind::ExecutionStarted,
+                TraceSpanKind::Execution,
+            ),
+            (
+                CausalProtocolEventKind::ObservedTruthCommitted,
                 TraceSpanKind::Observation,
             ),
-            (AuditEventKind::ProjectionEmitted, TraceSpanKind::Projection),
-            (AuditEventKind::GateDenied, TraceSpanKind::Gate),
             (
-                AuditEventKind::ConstraintLeaseGranted,
+                CausalProtocolEventKind::ProjectionEmitted,
+                TraceSpanKind::Projection,
+            ),
+            (CausalProtocolEventKind::GateDenied, TraceSpanKind::Gate),
+            (
+                CausalProtocolEventKind::ConstraintLeaseGranted,
                 TraceSpanKind::Constraint,
             ),
             (
-                AuditEventKind::AuthzDecisionRecorded,
+                CausalProtocolEventKind::AuthzDecisionRecorded,
                 TraceSpanKind::Authorization,
             ),
-            (AuditEventKind::DrainFenceAcquired, TraceSpanKind::Drain),
-            (AuditEventKind::ViolationDetected, TraceSpanKind::Violation),
+            (
+                CausalProtocolEventKind::DrainFenceAcquired,
+                TraceSpanKind::Drain,
+            ),
+            (
+                CausalProtocolEventKind::ViolationDetected,
+                TraceSpanKind::Violation,
+            ),
         ];
         for (kind, expected) in cases {
-            assert_eq!(trace_span_kind_from_audit_event_kind(kind), expected);
+            assert_eq!(
+                trace_span_kind_from_causal_protocol_event_kind(kind),
+                expected
+            );
         }
     }
 
     #[test]
-    fn span_identity_and_parent_are_derived_from_audit_causality() -> Result<(), PlanHashError> {
+    fn span_identity_and_parent_are_derived_from_protocol_causality() -> Result<(), PlanHashError> {
         let plan_hash = plan_hash()?;
-        let event = event(AuditEventKind::ExecutionStarted)
+        let event = event(CausalProtocolEventKind::ExecutionStarted)
             .with_plan_hash(plan_hash.clone())
             .with_correlation_id(CorrelationId("trace-1".to_owned()))
-            .with_causation_id(AuditEventId("parent-event".to_owned()))
+            .with_causation_id(CausalProtocolEventId("parent-event".to_owned()))
             .with_event_index(7)
             .with_occurred_at(Timestamp(99));
 
-        let span = trace_span_from_audit_event(&event);
+        let span = trace_span_from_causal_protocol_event(&event);
 
         assert_eq!(span.span_id, TraceSpanId("audit:event-1".to_owned()));
         assert_eq!(
@@ -305,8 +332,8 @@ mod tests {
         );
         assert_eq!(span.trace_id, CorrelationId("trace-1".to_owned()));
         assert_eq!(span.action_id, ActionId("action-1".to_owned()));
-        assert_eq!(span.event_id, AuditEventId("event-1".to_owned()));
-        assert_eq!(span.event_kind, AuditEventKind::ExecutionStarted);
+        assert_eq!(span.event_id, CausalProtocolEventId("event-1".to_owned()));
+        assert_eq!(span.event_kind, CausalProtocolEventKind::ExecutionStarted);
         assert_eq!(span.plan_hash, Some(plan_hash));
         assert_eq!(span.occurred_at, Some(Timestamp(99)));
         assert!(span.attributes.contains(&TraceAttribute::EventIndex(7)));
@@ -316,13 +343,14 @@ mod tests {
     #[test]
     fn attributes_are_typed_and_only_present_when_source_fields_exist() -> Result<(), PlanHashError>
     {
-        let empty = trace_span_from_audit_event(&event(AuditEventKind::ActionAdmitted));
+        let empty =
+            trace_span_from_causal_protocol_event(&event(CausalProtocolEventKind::ActionAdmitted));
         assert!(empty.attributes.is_empty());
 
-        let event = event(AuditEventKind::AuthzDecisionRecorded)
+        let event = event(CausalProtocolEventKind::AuthzDecisionRecorded)
             .with_authz_decision(authz_decision()?)
             .with_impact_set_hash(ImpactSetHash("impact-1".to_owned()));
-        let span = trace_span_from_audit_event(&event);
+        let span = trace_span_from_causal_protocol_event(&event);
 
         assert!(span.attributes.contains(&TraceAttribute::HasAuthzDecision));
         assert!(span

@@ -18,7 +18,7 @@ snapshot) · ◑ partial · ⏸ out of scope (model-deepening / deferred)
 | P0-003 | scenario schema drift (drain/token/occurred_at) | ✅ done | `3a1233a` · FIR 2026-06-19-schema-validation-gate |
 | P0-004 | duplicate `$defs.witness` in formal_ir.schema | ✅ done | `3a1233a` · split → witness_requirement/witness_payload |
 | P0-005 | Alloy `mergeable` semantics + unrelated-merge control | ✅ done | `07caf36` (part 1: shared resolver) + `5d95eda` (part 2: scope-keyed assertion + control) · FIRs mergeable-scope-resolver, alloy-scope-keyed-mergeable |
-| P0-006 | legacy `AuditEvent.witnesses` reconciliation | ✅ done | `b922f2f` · FIR legacy-witness-reconciliation |
+| P0-006 | legacy `CausalProtocolEvent.witnesses` reconciliation | ✅ done | `b922f2f` · FIR legacy-witness-reconciliation |
 | P0-007 | coverage/obligations honesty (I-010 not overclaimed) | ✔ already-resolved | coverage derived from receipts; I-010 not_applicable on replay/alloy |
 | P0-008 | schema validation as a mandatory gate | ✅ done | `3a1233a` · `causlane scenario validate` + check-json-no-duplicate-keys + schema-validate-all wired into check-verification-full |
 | P0-009 | manual_core vs bundle_generated receipts | ✔ already-resolved | source_bundle_hash=null only for manual-core; not counted as bundle coverage |

@@ -8,8 +8,8 @@
 
 use causlane_contracts::{AuthzModeDto, CompiledPredicate};
 use causlane_core::{
-    classify_authz_decision, AuditEvent, AuthzDecisionRef, AuthzDecisionVerdict, AuthzDenyReason,
-    AuthzPolicy, ExecutionBarrier, Timestamp,
+    classify_authz_decision, AuthzDecisionRef, AuthzDecisionVerdict, AuthzDenyReason, AuthzPolicy,
+    CausalProtocolEvent, ExecutionBarrier, Timestamp,
 };
 
 use crate::ReplayError;
@@ -36,7 +36,7 @@ fn authz_decision_attested(decision: &AuthzDecisionRef, attestation_key: Option<
 /// evaluation time; when absent the lane falls back to a born-expired sanity
 /// check (replay cannot otherwise know elapsed time — P0-010).
 pub(crate) fn validate_authz_refs<'a>(
-    prior_events: impl Iterator<Item = &'a AuditEvent>,
+    prior_events: impl Iterator<Item = &'a CausalProtocolEvent>,
     barrier: &ExecutionBarrier,
     predicate: &CompiledPredicate,
     barrier_time: Option<Timestamp>,

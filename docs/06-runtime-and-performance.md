@@ -26,7 +26,7 @@ request -> compiled predicate lookup
         -> effect signature materialization
         -> partition enqueue
         -> indexed conflict/constraint check
-        -> batched durable audit append, where required
+        -> batched durable protocol-history append, where required
 ```
 
 ## Dispatcher partitioning
@@ -70,14 +70,15 @@ capacity control only, not semantic authority.
 
 The runtime never executes effects directly. Effects go through the host-supplied
 `InProcessEffectHandler`; authorization, hard-effect capability spending,
-durable audit truth, retry, cancellation, secret handling and product
+durable protocol-history truth, retry, cancellation, secret handling and product
 idempotency remain outside M08.1.
 
-## M08.2 audit adapters
+## M08.2 causal protocol history adapters
 
-`causlane-runtime` keeps one audit boundary: `AuditLogPort::append`. The
-in-memory adapter is available in the default build; durable SQL adapters are
-feature-gated as `sqlite-audit` and `postgres-audit`.
+`causlane-runtime` keeps one causal protocol history boundary:
+`CausalProtocolHistoryPort::append`. The in-memory adapter is available in the
+default build; durable SQL adapters are feature-gated as
+`sqlite-protocol-history` and `postgres-protocol-history`.
 
 All adapters share append admission:
 
@@ -87,11 +88,11 @@ event -> unique event_id check -> monotonic event_index -> stable envelope -> ap
 
 Missing event indexes are assigned by the adapter. Supplied non-monotonic
 indexes, duplicate event ids, overflow, schema/load failures and insert failures
-return `AuditAdapterError`. Batch append helpers prepare the whole batch before
-mutating adapter state; SQL batches commit in one transaction.
+return `CausalProtocolHistoryAdapterError`. Batch append helpers prepare the
+whole batch before mutating adapter state; SQL batches commit in one transaction.
 
-The durable schema stores the stable audit envelope (`event_index`, `event_id`,
-`action_id`, `plan_hash`, `kind`, `correlation_id`, `causation_id`,
+The durable schema stores the stable causal protocol event envelope
+(`event_index`, `event_id`, `action_id`, `plan_hash`, `kind`, `correlation_id`, `causation_id`,
 `occurred_at`, `impact_set_hash`, `drain_fence_scope`). Full replay payload
 serialization remains outside M08.2.
 
@@ -160,7 +161,7 @@ The suite measures the current release-promote hot-path and diagnostics surfaces
 - replay verification against a bundle;
 - frontier selection with ready write-scope conflicts;
 - exclusive lease grant on an empty lease table;
-- execution barrier audit append;
+- execution barrier protocol-history append;
 - replay explain human rendering.
 
 M09.1 records measurement coverage, not SLO enforcement. M09.6 defines the
@@ -192,8 +193,8 @@ enforcement.
 
 ## M09.3 batched durability
 
-`AuditLogPort` exposes both immediate single-event append and atomic batch
-append through the same audit boundary:
+`CausalProtocolHistoryPort` exposes both immediate single-event append and atomic batch
+append through the same causal protocol history boundary:
 
 ```text
 events -> shared batch admission -> stable envelopes -> atomic append
@@ -201,16 +202,16 @@ events -> shared batch admission -> stable envelopes -> atomic append
 
 Batch admission is all-or-nothing. Duplicate ids, non-monotonic supplied
 indexes, index overflow or storage failures leave adapter state unchanged.
-In-memory, SQLite and Postgres adapters reuse the same `AuditAppendState`
+In-memory, SQLite and Postgres adapters reuse the same `CausalProtocolHistoryAppendState`
 preparation path; SQLite/Postgres persist the prepared batch in one transaction.
 
 Write-ahead order is the caller's event order. A hard-effect execution batch
 must place `ExecutionBarrierLogged` before `ExecutionStarted`; the adapter
 persists that order and assigns monotonic indexes when missing. Tracing remains
-derived: `TraceProjectingAuditLog` emits spans only after the authoritative
+derived: `TraceProjectingCausalProtocolHistory` emits spans only after the authoritative
 single append or batch append succeeds.
 
-M09.3 does not introduce a new audit journal, full replay payload storage,
+M09.3 does not introduce a new causal protocol history, full replay payload storage,
 distributed group commit coordinator, retry policy, or numeric latency SLO
 threshold enforcement.
 

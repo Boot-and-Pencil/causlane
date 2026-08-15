@@ -1,4 +1,4 @@
-//! Criterion baseline suite for dispatch, replay and audit hot paths.
+//! Criterion baseline suite for dispatch, replay and protocol-history hot paths.
 
 #![allow(missing_docs)]
 #![forbid(unsafe_code)]
@@ -15,18 +15,20 @@ use causlane::core::protocol::{
     Timestamp, MAY_PROJECT_STAGE,
 };
 use causlane::prelude::{
-    select_frontier, ActionId, AuditEvent, AuditEventId, AuditEventKind, AuditLogPort, ClaimMode,
-    ConstraintEpoch, ExecutionBarrier, ExecutorPort, FactKind, GraphIndex, GraphNode,
-    ImpactSetHash, KernelContracts, LaneCapacity, LaneId, LeaseId, LeaseRef, LeaseTable, Op, OpId,
-    PlanHash, ResourceId, Scope,
+    select_frontier, ActionId, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind,
+    CausalProtocolHistoryPort, ClaimMode, ConstraintEpoch, ExecutionBarrier, ExecutorPort,
+    FactKind, GraphIndex, GraphNode, ImpactSetHash, KernelContracts, LaneCapacity, LaneId, LeaseId,
+    LeaseRef, LeaseTable, Op, OpId, PlanHash, ResourceId, Scope,
 };
 use causlane_contracts::{
     examples::release_promote_impacts, examples::release_promote_plan_material, impact_set_hash,
     CompiledDispatchBundle, PlanHashMaterial, RegistryManifest,
 };
 use causlane_replay::{ReplayScenario, ReplayTrace};
-use causlane_runtime::adapters::audit::InMemoryAuditLog;
-use causlane_runtime::adapters::tracing::{InMemoryTraceSink, TraceProjectingAuditLog};
+use causlane_runtime::adapters::protocol_history::InMemoryCausalProtocolHistory;
+use causlane_runtime::adapters::tracing::{
+    InMemoryTraceSink, TraceProjectingCausalProtocolHistory,
+};
 use causlane_runtime::guarded_executor::{
     ExecutorService, GuardedExecutionRequest, GuardedExecutor,
 };
@@ -92,9 +94,9 @@ impl BenchFixture {
         }
     }
 
-    fn barrier_event(&self) -> AuditEvent {
+    fn barrier_event(&self) -> CausalProtocolEvent {
         let barrier = ExecutionBarrier {
-            barrier_id: audit_event_id("barrier-1"),
+            barrier_id: causal_protocol_event_id("barrier-1"),
             action_id: action_id(),
             plan_hash: self.lease.holder_plan_hash.clone(),
             op_indexes: vec![0],
@@ -105,10 +107,10 @@ impl BenchFixture {
             constraint_snapshot_id: None,
         };
 
-        AuditEvent::new(
-            audit_event_id("barrier-1"),
+        CausalProtocolEvent::new(
+            causal_protocol_event_id("barrier-1"),
             action_id(),
-            AuditEventKind::ExecutionBarrierLogged,
+            CausalProtocolEventKind::ExecutionBarrierLogged,
         )
         .with_plan_hash(self.lease.holder_plan_hash.clone())
         .with_impact_set_hash(self.impact_hash.clone())
@@ -166,13 +168,18 @@ fn dispatch_baseline_benches(criterion: &mut Criterion) {
             BatchSize::SmallInput,
         );
     });
-    group.bench_function("barrier_audit_append", |bencher| {
+    group.bench_function("barrier_protocol_history_append", |bencher| {
         bencher.iter_batched(
-            || (InMemoryAuditLog::default(), fixture.barrier_event()),
+            || {
+                (
+                    InMemoryCausalProtocolHistory::default(),
+                    fixture.barrier_event(),
+                )
+            },
             |(mut audit, event)| {
                 require(
                     audit.append(black_box(event)),
-                    "barrier event appends to empty audit log",
+                    "barrier event appends to empty causal protocol history",
                 )
             },
             BatchSize::SmallInput,
@@ -203,7 +210,7 @@ struct RuntimeScaleFixture {
     execution_allow: AuthzDecisionRef,
     projection_allow: AuthzDecisionRef,
     ops: Vec<Op>,
-    events: Vec<AuditEvent>,
+    events: Vec<CausalProtocolEvent>,
     fields: Vec<FieldPath>,
     redaction_policy: RedactionPolicy,
     required_stages: Vec<String>,
@@ -261,7 +268,7 @@ impl RuntimeScaleFixture {
         }
     }
 
-    fn run(&self, events: Vec<AuditEvent>) -> usize {
+    fn run(&self, events: Vec<CausalProtocolEvent>) -> usize {
         let guarded = GuardedExecutor::new(RuntimeScaleExecutor);
         for op in &self.ops {
             let produced_refs = require(
@@ -279,10 +286,12 @@ impl RuntimeScaleFixture {
             black_box(produced_refs);
         }
 
-        let mut audit =
-            TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+        let mut audit = TraceProjectingCausalProtocolHistory::new(
+            InMemoryCausalProtocolHistory::default(),
+            InMemoryTraceSink::default(),
+        );
         require(
-            AuditLogPort::append_batch(&mut audit, events),
+            CausalProtocolHistoryPort::append_batch(&mut audit, events),
             "runtime scale audit batch appends",
         );
 
@@ -303,15 +312,15 @@ impl RuntimeScaleFixture {
             "runtime scale projection read is authorized",
         );
 
-        let audit_events = audit.audit_log().events().len();
+        let causal_protocol_events = audit.protocol_history().events().len();
         let trace_spans = audit.trace_sink().spans.len();
         let projected_fields = projection.revealed.len() + projection.redacted.len();
         let redacted_fields = projection.redacted.len();
-        assert_eq!(audit_events, self.events.len());
-        assert_eq!(trace_spans, audit_events);
+        assert_eq!(causal_protocol_events, self.events.len());
+        assert_eq!(trace_spans, causal_protocol_events);
         assert_eq!(projected_fields, self.fields.len());
         assert_eq!(redacted_fields, 1);
-        self.ops.len() + audit_events + trace_spans + projected_fields + redacted_fields
+        self.ops.len() + causal_protocol_events + trace_spans + projected_fields + redacted_fields
     }
 }
 
@@ -321,7 +330,7 @@ fn runtime_scale_barrier(
     impact_hash: &ImpactSetHash,
 ) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("evt-runtime-scale-barrier".to_owned()),
+        barrier_id: CausalProtocolEventId("evt-runtime-scale-barrier".to_owned()),
         action_id: action.clone(),
         plan_hash: plan.clone(),
         op_indexes: (0..RUNTIME_SCALE_OPS).collect(),
@@ -329,8 +338,8 @@ fn runtime_scale_barrier(
         witnesses: Vec::new(),
         leases: vec![runtime_scale_lease(action.clone(), plan.clone())],
         authz_decision_refs: vec![
-            AuditEventId("evt-runtime-scale-authz-execution".to_owned()),
-            AuditEventId("evt-runtime-scale-authz-projection".to_owned()),
+            CausalProtocolEventId("evt-runtime-scale-authz-execution".to_owned()),
+            CausalProtocolEventId("evt-runtime-scale-authz-projection".to_owned()),
         ],
         constraint_snapshot_id: None,
     }
@@ -343,12 +352,12 @@ fn runtime_scale_events(
     barrier: &ExecutionBarrier,
     execution_allow: &AuthzDecisionRef,
     projection_allow: &AuthzDecisionRef,
-) -> Vec<AuditEvent> {
+) -> Vec<CausalProtocolEvent> {
     let mut events = vec![
-        AuditEvent::new(
-            AuditEventId("evt-runtime-scale-barrier".to_owned()),
+        CausalProtocolEvent::new(
+            CausalProtocolEventId("evt-runtime-scale-barrier".to_owned()),
             action.clone(),
-            AuditEventKind::ExecutionBarrierLogged,
+            CausalProtocolEventKind::ExecutionBarrierLogged,
         )
         .with_plan_hash(plan.clone())
         .with_impact_set_hash(impact_hash.clone())
@@ -356,7 +365,7 @@ fn runtime_scale_events(
         runtime_scale_event(
             "evt-runtime-scale-authz-execution",
             action,
-            AuditEventKind::AuthzDecisionRecorded,
+            CausalProtocolEventKind::AuthzDecisionRecorded,
             plan,
         )
         .with_authz_decision(execution_allow.clone()),
@@ -366,41 +375,45 @@ fn runtime_scale_events(
         runtime_scale_event(
             "evt-runtime-scale-authz-projection",
             action,
-            AuditEventKind::AuthzDecisionRecorded,
+            CausalProtocolEventKind::AuthzDecisionRecorded,
             plan,
         )
         .with_authz_decision(projection_allow.clone()),
         runtime_scale_event(
             "evt-runtime-scale-projection",
             action,
-            AuditEventKind::ProjectionEmitted,
+            CausalProtocolEventKind::ProjectionEmitted,
             plan,
         )
-        .with_causation_id(AuditEventId(
+        .with_causation_id(CausalProtocolEventId(
             "evt-runtime-scale-authz-projection".to_owned(),
         )),
     ]);
     events
 }
 
-fn runtime_scale_execution_events(action: &ActionId, plan: &PlanHash) -> Vec<AuditEvent> {
+fn runtime_scale_execution_events(action: &ActionId, plan: &PlanHash) -> Vec<CausalProtocolEvent> {
     (0..RUNTIME_SCALE_OPS)
         .flat_map(|index| {
             [
                 runtime_scale_event(
                     &format!("evt-runtime-scale-started-{index}"),
                     action,
-                    AuditEventKind::ExecutionStarted,
+                    CausalProtocolEventKind::ExecutionStarted,
                     plan,
                 )
-                .with_causation_id(AuditEventId("evt-runtime-scale-barrier".to_owned())),
+                .with_causation_id(CausalProtocolEventId(
+                    "evt-runtime-scale-barrier".to_owned(),
+                )),
                 runtime_scale_event(
                     &format!("evt-runtime-scale-completed-{index}"),
                     action,
-                    AuditEventKind::ExecutionCompleted,
+                    CausalProtocolEventKind::ExecutionCompleted,
                     plan,
                 )
-                .with_causation_id(AuditEventId(format!("evt-runtime-scale-started-{index}"))),
+                .with_causation_id(CausalProtocolEventId(format!(
+                    "evt-runtime-scale-started-{index}"
+                ))),
             ]
         })
         .collect()
@@ -432,7 +445,7 @@ fn runtime_scale_lease(action: ActionId, plan: PlanHash) -> LeaseRef {
         holder_op_index: None,
         epoch: ConstraintEpoch(1),
         expires_at: None,
-        lease_event_id: AuditEventId("evt-runtime-scale-lease".to_owned()),
+        lease_event_id: CausalProtocolEventId("evt-runtime-scale-lease".to_owned()),
     }
 }
 
@@ -459,7 +472,7 @@ fn runtime_scale_decision(
     plan: &PlanHash,
 ) -> AuthzDecisionRef {
     AuthzDecisionRef {
-        decision_event_id: AuditEventId(event_id.to_owned()),
+        decision_event_id: CausalProtocolEventId(event_id.to_owned()),
         action_id: action.clone(),
         plan_hash: plan.clone(),
         predicate_id: RUNTIME_SCALE_PREDICATE.to_owned(),
@@ -477,13 +490,17 @@ fn runtime_scale_decision(
 fn runtime_scale_event(
     event_id: &str,
     action: &ActionId,
-    kind: AuditEventKind,
+    kind: CausalProtocolEventKind,
     plan: &PlanHash,
-) -> AuditEvent {
-    AuditEvent::new(AuditEventId(event_id.to_owned()), action.clone(), kind)
-        .with_plan_hash(plan.clone())
-        .with_correlation_id(CorrelationId("corr-runtime-scale".to_owned()))
-        .with_occurred_at(Timestamp(10))
+) -> CausalProtocolEvent {
+    CausalProtocolEvent::new(
+        CausalProtocolEventId(event_id.to_owned()),
+        action.clone(),
+        kind,
+    )
+    .with_plan_hash(plan.clone())
+    .with_correlation_id(CorrelationId("corr-runtime-scale".to_owned()))
+    .with_occurred_at(Timestamp(10))
 }
 
 fn parse_registry(yaml: &str) -> RegistryManifest {
@@ -576,7 +593,7 @@ fn build_lease(plan_hash: PlanHash) -> LeaseRef {
         holder_op_index: Some(0),
         epoch: ConstraintEpoch(1),
         expires_at: None,
-        lease_event_id: audit_event_id("lease-event-1"),
+        lease_event_id: causal_protocol_event_id("lease-event-1"),
     }
 }
 
@@ -584,8 +601,8 @@ fn action_id() -> ActionId {
     ActionId("act_promote_123".to_owned())
 }
 
-fn audit_event_id(value: &str) -> AuditEventId {
-    AuditEventId(value.to_owned())
+fn causal_protocol_event_id(value: &str) -> CausalProtocolEventId {
+    CausalProtocolEventId(value.to_owned())
 }
 
 fn require<T, E>(result: Result<T, E>, context: &str) -> T

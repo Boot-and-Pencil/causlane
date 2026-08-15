@@ -22,6 +22,6 @@ Telemetry export failure must not affect correctness, except when the sink is ex
 
 ## Enforcement
 
-- Hard effects fail closed on audit append failure.
+- Hard effects fail closed on protocol-history append failure.
 - Telemetry export failure increments health metrics / logs internal warning / drops under policy.
 - Observability connectors cannot commit observed truth or mutate lifecycle.

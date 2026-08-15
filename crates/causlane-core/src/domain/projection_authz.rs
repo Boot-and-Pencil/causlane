@@ -81,8 +81,8 @@ pub fn read_authz_gate(
 mod tests {
     use super::{read_authz_gate, ProjectionReadRequest, MAY_PROJECT_STAGE};
     use crate::domain::{
-        ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzGateOutcome,
-        AuthzPolicy, Timestamp,
+        ActionId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzGateOutcome, AuthzPolicy,
+        CausalProtocolEventId, Timestamp,
     };
     use crate::{PlanHash, PlanHashError};
 
@@ -103,7 +103,7 @@ mod tests {
         expires_at: Option<u64>,
     ) -> AuthzDecisionRef {
         AuthzDecisionRef {
-            decision_event_id: AuditEventId("evt".to_owned()),
+            decision_event_id: CausalProtocolEventId("evt".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan.clone(),
             predicate_id: predicate_id.to_owned(),

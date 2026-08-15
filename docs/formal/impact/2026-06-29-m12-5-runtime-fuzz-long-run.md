@@ -42,7 +42,7 @@ artifact directory or the default
 ## Affected invariants
 
 No invariant semantics change. This record adds execution evidence for the
-existing fail-closed guarded execution, audit append, trace projection and
+existing fail-closed guarded execution, protocol-history append, trace projection and
 projection redaction fuzz target.
 
 ## Affected formal models

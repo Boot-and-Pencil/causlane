@@ -179,7 +179,7 @@ docs matrix -> drift-checked from coverage report
 
 **Purpose:** keep external adapters from weakening the kernel.
 
-**Checks:** adapters can only execute through guarded executor; hard effect requires capability; audit append happens before execution; port failures cannot synthesize success truth.
+**Checks:** adapters can only execute through guarded executor; hard effect requires capability; protocol-history append happens before execution; port failures cannot synthesize success truth.
 
 **Lanes:** Kani/Verus for port-state helpers, integration tests, P for retry/duplicate execution interleavings.
 

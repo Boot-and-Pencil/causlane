@@ -19,7 +19,7 @@ registry -> compiled bundle -> scenario/trace -> Formal IR -> generated artifact
 Causlane has two relevant lifecycles:
 
 1. **Product delivery lifecycle**: how a feature/fix/spec change moves from idea to release and later operation.
-2. **Protocol lifecycle**: how a dispatchable action moves through audit events and kernel states.
+2. **Protocol lifecycle**: how a dispatchable action moves through causal protocol events and kernel states.
 
 Formal discipline covers both. Product lifecycle gates prevent humans from coding a new kernel behavior before the model/proof obligation exists. Protocol lifecycle models prove that the kernel behavior is safe once it exists.
 
@@ -78,7 +78,7 @@ A change is protocol-critical if it affects any of the following:
 compiled bundle schema
 Formal IR schema
 ReplayTrace / ReplayScenario / replay oracle
-AuditEvent payloads
+CausalProtocolEvent payloads
 ExecutionBarrier / ExecutionCapability
 WitnessRef / projection anchors / attested facts
 Authz policy or decision binding

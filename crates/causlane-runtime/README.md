@@ -42,8 +42,10 @@ long-lived dependency history remain host responsibilities.
 
 - `tokio-runtime`: enables the in-process runtime, shadow comparison and Tokio
   runtime dependency.
-- `sqlite-audit`: enables the SQLite append-only audit adapter.
-- `postgres-audit`: enables the Postgres append-only audit adapter.
+- `sqlite-protocol-history`: enables the SQLite append-only causal protocol
+  history adapter.
+- `postgres-protocol-history`: enables the Postgres append-only causal protocol
+  history adapter.
 - `otel`: enables the optional OpenTelemetry export adapter.
 - `apalis`: enables the Apalis guarded execution bridge.
 - `restate`: enables the Restate guarded execution bridge and its serde-backed

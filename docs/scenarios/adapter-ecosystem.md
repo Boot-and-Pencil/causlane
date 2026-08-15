@@ -12,7 +12,7 @@ External adapters should identify exactly one primary adapter class:
 
 - **execution bridge:** maps a backend job, service request or workflow payload
   into a guarded Causlane execution job;
-- **audit adapter:** persists audit events while preserving append-only,
+- **causal protocol history adapter:** persists causal protocol events while preserving append-only,
   monotonic observed-truth ordering;
 - **authz adapter:** maps Causlane authorization coordinates into an external
   policy engine without making the policy engine a lifecycle authority;
@@ -24,12 +24,16 @@ External adapters should identify exactly one primary adapter class:
 Adapters may implement more than one class only when each boundary is certified
 independently.
 
+The stable certification kind `audit_adapter` (historically, "audit adapter")
+identifies the causal protocol history adapter class. That legacy machine token
+does not assign product-wide operational-audit ownership to Causlane.
+
 ## Semantic boundary
 
 Adapters spend or carry the contract; they do not define it. An adapter must not:
 
 - decide semantic admissibility outside the kernel;
-- create observed truth outside audit append;
+- create observed truth outside protocol-history append;
 - bypass hard-effect barriers, leases, witnesses or capabilities;
 - treat backend metadata as authorization evidence;
 - weaken replay, redaction or projection invariants;
@@ -63,7 +67,7 @@ Execution bridges should demonstrate the existing guarded-executor contract:
 
 Audit and observability adapters should demonstrate their own boundaries:
 
-- audit append rejects duplicate or non-monotonic truth writes;
+- protocol-history append rejects duplicate or non-monotonic truth writes;
 - audit batches are all-or-nothing where batching is supported;
 - telemetry/logging happens after the authority event;
 - telemetry failure does not affect correctness.

@@ -37,7 +37,7 @@ stable host task shape.
 ## Affected invariants
 
 ```text
-I-003: unchanged - projection truth remains audit/event anchored, not runtime
+I-003: unchanged - projection truth remains causal protocol anchored, not runtime
        event output.
 I-007: unchanged - drain/fence semantics remain in the kernel/formal lanes.
 I-008: unchanged - lifecycle authority remains audit/replay input, not in-process
@@ -126,5 +126,5 @@ just formal-coverage-matrix-check
 - Allowed profiles:
 - Forbidden profiles:
 - Expiry date:
-- Follow-up issue: M08.2 audit adapters for append-only in-memory/SQLite/Postgres
+- Follow-up issue: M08.2 causal protocol history adapters for append-only in-memory/SQLite/Postgres
   audit paths and group commit policies.

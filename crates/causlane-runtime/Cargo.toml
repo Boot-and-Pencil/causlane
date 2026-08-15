@@ -68,9 +68,9 @@ otel = [
     "dep:opentelemetry-otlp",
     "dep:opentelemetry_sdk",
 ]
-postgres-audit = ["dep:postgres"]
+postgres-protocol-history = ["dep:postgres"]
 restate = ["dep:restate-sdk", "dep:serde"]
-sqlite-audit = ["dep:rusqlite"]
+sqlite-protocol-history = ["dep:rusqlite"]
 tokio-runtime = ["dep:tokio"]
 
 [lints]

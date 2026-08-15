@@ -2,22 +2,22 @@
 //!
 //! The target drives public runtime APIs with small byte-selected variants. It is
 //! an invariant harness only: existing kernel/runtime authorities decide authz,
-//! capability spend, audit append and projection redaction semantics.
+//! capability spend, protocol-history append and projection redaction semantics.
 
 #![no_main]
 
 use std::convert::Infallible;
 
-use causlane::core::ports::{AuditLogPort, ExecutorPort};
+use causlane::core::ports::{CausalProtocolHistoryPort, ExecutorPort};
 use causlane::core::protocol::{
-    ActionId, AuditEvent, AuditEventId, AuditEventKind, AuthzDecision, AuthzDecisionRef,
+    ActionId, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind, AuthzDecision, AuthzDecisionRef,
     AuthzPolicy, CapabilitySpendRefusal, ClaimMode, ConstraintEpoch, CorrelationId,
     EffectSignature, ExecutionBarrier, ExecutionCapability, FieldPath, ImpactHardness,
     ImpactSetHash, LeaseId, LeaseRef, Op, PlanHash, ProjectionReadRequest, RedactionPolicy,
     ResourceId, Scope, Timestamp, MAY_PROJECT_STAGE,
 };
-use causlane_runtime::adapters::audit::{AuditAdapterError, InMemoryAuditLog};
-use causlane_runtime::adapters::tracing::{InMemoryTraceSink, TraceProjectingAuditLog};
+use causlane_runtime::adapters::protocol_history::{CausalProtocolHistoryAdapterError, InMemoryCausalProtocolHistory};
+use causlane_runtime::adapters::tracing::{InMemoryTraceSink, TraceProjectingCausalProtocolHistory};
 use causlane_runtime::guarded_executor::{
     ExecutorService, GuardedExecutionRequest, GuardedExecutor, SpendError,
 };
@@ -50,7 +50,7 @@ fn run_case(data: &[u8]) {
     };
     let input = Input::new(data);
     exercise_guarded_execution(&input, &plan);
-    exercise_audit_trace_projection(&input, &plan);
+    exercise_protocol_history_trace_projection(&input, &plan);
     exercise_projection_guard(&input, &plan);
 }
 
@@ -118,16 +118,16 @@ fn exercise_guarded_execution(input: &Input<'_>, plan: &PlanHash) {
     }
 }
 
-fn exercise_audit_trace_projection(input: &Input<'_>, plan: &PlanHash) {
+fn exercise_protocol_history_trace_projection(input: &Input<'_>, plan: &PlanHash) {
     let action = action_id();
     let first = runtime_event(
         "evt_runtime_fuzz_first",
         &action,
-        AuditEventKind::ExecutionStarted,
+        CausalProtocolEventKind::ExecutionStarted,
         plan,
         Timestamp(10),
     );
-    let second_id = if input.duplicate_audit_id() {
+    let second_id = if input.duplicate_protocol_event_id() {
         "evt_runtime_fuzz_first"
     } else {
         "evt_runtime_fuzz_second"
@@ -135,37 +135,37 @@ fn exercise_audit_trace_projection(input: &Input<'_>, plan: &PlanHash) {
     let second = runtime_event(
         second_id,
         &action,
-        AuditEventKind::ExecutionCompleted,
+        CausalProtocolEventKind::ExecutionCompleted,
         plan,
         Timestamp(11),
     )
-    .with_causation_id(AuditEventId("evt_runtime_fuzz_first".to_owned()));
+    .with_causation_id(CausalProtocolEventId("evt_runtime_fuzz_first".to_owned()));
     let mut audit =
-        TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+        TraceProjectingCausalProtocolHistory::new(InMemoryCausalProtocolHistory::default(), InMemoryTraceSink::default());
 
     assert_eq!(
-        AuditLogPort::append(&mut audit, first),
-        Ok(AuditEventId("evt_runtime_fuzz_first".to_owned()))
+        CausalProtocolHistoryPort::append(&mut audit, first),
+        Ok(CausalProtocolEventId("evt_runtime_fuzz_first".to_owned()))
     );
-    assert_eq!(audit.audit_log().events().len(), 1);
+    assert_eq!(audit.protocol_history().events().len(), 1);
     assert_eq!(audit.trace_sink().spans.len(), 1);
 
-    let result = AuditLogPort::append(&mut audit, second);
-    if input.duplicate_audit_id() {
+    let result = CausalProtocolHistoryPort::append(&mut audit, second);
+    if input.duplicate_protocol_event_id() {
         assert_eq!(
             result,
-            Err(AuditAdapterError::DuplicateEventId {
-                event_id: AuditEventId("evt_runtime_fuzz_first".to_owned())
+            Err(CausalProtocolHistoryAdapterError::DuplicateEventId {
+                event_id: CausalProtocolEventId("evt_runtime_fuzz_first".to_owned())
             })
         );
-        assert_eq!(audit.audit_log().events().len(), 1);
+        assert_eq!(audit.protocol_history().events().len(), 1);
         assert_eq!(audit.trace_sink().spans.len(), 1);
     } else {
         assert_eq!(
             result,
-            Ok(AuditEventId("evt_runtime_fuzz_second".to_owned()))
+            Ok(CausalProtocolEventId("evt_runtime_fuzz_second".to_owned()))
         );
-        assert_eq!(audit.audit_log().events().len(), 2);
+        assert_eq!(audit.protocol_history().events().len(), 2);
         assert_eq!(audit.trace_sink().spans.len(), 2);
     }
 }
@@ -236,7 +236,7 @@ impl<'a> Input<'a> {
         self.byte(3) % 6
     }
 
-    fn duplicate_audit_id(&self) -> bool {
+    fn duplicate_protocol_event_id(&self) -> bool {
         self.byte(4) % 2 == 0
     }
 
@@ -430,7 +430,7 @@ impl ExecutorPort for MarkerExecutor {
 
 fn execution_barrier(plan: PlanHash, lease_expiry: Option<Timestamp>) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("evt_runtime_fuzz_barrier".to_owned()),
+        barrier_id: CausalProtocolEventId("evt_runtime_fuzz_barrier".to_owned()),
         action_id: action_id(),
         plan_hash: plan.clone(),
         op_indexes: vec![0],
@@ -447,7 +447,7 @@ fn execution_barrier(plan: PlanHash, lease_expiry: Option<Timestamp>) -> Executi
             holder_op_index: Some(0),
             epoch: ConstraintEpoch(0),
             expires_at: lease_expiry,
-            lease_event_id: AuditEventId("evt_runtime_fuzz_lease".to_owned()),
+            lease_event_id: CausalProtocolEventId("evt_runtime_fuzz_lease".to_owned()),
         }],
         authz_decision_refs: Vec::new(),
         constraint_snapshot_id: None,
@@ -479,7 +479,7 @@ fn authz_decision(
     plan: &PlanHash,
 ) -> AuthzDecisionRef {
     AuthzDecisionRef {
-        decision_event_id: AuditEventId(event_id.to_owned()),
+        decision_event_id: CausalProtocolEventId(event_id.to_owned()),
         action_id: action_id(),
         plan_hash: plan.clone(),
         predicate_id: predicate_id.to_owned(),
@@ -497,11 +497,11 @@ fn authz_decision(
 fn runtime_event(
     event_id: &str,
     action: &ActionId,
-    kind: AuditEventKind,
+    kind: CausalProtocolEventKind,
     plan: &PlanHash,
     occurred_at: Timestamp,
-) -> AuditEvent {
-    AuditEvent::new(AuditEventId(event_id.to_owned()), action.clone(), kind)
+) -> CausalProtocolEvent {
+    CausalProtocolEvent::new(CausalProtocolEventId(event_id.to_owned()), action.clone(), kind)
         .with_plan_hash(plan.clone())
         .with_correlation_id(CorrelationId(CORRELATION_ID.to_owned()))
         .with_occurred_at(occurred_at)

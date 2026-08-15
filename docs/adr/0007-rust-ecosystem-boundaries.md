@@ -18,7 +18,7 @@ Jobs: Apalis, Fang.
 Durable workflows: Restate, Temporal, Dapr, Conductor.
 AuthZ: Cedar, Casbin, AuthZEN, OpenFGA, SpiceDB, OPA.
 Observability: tracing, OpenTelemetry.
-Persistence: SQLite/Postgres audit adapters.
+Persistence: SQLite/Postgres causal protocol history adapters.
 ```
 
 ## Consequences

@@ -24,7 +24,7 @@ baseline suite. The benchmark exercises the runtime API surface selected for
 M12.5 validation by measuring a 512-op positive path through:
 
 - `GuardedExecutor` authorization and capability spend;
-- `TraceProjectingAuditLog<InMemoryAuditLog, InMemoryTraceSink>` append plus
+- `TraceProjectingCausalProtocolHistory<InMemoryCausalProtocolHistory, InMemoryTraceSink>` append plus
   span projection;
 - guarded projection read and redaction via `guard_projection_read`.
 
@@ -42,7 +42,7 @@ The benchmark was measured on `ci-dispatcher.lan` at
 
 | Benchmark | Workload | Start UTC | End UTC | Status | Mean | Median |
 |---|---:|---:|---:|---:|---:|---:|
-| `runtime_guarded_audit_projection_flow` | 512 guarded ops, 1,028 audit events, 1 projection read | 2026-06-29T13:58:13Z | 2026-06-29T13:58:34Z | 0 | 1.4399 ms | 1.4446 ms |
+| `runtime_guarded_audit_projection_flow` | 512 guarded ops, 1,028 causal protocol events, 1 projection read | 2026-06-29T13:58:13Z | 2026-06-29T13:58:34Z | 0 | 1.4399 ms | 1.4446 ms |
 
 Criterion reported the mean 95% confidence interval as 1.4318 ms to 1.4487 ms
 and the median 95% confidence interval as 1.4265 ms to 1.4466 ms. The terminal
@@ -51,7 +51,7 @@ outlier among 20 measurements.
 
 ## Affected invariants
 
-No invariant semantics change. Existing authorization, capability, audit append,
+No invariant semantics change. Existing authorization, capability, protocol-history append,
 trace projection and projection redaction semantics are measured but not
 modified.
 

@@ -11,7 +11,7 @@ A witness answers "why is this transition allowed?" — it carries causal or aut
 
 ## Decision
 
-A projection's truth anchor MUST be a separate, typed field `anchors: Vec<TruthAnchor>` on `AuditEvent`. It MUST NOT be reused from the `witnesses` vector. An anchor MAY coincidentally also be a causal witness, but the two fields MUST remain separate.
+A projection's truth anchor MUST be a separate, typed field `anchors: Vec<TruthAnchor>` on `CausalProtocolEvent`. It MUST NOT be reused from the `witnesses` vector. An anchor MAY coincidentally also be a causal witness, but the two fields MUST remain separate.
 
 `TruthAnchor` fields:
 

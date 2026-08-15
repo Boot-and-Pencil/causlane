@@ -1,6 +1,6 @@
 //! Lifecycle reducer and transition guards.
 
-use super::{AuditEventKind, ConsequenceProfile};
+use super::{CausalProtocolEventKind, ConsequenceProfile};
 
 /// The stage an action's lifecycle has reached.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -33,7 +33,7 @@ pub enum LifecycleViolation {
         /// The stage the action was in.
         from: LifecycleStage,
         /// The event that was attempted.
-        event: AuditEventKind,
+        event: CausalProtocolEventKind,
         /// The consequence profile in effect.
         profile: ConsequenceProfile,
     },
@@ -44,10 +44,10 @@ pub enum LifecycleViolation {
 #[allow(clippy::match_same_arms)]
 pub fn reduce_lifecycle(
     from: LifecycleStage,
-    event: AuditEventKind,
+    event: CausalProtocolEventKind,
     profile: ConsequenceProfile,
 ) -> Result<LifecycleStage, LifecycleViolation> {
-    use AuditEventKind as E;
+    use CausalProtocolEventKind as E;
     use ConsequenceProfile as P;
     use LifecycleStage as S;
 
@@ -80,7 +80,7 @@ pub fn reduce_lifecycle(
         (P::RuntimeExecution, S::Projected, E::LifecycleClosed) => S::Closed,
 
         // Observational records (a denied gate or a detected violation) do not
-        // advance or terminate the lifecycle — they are evidence the audit
+        // advance or terminate the lifecycle — they are evidence the protocol
         // vocabulary is designed to carry, and replay already treats them as
         // no-ops in the lease/witness/capability passes. Accept them as
         // stage-preserving rather than rejecting valid histories that record
@@ -112,7 +112,7 @@ pub fn reduce_lifecycle(
 mod tests {
     use super::{reduce_lifecycle, LifecycleStage as S};
     use crate::contract::{KernelContracts, LifecycleGrammar};
-    use crate::domain::{AuditEventKind as E, ConsequenceProfile as P};
+    use crate::domain::{CausalProtocolEventKind as E, ConsequenceProfile as P};
 
     /// Every `LifecycleStage` variant — kept exhaustive so the property test below
     /// is a complete proof over the finite input space.
@@ -128,7 +128,7 @@ mod tests {
         S::Closed,
     ];
 
-    /// Every `AuditEventKind` variant.
+    /// Every `CausalProtocolEventKind` variant.
     const ALL_EVENTS: [E; 17] = [
         E::ActionAdmitted,
         E::ActionPlanned,

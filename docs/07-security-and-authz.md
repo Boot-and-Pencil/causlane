@@ -204,7 +204,7 @@ What remains trust-on-input (the journal is the trusted root):
   replay (see ADR-0009).
 ```
 
-Operational requirement: the audit journal MUST be made tamper-evident **out of
+Operational requirement: the causal protocol history MUST be made tamper-evident **out of
 band** — an append-only, signed/hash-chained log — and the kernel/PDP secrets
 held outside the trace. The attestations above raise the bar from "structural
 binding within a trusted trace" to "cryptographic binding under a held secret";

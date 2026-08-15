@@ -48,7 +48,7 @@ pub enum OperationalSloSurface {
     Submit,
     /// Route/admission coordination surface.
     Admission,
-    /// Execution-barrier audit append surface.
+    /// Execution-barrier protocol-history append surface.
     BarrierAppend,
     /// Replay verification surface.
     ReplayVerify,

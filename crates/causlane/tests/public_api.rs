@@ -2,7 +2,8 @@
 
 use causlane::core::{kernel, ports, prelude as core_prelude, protocol};
 use causlane::prelude::{
-    claim_modes_conflict, mergeable, ActionCall, AuditLogPort, ClaimMode, KernelContracts,
+    claim_modes_conflict, mergeable, ActionCall, CausalProtocolHistoryPort, ClaimMode,
+    KernelContracts,
 };
 
 fn assert_admit_type(_: fn(&protocol::ActionCall) -> kernel::DispatchAdmission) {}
@@ -11,7 +12,7 @@ fn assert_admit_type(_: fn(&protocol::ActionCall) -> kernel::DispatchAdmission) 
 fn facade_exposes_curated_core_layers() {
     let _ = std::any::type_name::<protocol::ActionCall>();
     let _ = std::any::type_name::<core_prelude::ActionCall>();
-    let _ = std::any::type_name::<dyn ports::AuditLogPort<Error = ()>>();
+    let _ = std::any::type_name::<dyn ports::CausalProtocolHistoryPort<Error = ()>>();
 
     assert_admit_type(kernel::admit_call);
     let conflict: fn(protocol::ClaimMode, protocol::ClaimMode, bool, bool, bool) -> bool =
@@ -32,7 +33,7 @@ fn facade_prelude_keeps_common_imports() {
     let mergeable: fn() -> bool = mergeable;
 
     let _ = std::any::type_name::<ActionCall>();
-    let _ = std::any::type_name::<dyn AuditLogPort<Error = ()>>();
+    let _ = std::any::type_name::<dyn CausalProtocolHistoryPort<Error = ()>>();
     let _ = std::any::type_name::<KernelContracts>();
 
     assert!(!mergeable());

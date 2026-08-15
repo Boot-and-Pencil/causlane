@@ -107,7 +107,7 @@ bounded matrix must prove/test-demonstrate for existing adapters:
 
 - no execution before barrier;
 - executor requires scoped capability;
-- audit append failure fail-closed for hard effects;
+- protocol-history append failure fail-closed for hard effects;
 - telemetry/logging not authority.
 
 Release/production certification additionally requires first-class evidence for:

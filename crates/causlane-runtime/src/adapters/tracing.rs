@@ -1,10 +1,12 @@
 //! Runtime tracing adapter.
 //!
-//! This adapter projects audit events into spans after the authoritative audit
-//! append succeeds. The projection is telemetry only: sink failures are ignored.
+//! This adapter projects causal protocol events into spans after the authoritative
+//! protocol-history append succeeds. The projection is telemetry only: sink
+//! failures are ignored.
 
 use causlane_core::{
-    trace_span_from_audit_event, AuditEvent, AuditEventId, AuditLogPort, TraceSpan,
+    trace_span_from_causal_protocol_event, CausalProtocolEvent, CausalProtocolEventId,
+    CausalProtocolHistoryPort, TraceSpan,
 };
 
 /// Sink for derived trace spans.
@@ -14,7 +16,7 @@ pub trait TraceSinkPort {
 
     /// Record a derived span.
     ///
-    /// Errors are telemetry failures and must not affect audit append semantics.
+    /// Errors are telemetry failures and must not affect protocol-history append semantics.
     fn record(&mut self, span: TraceSpan) -> Result<(), Self::Error>;
 }
 
@@ -35,31 +37,31 @@ impl TraceSinkPort for InMemoryTraceSink {
 }
 
 /// Audit log wrapper that emits one derived trace span per successful append.
-pub struct TraceProjectingAuditLog<A, S> {
-    audit_log: A,
+pub struct TraceProjectingCausalProtocolHistory<A, S> {
+    protocol_history: A,
     trace_sink: S,
 }
 
-impl<A, S> TraceProjectingAuditLog<A, S> {
-    /// Create a tracing audit wrapper.
+impl<A, S> TraceProjectingCausalProtocolHistory<A, S> {
+    /// Create a tracing protocol-history wrapper.
     #[must_use]
-    pub fn new(audit_log: A, trace_sink: S) -> Self {
+    pub fn new(protocol_history: A, trace_sink: S) -> Self {
         Self {
-            audit_log,
+            protocol_history,
             trace_sink,
         }
     }
 
-    /// Borrow the wrapped audit log.
+    /// Borrow the wrapped causal protocol history.
     #[must_use]
-    pub fn audit_log(&self) -> &A {
-        &self.audit_log
+    pub fn protocol_history(&self) -> &A {
+        &self.protocol_history
     }
 
-    /// Mutably borrow the wrapped audit log.
+    /// Mutably borrow the wrapped causal protocol history.
     #[must_use]
-    pub fn audit_log_mut(&mut self) -> &mut A {
-        &mut self.audit_log
+    pub fn protocol_history_mut(&mut self) -> &mut A {
+        &mut self.protocol_history
     }
 
     /// Borrow the trace sink.
@@ -77,7 +79,7 @@ impl<A, S> TraceProjectingAuditLog<A, S> {
     /// Split the wrapper back into its parts.
     #[must_use]
     pub fn into_parts(self) -> (A, S) {
-        (self.audit_log, self.trace_sink)
+        (self.protocol_history, self.trace_sink)
     }
 
     fn emit_spans(&mut self, spans: Vec<TraceSpan>)
@@ -90,23 +92,29 @@ impl<A, S> TraceProjectingAuditLog<A, S> {
     }
 }
 
-impl<A, S> AuditLogPort for TraceProjectingAuditLog<A, S>
+impl<A, S> CausalProtocolHistoryPort for TraceProjectingCausalProtocolHistory<A, S>
 where
-    A: AuditLogPort,
+    A: CausalProtocolHistoryPort,
     S: TraceSinkPort,
 {
     type Error = A::Error;
 
-    fn append_batch(&mut self, events: Vec<AuditEvent>) -> Result<Vec<AuditEventId>, Self::Error> {
-        let spans = events.iter().map(trace_span_from_audit_event).collect();
-        let event_ids = self.audit_log.append_batch(events)?;
+    fn append_batch(
+        &mut self,
+        events: Vec<CausalProtocolEvent>,
+    ) -> Result<Vec<CausalProtocolEventId>, Self::Error> {
+        let spans = events
+            .iter()
+            .map(trace_span_from_causal_protocol_event)
+            .collect();
+        let event_ids = self.protocol_history.append_batch(events)?;
         self.emit_spans(spans);
         Ok(event_ids)
     }
 
-    fn append(&mut self, event: AuditEvent) -> Result<AuditEventId, Self::Error> {
-        let span = trace_span_from_audit_event(&event);
-        let event_id = self.audit_log.append(event)?;
+    fn append(&mut self, event: CausalProtocolEvent) -> Result<CausalProtocolEventId, Self::Error> {
+        let span = trace_span_from_causal_protocol_event(&event);
+        let event_id = self.protocol_history.append(event)?;
         self.emit_spans(vec![span]);
         Ok(event_id)
     }
@@ -114,30 +122,33 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{InMemoryTraceSink, TraceProjectingAuditLog, TraceSinkPort};
-    use crate::adapters::audit::InMemoryAuditLog;
+    use super::{InMemoryTraceSink, TraceProjectingCausalProtocolHistory, TraceSinkPort};
+    use crate::adapters::protocol_history::InMemoryCausalProtocolHistory;
     use causlane_core::{
-        trace_span_from_audit_event, ActionId, AuditEvent, AuditEventId, AuditEventKind,
-        AuditLogPort, TraceSpan,
+        trace_span_from_causal_protocol_event, ActionId, CausalProtocolEvent,
+        CausalProtocolEventId, CausalProtocolEventKind, CausalProtocolHistoryPort, TraceSpan,
     };
 
     #[derive(Debug, PartialEq, Eq)]
-    struct AuditError;
+    struct ProtocolHistoryError;
 
-    struct FailingAuditLog;
+    struct FailingCausalProtocolHistory;
 
-    impl AuditLogPort for FailingAuditLog {
-        type Error = AuditError;
+    impl CausalProtocolHistoryPort for FailingCausalProtocolHistory {
+        type Error = ProtocolHistoryError;
 
         fn append_batch(
             &mut self,
-            _events: Vec<AuditEvent>,
-        ) -> Result<Vec<AuditEventId>, Self::Error> {
-            Err(AuditError)
+            _events: Vec<CausalProtocolEvent>,
+        ) -> Result<Vec<CausalProtocolEventId>, Self::Error> {
+            Err(ProtocolHistoryError)
         }
 
-        fn append(&mut self, _event: AuditEvent) -> Result<AuditEventId, Self::Error> {
-            Err(AuditError)
+        fn append(
+            &mut self,
+            _event: CausalProtocolEvent,
+        ) -> Result<CausalProtocolEventId, Self::Error> {
+            Err(ProtocolHistoryError)
         }
     }
 
@@ -158,109 +169,120 @@ mod tests {
         }
     }
 
-    fn event() -> AuditEvent {
-        event_kind("event-1", AuditEventKind::ExecutionStarted)
-            .with_causation_id(AuditEventId("parent-event".to_owned()))
+    fn event() -> CausalProtocolEvent {
+        event_kind("event-1", CausalProtocolEventKind::ExecutionStarted)
+            .with_causation_id(CausalProtocolEventId("parent-event".to_owned()))
     }
 
-    fn event_kind(id: &str, kind: AuditEventKind) -> AuditEvent {
-        AuditEvent::new(
-            AuditEventId(id.to_owned()),
+    fn event_kind(id: &str, kind: CausalProtocolEventKind) -> CausalProtocolEvent {
+        CausalProtocolEvent::new(
+            CausalProtocolEventId(id.to_owned()),
             ActionId("action-1".to_owned()),
             kind,
         )
     }
 
     #[test]
-    fn emits_derived_span_after_successful_audit_append() {
+    fn emits_derived_span_after_successful_protocol_history_append() {
         let source_event = event();
-        let expected_span = trace_span_from_audit_event(&source_event);
+        let expected_span = trace_span_from_causal_protocol_event(&source_event);
         let expected_event = source_event.clone().with_event_index(0);
-        let mut audit =
-            TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+        let mut audit = TraceProjectingCausalProtocolHistory::new(
+            InMemoryCausalProtocolHistory::default(),
+            InMemoryTraceSink::default(),
+        );
 
         let event_id = audit.append(source_event);
 
-        assert_eq!(event_id, Ok(AuditEventId("event-1".to_owned())));
-        assert_eq!(audit.audit_log().events, vec![expected_event]);
+        assert_eq!(event_id, Ok(CausalProtocolEventId("event-1".to_owned())));
+        assert_eq!(audit.protocol_history().events, vec![expected_event]);
         assert_eq!(audit.trace_sink().spans, vec![expected_span]);
     }
 
     #[test]
-    fn does_not_emit_span_when_audit_append_fails() {
-        let mut audit = TraceProjectingAuditLog::new(FailingAuditLog, InMemoryTraceSink::default());
+    fn does_not_emit_span_when_protocol_history_append_fails() {
+        let mut protocol_history = TraceProjectingCausalProtocolHistory::new(
+            FailingCausalProtocolHistory,
+            InMemoryTraceSink::default(),
+        );
 
-        let result = audit.append(event());
+        let result = protocol_history.append(event());
 
-        assert_eq!(result, Err(AuditError));
-        assert!(audit.trace_sink().spans.is_empty());
+        assert_eq!(result, Err(ProtocolHistoryError));
+        assert!(protocol_history.trace_sink().spans.is_empty());
     }
 
     #[test]
-    fn telemetry_failure_is_fail_open_after_audit_append() {
+    fn telemetry_failure_is_fail_open_after_protocol_history_append() {
         let source_event = event();
         let expected_event = source_event.clone().with_event_index(0);
-        let mut audit =
-            TraceProjectingAuditLog::new(InMemoryAuditLog::default(), FailingTraceSink::default());
+        let mut audit = TraceProjectingCausalProtocolHistory::new(
+            InMemoryCausalProtocolHistory::default(),
+            FailingTraceSink::default(),
+        );
 
         let event_id = audit.append(source_event);
 
-        assert_eq!(event_id, Ok(AuditEventId("event-1".to_owned())));
-        assert_eq!(audit.audit_log().events, vec![expected_event]);
+        assert_eq!(event_id, Ok(CausalProtocolEventId("event-1".to_owned())));
+        assert_eq!(audit.protocol_history().events, vec![expected_event]);
         assert_eq!(audit.trace_sink().attempts, 1);
     }
 
     #[test]
     fn emits_derived_spans_after_successful_batch_append() {
-        let barrier = event_kind("barrier", AuditEventKind::ExecutionBarrierLogged);
-        let started = event_kind("started", AuditEventKind::ExecutionStarted)
-            .with_causation_id(AuditEventId("barrier".to_owned()));
+        let barrier = event_kind("barrier", CausalProtocolEventKind::ExecutionBarrierLogged);
+        let started = event_kind("started", CausalProtocolEventKind::ExecutionStarted)
+            .with_causation_id(CausalProtocolEventId("barrier".to_owned()));
         let expected_spans = vec![
-            trace_span_from_audit_event(&barrier),
-            trace_span_from_audit_event(&started),
+            trace_span_from_causal_protocol_event(&barrier),
+            trace_span_from_causal_protocol_event(&started),
         ];
         let expected_events = vec![
             barrier.clone().with_event_index(0),
             started.clone().with_event_index(1),
         ];
-        let mut audit =
-            TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+        let mut audit = TraceProjectingCausalProtocolHistory::new(
+            InMemoryCausalProtocolHistory::default(),
+            InMemoryTraceSink::default(),
+        );
 
-        let event_ids = AuditLogPort::append_batch(&mut audit, vec![barrier, started]);
+        let event_ids = CausalProtocolHistoryPort::append_batch(&mut audit, vec![barrier, started]);
 
         assert_eq!(
             event_ids,
             Ok(vec![
-                AuditEventId("barrier".to_owned()),
-                AuditEventId("started".to_owned())
+                CausalProtocolEventId("barrier".to_owned()),
+                CausalProtocolEventId("started".to_owned())
             ])
         );
-        assert_eq!(audit.audit_log().events, expected_events);
+        assert_eq!(audit.protocol_history().events, expected_events);
         assert_eq!(audit.trace_sink().spans, expected_spans);
     }
 
     #[test]
     fn does_not_emit_spans_when_batch_append_fails() {
-        let mut audit =
-            TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+        let mut audit = TraceProjectingCausalProtocolHistory::new(
+            InMemoryCausalProtocolHistory::default(),
+            InMemoryTraceSink::default(),
+        );
 
-        let result = AuditLogPort::append_batch(
+        let result = CausalProtocolHistoryPort::append_batch(
             &mut audit,
             vec![
-                event_kind("same", AuditEventKind::ExecutionBarrierLogged),
-                event_kind("same", AuditEventKind::ExecutionStarted),
+                event_kind("same", CausalProtocolEventKind::ExecutionBarrierLogged),
+                event_kind("same", CausalProtocolEventKind::ExecutionStarted),
             ],
         );
 
         assert_eq!(
             result,
             Err(
-                crate::adapters::audit::AuditAdapterError::DuplicateEventId {
-                    event_id: AuditEventId("same".to_owned())
+                crate::adapters::protocol_history::CausalProtocolHistoryAdapterError::DuplicateEventId {
+                    event_id: CausalProtocolEventId("same".to_owned())
                 }
             )
         );
-        assert!(audit.audit_log().events.is_empty());
+        assert!(audit.protocol_history().events.is_empty());
         assert!(audit.trace_sink().spans.is_empty());
     }
 }

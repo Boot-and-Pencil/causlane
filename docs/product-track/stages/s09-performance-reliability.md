@@ -29,9 +29,9 @@
 ### M09.3 — Batched durability
 
 - **Status:** `done_or_near_done`
-- **Outcome:** `AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.
+- **Outcome:** `CausalProtocolHistoryPort::append_batch` gives all-or-nothing ordered group commit over the existing causal protocol history boundary.
 - **Definition of done:**
-  - typed batch contract exists on `AuditLogPort`;
+  - typed batch contract exists on `CausalProtocolHistoryPort`;
   - in-memory, SQLite, Postgres and tracing adapters use the same batch semantics;
   - write-ahead order and rollback negative controls are covered;
   - docs/ADR/FIR and adapter evidence match the implementation.

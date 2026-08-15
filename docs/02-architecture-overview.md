@@ -19,7 +19,7 @@ Input event / request / command
 
 ## Single source of observed truth
 
-Only the audit/event journal may be the authority for observed truth.
+Only the causal protocol history may be the authority for observed truth.
 
 The following are derived and must not become truth:
 
@@ -171,7 +171,7 @@ The chain above is backed by a typed, content-addressed contract layer (see the
 ```text
 registry.yaml -> CompiledDispatchBundle (+ bundle_hash)      [causlane-contracts]
 ActionPlan    -> PlanHashMaterial -> plan_hash, impact_set_hash [ADR-0009]
-AuditEvent    -> witnesses + typed truth anchors + leases     [causlane-core, ADR-0010/0013]
+CausalProtocolEvent -> witnesses + typed truth anchors + leases      [causlane-core, ADR-0010/0013]
 ReplayTrace   -> verify (I-001/I-002/I-003/I-006/I-008)        [causlane-replay]
 ```
 

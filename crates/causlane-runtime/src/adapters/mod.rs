@@ -2,7 +2,6 @@
 
 #[cfg(feature = "apalis")]
 pub mod apalis;
-pub mod audit;
 pub mod authzen;
 pub mod casbin;
 pub mod cedar;
@@ -13,6 +12,7 @@ pub mod executor;
 pub mod openfga;
 #[cfg(feature = "otel")]
 pub mod otel;
+pub mod protocol_history;
 #[cfg(feature = "restate")]
 pub mod restate;
 pub mod tracing;

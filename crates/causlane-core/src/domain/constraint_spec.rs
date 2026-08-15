@@ -225,7 +225,7 @@ mod tests {
         ClaimMode, ConstraintDecision, ConstraintEpoch, ConstraintId, LeaseId, LeaseRef, PlanHash,
         ResourceClaim, ResourceId, Scope,
     };
-    use crate::{ActionId, AuditEventId, KernelContracts, PlanHashError};
+    use crate::{ActionId, CausalProtocolEventId, KernelContracts, PlanHashError};
 
     type TestResult = Result<(), PlanHashError>;
 
@@ -261,7 +261,7 @@ mod tests {
             holder_op_index: Some(0),
             epoch: ConstraintEpoch(1),
             expires_at: None,
-            lease_event_id: AuditEventId(format!("evt_{id}")),
+            lease_event_id: CausalProtocolEventId(format!("evt_{id}")),
         }
     }
 

@@ -21,7 +21,7 @@ verification/formal-full/obligations/lifecycle_product_obligations.yaml
 ## Summary
 
 An `execution.barrier_logged` event carried witness evidence in two places: the
-deprecated legacy `AuditEvent.witnesses` (a flat `Vec<AuditEventId>`) and the
+deprecated legacy `CausalProtocolEvent.witnesses` (a flat `Vec<CausalProtocolEventId>`) and the
 authoritative typed `ExecutionBarrier.witnesses` payload (`Vec<WitnessRef>` with
 binding/scope/fact). Replay validated the typed payload fully
 (`validate_typed_witnesses`) **and** ran a weaker legacy count/prior check
@@ -36,7 +36,7 @@ against it:
   already enforces prior-ness, required-witness presence, binding, scope and
   producer attestation.
 - New `validate_legacy_witness_consistency(barrier, barrier_payload)`: when the
-  legacy `AuditEvent.witnesses` list is non-empty it must name **exactly** the
+  legacy `CausalProtocolEvent.witnesses` list is non-empty it must name **exactly** the
   producer events of the typed witnesses, else replay rejects with the new stable
   code `LegacyWitnessMismatch`. An empty legacy list is the canonical typed-only
   path. Legacy witnesses are never sufficient evidence on their own.
@@ -46,7 +46,7 @@ against it:
 ```text
 I-009: Witness/authz evidence must bind exact action/plan/impact/scope — the typed
        ExecutionBarrier.witnesses payload is now the sole evidence authority; the
-       legacy AuditEvent.witnesses field is a reconciled compatibility mirror.
+       legacy CausalProtocolEvent.witnesses field is a reconciled compatibility mirror.
        Semantics unchanged for well-formed traces (the success path is identical);
        this closes a legacy/typed divergence hole.
 new invariant ids: none
@@ -96,6 +96,6 @@ just verification-full
 ## Exception request
 
 - Exception needed? no
-- Follow-up issue: the legacy `AuditEvent.witnesses` field should eventually be
+- Follow-up issue: the legacy `CausalProtocolEvent.witnesses` field should eventually be
   removed from the protocol-critical path entirely (it is now strictly a reconciled
   mirror); tracked for a later schema-deprecation increment.

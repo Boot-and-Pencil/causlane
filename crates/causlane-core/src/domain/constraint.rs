@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use super::{ActionId, AuditEventId, ImpactSetHash, PlanHash, Scope, WitnessRef};
+use super::{ActionId, CausalProtocolEventId, ImpactSetHash, PlanHash, Scope, WitnessRef};
 use crate::contract::ConflictOracle;
 
 /// Monotonic version of the constraint plane. A lease is only valid within the
@@ -80,9 +80,9 @@ pub struct Lease {
     pub holder_plan_hash: PlanHash,
 }
 
-/// A reference to a granted lease as recorded on an audit event / execution
+/// A reference to a granted lease as recorded on an causal protocol event / execution
 /// barrier (ADR-0013). Unlike [`Lease`], this carries the epoch, expiry and the
-/// id of the audit event that granted it, so replay can verify lease coverage
+/// id of the causal protocol event that granted it, so replay can verify lease coverage
 /// and conflict-freedom (invariant I-006).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LeaseRef {
@@ -106,8 +106,8 @@ pub struct LeaseRef {
     pub epoch: ConstraintEpoch,
     /// When the lease expires, if it is time-bounded.
     pub expires_at: Option<Timestamp>,
-    /// The audit event that recorded the grant.
-    pub lease_event_id: AuditEventId,
+    /// The causal protocol event that recorded the grant.
+    pub lease_event_id: CausalProtocolEventId,
 }
 
 /// Durable write-ahead barrier authorizing execution of one or more ops
@@ -115,7 +115,7 @@ pub struct LeaseRef {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExecutionBarrier {
     /// Barrier event id.
-    pub barrier_id: AuditEventId,
+    pub barrier_id: CausalProtocolEventId,
     /// Action this barrier authorizes.
     pub action_id: ActionId,
     /// Plan hash this barrier authorizes.
@@ -129,7 +129,7 @@ pub struct ExecutionBarrier {
     /// Leases held at barrier time.
     pub leases: Vec<LeaseRef>,
     /// Authorization decision events considered by the barrier.
-    pub authz_decision_refs: Vec<AuditEventId>,
+    pub authz_decision_refs: Vec<CausalProtocolEventId>,
     /// Constraint snapshot id, if the constraint plane recorded one.
     pub constraint_snapshot_id: Option<ConstraintId>,
 }
@@ -146,7 +146,7 @@ pub struct ExecutionCapability {
     /// Op index authorized by this capability.
     pub op_index: u32,
     /// Barrier event id this capability derives from.
-    pub barrier_event_id: AuditEventId,
+    pub barrier_event_id: CausalProtocolEventId,
     /// Lease ids covering this op.
     pub lease_ids: Vec<LeaseId>,
     /// Earliest lease expiry, if any.
@@ -460,13 +460,13 @@ mod tests {
             holder_op_index: Some(0),
             epoch: ConstraintEpoch(0),
             expires_at: None,
-            lease_event_id: AuditEventId(format!("evt_{id}")),
+            lease_event_id: CausalProtocolEventId(format!("evt_{id}")),
         }
     }
 
     fn barrier(plan: PlanHash, leases: Vec<LeaseRef>) -> ExecutionBarrier {
         ExecutionBarrier {
-            barrier_id: AuditEventId("barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("barrier".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan,
             op_indexes: vec![0],
@@ -610,7 +610,7 @@ mod tests {
         assert!(ExecutionCapability::derive_from_barrier(&barrier, 1).is_err());
 
         let mut wrong_barrier = barrier.clone();
-        wrong_barrier.barrier_id = AuditEventId("other_barrier".to_owned());
+        wrong_barrier.barrier_id = CausalProtocolEventId("other_barrier".to_owned());
         assert!(capability.validate_for_barrier(&wrong_barrier).is_err());
         Ok(())
     }

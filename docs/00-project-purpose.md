@@ -46,7 +46,7 @@ Input / command / event
 
 ## Core promise
 
-Define actions once. Get validation, dispatch lifecycle, side-effect barriers, audit events, constraints, replay and explanation across API, CLI, workers and workflow backends.
+Define actions once. Get validation, dispatch lifecycle, side-effect barriers, causal protocol events, constraints, replay and explanation across API, CLI, workers and workflow backends.
 
 ## What is universal
 

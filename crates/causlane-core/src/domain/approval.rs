@@ -1,8 +1,8 @@
 //! Approval as a typed, auditable action (M06.4, S06).
 //!
 //! An approval is not a boolean flag: it is a recorded `gate.approved` /
-//! `gate.denied` decision (the [`GateApproved`](crate::domain::AuditEventKind::GateApproved) /
-//! [`GateDenied`](crate::domain::AuditEventKind::GateDenied) producer events)
+//! `gate.denied` decision (the [`GateApproved`](crate::domain::CausalProtocolEventKind::GateApproved) /
+//! [`GateDenied`](crate::domain::CausalProtocolEventKind::GateDenied) producer events)
 //! bound to the **exact** target it authorizes — the three-coordinate binding
 //! `action_id` + `plan_hash` + `impact_set_hash` (ADR-0013). This module is a
 //! pure, fail-closed decider: given a set of approvals and a target triple, it
@@ -27,12 +27,12 @@
 //! combined gate in [`crate::domain::approval_stepup`]; the coordinate-only
 //! [`approval_gate`] here is unchanged.
 
-use super::{ActionId, AuditEventId, ImpactSetHash, PlanHash, Timestamp};
+use super::{ActionId, CausalProtocolEventId, ImpactSetHash, PlanHash, Timestamp};
 
 /// Whether an approval action approved or denied its target — the gate *verb*,
 /// mirroring the `gate.approved` / `gate.denied` events
-/// ([`AuditEventKind::GateApproved`](crate::domain::AuditEventKind::GateApproved) /
-/// [`GateDenied`](crate::domain::AuditEventKind::GateDenied)). It is the verb
+/// ([`CausalProtocolEventKind::GateApproved`](crate::domain::CausalProtocolEventKind::GateApproved) /
+/// [`GateDenied`](crate::domain::CausalProtocolEventKind::GateDenied)). It is the verb
 /// abstraction, not a policy result, and carries no taxonomy.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ApprovalVerb {
@@ -62,12 +62,12 @@ pub struct AssuranceLevel(pub u8);
 /// binding here is **mandatory** — a deliberate strict tightening: an oversight
 /// approval with no impact binding is not expressible and therefore authorizes
 /// nothing. `approval_event_id` / `actor` are carried for provenance and eventual
-/// audit wiring; the coordinate decider itself reads neither (the M06.5 step-up gate
+/// protocol-history wiring; the coordinate decider itself reads neither (the M06.5 step-up gate
 /// reads `actor`, `issued_at`, `expires_at`, and `assurance`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ApprovalRef {
     /// The producer event that recorded this approval action.
-    pub approval_event_id: AuditEventId,
+    pub approval_event_id: CausalProtocolEventId,
     /// Whether the actor approved or denied (`gate.approved` / `gate.denied`).
     pub verdict: ApprovalVerb,
     /// The action this approval is bound to.
@@ -233,7 +233,7 @@ mod tests {
         approval_gate, classify_approval, ApprovalDenyReason, ApprovalOutcome, ApprovalRef,
         ApprovalVerb, AssuranceLevel,
     };
-    use crate::domain::{ActionId, AuditEventId, ImpactSetHash, Timestamp};
+    use crate::domain::{ActionId, CausalProtocolEventId, ImpactSetHash, Timestamp};
     use crate::{PlanHash, PlanHashError};
 
     const ACT: &str = "release.promote_candidate";
@@ -246,7 +246,7 @@ mod tests {
 
     fn appr(verb: ApprovalVerb, action: &str, plan: &PlanHash, impact: &str) -> ApprovalRef {
         ApprovalRef {
-            approval_event_id: AuditEventId("evt".to_owned()),
+            approval_event_id: CausalProtocolEventId("evt".to_owned()),
             verdict: verb,
             action_id: ActionId(action.to_owned()),
             plan_hash: plan.clone(),

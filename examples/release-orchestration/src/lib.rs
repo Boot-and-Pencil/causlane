@@ -3,14 +3,16 @@
 
 use std::fmt;
 
-use causlane::core::ports::{AuditLogPort, HostDispatchPort, HostEffectHandler};
+use causlane::core::ports::{CausalProtocolHistoryPort, HostDispatchPort, HostEffectHandler};
 use causlane::core::protocol::{
-    ActionId, AuditEvent, AuditEventId, AuditEventKind, CorrelationId, HostDispatchContext,
-    HostDispatchError, HostDrainOutcome, HostEffectClass, HostEffectOutcome, HostRuntimeProfile,
-    HostTaskSpec, PartitionKey, PartitionRoute, PlanHash, PlanHashError, PredicateId, Timestamp,
-    CAUSLANE_HOST_API_VERSION,
+    ActionId, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind, CorrelationId,
+    HostDispatchContext, HostDispatchError, HostDrainOutcome, HostEffectClass, HostEffectOutcome,
+    HostRuntimeProfile, HostTaskSpec, PartitionKey, PartitionRoute, PlanHash, PlanHashError,
+    PredicateId, Timestamp, CAUSLANE_HOST_API_VERSION,
 };
-use causlane_runtime::adapters::audit::{AuditAdapterError, InMemoryAuditLog};
+use causlane_runtime::adapters::protocol_history::{
+    CausalProtocolHistoryAdapterError, InMemoryCausalProtocolHistory,
+};
 use causlane_runtime::linear_host::LinearHostDispatcher;
 
 const PLAN_HASH: &str = "sha256:3333333333333333333333333333333333333333333333333333333333333333";
@@ -84,8 +86,8 @@ pub struct ReleaseOrchestrationSummary {
     pub submitted_tasks: usize,
     /// Host tasks executed by the deterministic release worker.
     pub executed_tasks: usize,
-    /// Events appended through the runtime audit adapter.
-    pub audit_events: usize,
+    /// Events appended through the runtime causal protocol history adapter.
+    pub causal_protocol_events: usize,
     /// Package file lists represented by the review step.
     pub reviewed_packages: usize,
     /// Package dry-runs represented by the dry-run planning step.
@@ -99,8 +101,8 @@ pub enum ReleaseOrchestrationError {
     PlanHash(PlanHashError),
     /// Host dispatch validation, admission or execution failed.
     Dispatch(HostDispatchError),
-    /// Runtime audit append failed.
-    Audit(AuditAdapterError),
+    /// Runtime protocol-history append failed.
+    Audit(CausalProtocolHistoryAdapterError),
     /// The deterministic worker did not return the expected drain outcome.
     UnexpectedDrain {
         /// Drain step being checked.
@@ -115,7 +117,7 @@ impl fmt::Display for ReleaseOrchestrationError {
         match self {
             Self::PlanHash(error) => write!(f, "invalid static plan hash: {error:?}"),
             Self::Dispatch(error) => write!(f, "host dispatch failed: {error:?}"),
-            Self::Audit(error) => write!(f, "audit append failed: {error}"),
+            Self::Audit(error) => write!(f, "protocol-history append failed: {error}"),
             Self::UnexpectedDrain { step, outcome } => {
                 write!(f, "unexpected drain outcome during {step}: {outcome:?}")
             }
@@ -137,8 +139,8 @@ impl From<HostDispatchError> for ReleaseOrchestrationError {
     }
 }
 
-impl From<AuditAdapterError> for ReleaseOrchestrationError {
-    fn from(error: AuditAdapterError) -> Self {
+impl From<CausalProtocolHistoryAdapterError> for ReleaseOrchestrationError {
+    fn from(error: CausalProtocolHistoryAdapterError) -> Self {
         Self::Audit(error)
     }
 }
@@ -147,7 +149,7 @@ impl From<AuditAdapterError> for ReleaseOrchestrationError {
 struct ReleaseOrchestrationTrace {
     submitted_task_ids: Vec<String>,
     executed_task_ids: Vec<String>,
-    audit_events: Vec<AuditEvent>,
+    causal_protocol_events: Vec<CausalProtocolEvent>,
     reviewed_packages: Vec<String>,
     dry_run_packages: Vec<String>,
 }
@@ -191,7 +193,7 @@ pub fn run_release_orchestration() -> Result<ReleaseOrchestrationSummary, Releas
     Ok(ReleaseOrchestrationSummary {
         submitted_tasks: trace.submitted_task_ids.len(),
         executed_tasks: trace.executed_task_ids.len(),
-        audit_events: trace.audit_events.len(),
+        causal_protocol_events: trace.causal_protocol_events.len(),
         reviewed_packages: trace.reviewed_packages.len(),
         dry_run_packages: trace.dry_run_packages.len(),
     })
@@ -201,7 +203,7 @@ fn build_release_orchestration() -> Result<ReleaseOrchestrationTrace, ReleaseOrc
     let ctx = host_context();
     let action = action_id();
     let plan = plan_hash()?;
-    let mut audit = InMemoryAuditLog::default();
+    let mut audit = InMemoryCausalProtocolHistory::default();
     let mut dispatcher = LinearHostDispatcher::new();
 
     let mut submitted_task_ids = Vec::new();
@@ -215,7 +217,7 @@ fn build_release_orchestration() -> Result<ReleaseOrchestrationTrace, ReleaseOrc
         event(
             "evt_release_orchestration_admitted",
             &action,
-            AuditEventKind::ActionAdmitted,
+            CausalProtocolEventKind::ActionAdmitted,
             &ctx,
             &plan,
             1,
@@ -226,7 +228,7 @@ fn build_release_orchestration() -> Result<ReleaseOrchestrationTrace, ReleaseOrc
         event(
             "evt_release_orchestration_dispatch",
             &action,
-            AuditEventKind::DispatchLogged,
+            CausalProtocolEventKind::DispatchLogged,
             &ctx,
             &plan,
             2,
@@ -266,7 +268,7 @@ fn build_release_orchestration() -> Result<ReleaseOrchestrationTrace, ReleaseOrc
         event(
             "evt_release_orchestration_closed",
             &action,
-            AuditEventKind::LifecycleClosed,
+            CausalProtocolEventKind::LifecycleClosed,
             &ctx,
             &plan,
             17,
@@ -276,7 +278,7 @@ fn build_release_orchestration() -> Result<ReleaseOrchestrationTrace, ReleaseOrc
     Ok(ReleaseOrchestrationTrace {
         submitted_task_ids,
         executed_task_ids: worker.executed_task_ids,
-        audit_events: audit.events().to_vec(),
+        causal_protocol_events: audit.events().to_vec(),
         reviewed_packages: worker.reviewed_packages,
         dry_run_packages: worker.dry_run_packages,
     })
@@ -340,26 +342,30 @@ fn host_task(
 fn event(
     event_id: &str,
     action: &ActionId,
-    kind: AuditEventKind,
+    kind: CausalProtocolEventKind,
     ctx: &HostDispatchContext,
     plan: &PlanHash,
     occurred_at: u64,
-) -> AuditEvent {
-    AuditEvent::new(AuditEventId(event_id.to_owned()), action.clone(), kind)
-        .with_plan_hash(plan.clone())
-        .with_correlation_id(CorrelationId(ctx.correlation_id.clone()))
-        .with_occurred_at(Timestamp(occurred_at))
+) -> CausalProtocolEvent {
+    CausalProtocolEvent::new(
+        CausalProtocolEventId(event_id.to_owned()),
+        action.clone(),
+        kind,
+    )
+    .with_plan_hash(plan.clone())
+    .with_correlation_id(CorrelationId(ctx.correlation_id.clone()))
+    .with_occurred_at(Timestamp(occurred_at))
 }
 
 fn append_event(
-    audit: &mut InMemoryAuditLog,
-    event: AuditEvent,
-) -> Result<AuditEventId, ReleaseOrchestrationError> {
+    audit: &mut InMemoryCausalProtocolHistory,
+    event: CausalProtocolEvent,
+) -> Result<CausalProtocolEventId, ReleaseOrchestrationError> {
     Ok(audit.append(event)?)
 }
 
 fn append_execution_pair(
-    audit: &mut InMemoryAuditLog,
+    audit: &mut InMemoryCausalProtocolHistory,
     action: &ActionId,
     ctx: &HostDispatchContext,
     plan: &PlanHash,
@@ -372,7 +378,7 @@ fn append_execution_pair(
         event(
             &format!("evt_release_{event_prefix}_started"),
             action,
-            AuditEventKind::ExecutionStarted,
+            CausalProtocolEventKind::ExecutionStarted,
             ctx,
             plan,
             first_timestamp,
@@ -383,7 +389,7 @@ fn append_execution_pair(
         event(
             &format!("evt_release_{event_prefix}_completed"),
             action,
-            AuditEventKind::ExecutionCompleted,
+            CausalProtocolEventKind::ExecutionCompleted,
             ctx,
             plan,
             first_timestamp + 1,
@@ -431,7 +437,7 @@ mod tests {
             ReleaseOrchestrationSummary {
                 submitted_tasks: RELEASE_TASKS.len(),
                 executed_tasks: RELEASE_TASKS.len(),
-                audit_events: 17,
+                causal_protocol_events: 17,
                 reviewed_packages: PACKAGES.len(),
                 dry_run_packages: PACKAGES.len(),
             }
@@ -483,39 +489,40 @@ mod tests {
     }
 
     #[test]
-    fn audit_events_cover_release_gate_sequence() -> Result<(), ReleaseOrchestrationError> {
+    fn causal_protocol_events_cover_release_gate_sequence() -> Result<(), ReleaseOrchestrationError>
+    {
         let trace = build_release_orchestration()?;
         let indexes: Vec<_> = trace
-            .audit_events
+            .causal_protocol_events
             .iter()
             .map(|event| event.event_index)
             .collect();
         assert_eq!(
             indexes,
-            (0..trace.audit_events.len() as u64)
+            (0..trace.causal_protocol_events.len() as u64)
                 .map(Some)
                 .collect::<Vec<_>>()
         );
 
         let started = trace
-            .audit_events
+            .causal_protocol_events
             .iter()
-            .filter(|event| event.kind == AuditEventKind::ExecutionStarted)
+            .filter(|event| event.kind == CausalProtocolEventKind::ExecutionStarted)
             .count();
         let completed = trace
-            .audit_events
+            .causal_protocol_events
             .iter()
-            .filter(|event| event.kind == AuditEventKind::ExecutionCompleted)
+            .filter(|event| event.kind == CausalProtocolEventKind::ExecutionCompleted)
             .count();
         assert_eq!(started, RELEASE_TASKS.len());
         assert_eq!(completed, RELEASE_TASKS.len());
         assert_eq!(
-            trace.audit_events.first().map(|event| event.kind),
-            Some(AuditEventKind::ActionAdmitted)
+            trace.causal_protocol_events.first().map(|event| event.kind),
+            Some(CausalProtocolEventKind::ActionAdmitted)
         );
         assert_eq!(
-            trace.audit_events.last().map(|event| event.kind),
-            Some(AuditEventKind::LifecycleClosed)
+            trace.causal_protocol_events.last().map(|event| event.kind),
+            Some(CausalProtocolEventKind::LifecycleClosed)
         );
         Ok(())
     }

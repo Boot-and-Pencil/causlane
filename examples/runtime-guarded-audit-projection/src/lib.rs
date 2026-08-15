@@ -3,17 +3,21 @@
 
 use std::{convert::Infallible, fmt};
 
-use causlane::core::ports::{AuditLogPort, ExecutorPort};
+use causlane::core::ports::{CausalProtocolHistoryPort, ExecutorPort};
 use causlane::core::protocol::{
-    ActionId, AuditEvent, AuditEventId, AuditEventKind, AuthzDecision, AuthzDecisionRef,
-    AuthzDenyReason, AuthzPolicy, CapabilitySpendRefusal, ClaimMode, ConstraintEpoch,
-    CorrelationId, EffectSignature, ExecutionBarrier, ExecutionCapability, FieldPath,
-    ImpactHardness, ImpactSetHash, LeaseId, LeaseRef, Op, PlanHash, PlanHashError,
-    ProjectionReadRequest, RedactionPolicy, RedactionView, ResourceId, Scope, Timestamp,
-    MAY_PROJECT_STAGE,
+    ActionId, AuthzDecision, AuthzDecisionRef, AuthzDenyReason, AuthzPolicy,
+    CapabilitySpendRefusal, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind,
+    ClaimMode, ConstraintEpoch, CorrelationId, EffectSignature, ExecutionBarrier,
+    ExecutionCapability, FieldPath, ImpactHardness, ImpactSetHash, LeaseId, LeaseRef, Op, PlanHash,
+    PlanHashError, ProjectionReadRequest, RedactionPolicy, RedactionView, ResourceId, Scope,
+    Timestamp, MAY_PROJECT_STAGE,
 };
-use causlane_runtime::adapters::audit::{AuditAdapterError, InMemoryAuditLog};
-use causlane_runtime::adapters::tracing::{InMemoryTraceSink, TraceProjectingAuditLog};
+use causlane_runtime::adapters::protocol_history::{
+    CausalProtocolHistoryAdapterError, InMemoryCausalProtocolHistory,
+};
+use causlane_runtime::adapters::tracing::{
+    InMemoryTraceSink, TraceProjectingCausalProtocolHistory,
+};
 use causlane_runtime::guarded_executor::{
     ExecutorService, GuardedExecutionRequest, GuardedExecutor, SpendError,
 };
@@ -42,8 +46,8 @@ pub struct RuntimeGuardedAuditProjectionSummary {
     /// Object/fact refs produced by the executor.
     pub produced_refs: usize,
     /// Audit events appended through the tracing audit wrapper.
-    pub audit_events: usize,
-    /// Trace spans projected from successful audit appends.
+    pub causal_protocol_events: usize,
+    /// Trace spans projected from successful protocol-history appends.
     pub trace_spans: usize,
     /// Projection fields classified by the guarded projection read.
     pub projected_fields: usize,
@@ -58,8 +62,8 @@ pub struct RuntimeGuardedAuditProjectionSummary {
 pub enum RuntimeGuardedAuditProjectionError {
     /// A static plan hash embedded in the example was malformed.
     PlanHash(PlanHashError),
-    /// Runtime audit append failed.
-    Audit(AuditAdapterError),
+    /// Runtime protocol-history append failed.
+    Audit(CausalProtocolHistoryAdapterError),
     /// Guarded projection read failed.
     Projection(ProjectionReadError),
     /// Guarded execution failed in the positive path.
@@ -77,7 +81,7 @@ impl fmt::Display for RuntimeGuardedAuditProjectionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::PlanHash(error) => write!(f, "invalid static plan hash: {error:?}"),
-            Self::Audit(error) => write!(f, "audit append failed: {error}"),
+            Self::Audit(error) => write!(f, "protocol-history append failed: {error}"),
             Self::Projection(error) => write!(f, "projection guard failed: {error:?}"),
             Self::GuardedExecution(error) => {
                 write!(f, "guarded execution failed unexpectedly: {error:?}")
@@ -97,8 +101,8 @@ impl From<PlanHashError> for RuntimeGuardedAuditProjectionError {
     }
 }
 
-impl From<AuditAdapterError> for RuntimeGuardedAuditProjectionError {
-    fn from(error: AuditAdapterError) -> Self {
+impl From<CausalProtocolHistoryAdapterError> for RuntimeGuardedAuditProjectionError {
+    fn from(error: CausalProtocolHistoryAdapterError) -> Self {
         Self::Audit(error)
     }
 }
@@ -140,8 +144,10 @@ pub fn run_runtime_guarded_audit_projection(
         ));
     }
 
-    let mut audit =
-        TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+    let mut audit = TraceProjectingCausalProtocolHistory::new(
+        InMemoryCausalProtocolHistory::default(),
+        InMemoryTraceSink::default(),
+    );
     append_runtime_trace(
         &mut audit,
         &action,
@@ -167,12 +173,12 @@ pub fn run_runtime_guarded_audit_projection(
     let negative_controls = verify_missing_execution_authz()?
         + verify_expired_capability_is_refused()?
         + verify_projection_without_authz()?
-        + verify_duplicate_audit_event_has_no_span()?;
+        + verify_duplicate_causal_protocol_event_has_no_span()?;
 
     Ok(RuntimeGuardedAuditProjectionSummary {
         executed_ops: 1,
         produced_refs: outcome.produced_refs.len(),
-        audit_events: audit.audit_log().events().len(),
+        causal_protocol_events: audit.protocol_history().events().len(),
         trace_spans: audit.trace_sink().spans.len(),
         projected_fields: projection_view.revealed.len() + projection_view.redacted.len(),
         redacted_fields: projection_view.redacted.len(),
@@ -242,27 +248,29 @@ pub fn verify_projection_without_authz() -> Result<usize, RuntimeGuardedAuditPro
 
 /// Negative control: duplicate audit ids are rejected and do not emit telemetry.
 #[must_use = "the control result carries verification failures"]
-pub fn verify_duplicate_audit_event_has_no_span(
+pub fn verify_duplicate_causal_protocol_event_has_no_span(
 ) -> Result<usize, RuntimeGuardedAuditProjectionError> {
     let plan = plan_hash()?;
     let action = action_id();
     let event = runtime_event(
         "evt_runtime_duplicate_control",
         &action,
-        AuditEventKind::ExecutionStarted,
+        CausalProtocolEventKind::ExecutionStarted,
         &plan,
         Timestamp(1),
     );
-    let mut audit =
-        TraceProjectingAuditLog::new(InMemoryAuditLog::default(), InMemoryTraceSink::default());
+    let mut audit = TraceProjectingCausalProtocolHistory::new(
+        InMemoryCausalProtocolHistory::default(),
+        InMemoryTraceSink::default(),
+    );
 
-    AuditLogPort::append(&mut audit, event.clone())?;
-    let result = AuditLogPort::append(&mut audit, event);
+    CausalProtocolHistoryPort::append(&mut audit, event.clone())?;
+    let result = CausalProtocolHistoryPort::append(&mut audit, event);
 
     match result {
-        Err(AuditAdapterError::DuplicateEventId { event_id })
-            if event_id == AuditEventId("evt_runtime_duplicate_control".to_owned())
-                && audit.audit_log().events().len() == 1
+        Err(CausalProtocolHistoryAdapterError::DuplicateEventId { event_id })
+            if event_id == CausalProtocolEventId("evt_runtime_duplicate_control".to_owned())
+                && audit.protocol_history().events().len() == 1
                 && audit.trace_sink().spans.len() == 1 =>
         {
             Ok(1)
@@ -272,18 +280,21 @@ pub fn verify_duplicate_audit_event_has_no_span(
 }
 
 fn append_runtime_trace(
-    audit: &mut TraceProjectingAuditLog<InMemoryAuditLog, InMemoryTraceSink>,
+    audit: &mut TraceProjectingCausalProtocolHistory<
+        InMemoryCausalProtocolHistory,
+        InMemoryTraceSink,
+    >,
     action: &ActionId,
     plan: &PlanHash,
     barrier: &ExecutionBarrier,
     execution_allow: &AuthzDecisionRef,
     projection_allow: &AuthzDecisionRef,
-) -> Result<(), AuditAdapterError> {
+) -> Result<(), CausalProtocolHistoryAdapterError> {
     let events = vec![
         runtime_event(
             "evt_runtime_barrier",
             action,
-            AuditEventKind::ExecutionBarrierLogged,
+            CausalProtocolEventKind::ExecutionBarrierLogged,
             plan,
             Timestamp(10),
         )
@@ -292,7 +303,7 @@ fn append_runtime_trace(
         runtime_event(
             "evt_runtime_authz_execution",
             action,
-            AuditEventKind::AuthzDecisionRecorded,
+            CausalProtocolEventKind::AuthzDecisionRecorded,
             plan,
             Timestamp(9),
         )
@@ -300,23 +311,25 @@ fn append_runtime_trace(
         runtime_event(
             "evt_runtime_execution_started",
             action,
-            AuditEventKind::ExecutionStarted,
+            CausalProtocolEventKind::ExecutionStarted,
             plan,
             Timestamp(11),
         )
-        .with_causation_id(AuditEventId("evt_runtime_barrier".to_owned())),
+        .with_causation_id(CausalProtocolEventId("evt_runtime_barrier".to_owned())),
         runtime_event(
             "evt_runtime_execution_completed",
             action,
-            AuditEventKind::ExecutionCompleted,
+            CausalProtocolEventKind::ExecutionCompleted,
             plan,
             Timestamp(12),
         )
-        .with_causation_id(AuditEventId("evt_runtime_execution_started".to_owned())),
+        .with_causation_id(CausalProtocolEventId(
+            "evt_runtime_execution_started".to_owned(),
+        )),
         runtime_event(
             "evt_runtime_authz_projection",
             action,
-            AuditEventKind::AuthzDecisionRecorded,
+            CausalProtocolEventKind::AuthzDecisionRecorded,
             plan,
             Timestamp(13),
         )
@@ -324,21 +337,25 @@ fn append_runtime_trace(
         runtime_event(
             "evt_runtime_projection_emitted",
             action,
-            AuditEventKind::ProjectionEmitted,
+            CausalProtocolEventKind::ProjectionEmitted,
             plan,
             Timestamp(14),
         )
-        .with_causation_id(AuditEventId("evt_runtime_execution_completed".to_owned())),
+        .with_causation_id(CausalProtocolEventId(
+            "evt_runtime_execution_completed".to_owned(),
+        )),
         runtime_event(
             "evt_runtime_lifecycle_closed",
             action,
-            AuditEventKind::LifecycleClosed,
+            CausalProtocolEventKind::LifecycleClosed,
             plan,
             Timestamp(15),
         )
-        .with_causation_id(AuditEventId("evt_runtime_projection_emitted".to_owned())),
+        .with_causation_id(CausalProtocolEventId(
+            "evt_runtime_projection_emitted".to_owned(),
+        )),
     ];
-    AuditLogPort::append_batch(audit, events)?;
+    CausalProtocolHistoryPort::append_batch(audit, events)?;
     Ok(())
 }
 
@@ -394,7 +411,7 @@ impl ExecutorPort for MarkerExecutor {
 
 fn execution_barrier(plan: PlanHash) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("evt_runtime_barrier".to_owned()),
+        barrier_id: CausalProtocolEventId("evt_runtime_barrier".to_owned()),
         action_id: action_id(),
         plan_hash: plan.clone(),
         op_indexes: vec![0],
@@ -429,7 +446,7 @@ fn lease_ref(plan: PlanHash) -> LeaseRef {
         holder_op_index: Some(0),
         epoch: ConstraintEpoch(0),
         expires_at: None,
-        lease_event_id: AuditEventId("evt_runtime_lease_granted".to_owned()),
+        lease_event_id: CausalProtocolEventId("evt_runtime_lease_granted".to_owned()),
     }
 }
 
@@ -469,7 +486,7 @@ fn projection_allow_decision(plan: &PlanHash) -> AuthzDecisionRef {
 
 fn authz_decision(event_id: &str, stage: &str, actor: &str, plan: &PlanHash) -> AuthzDecisionRef {
     AuthzDecisionRef {
-        decision_event_id: AuditEventId(event_id.to_owned()),
+        decision_event_id: CausalProtocolEventId(event_id.to_owned()),
         action_id: action_id(),
         plan_hash: plan.clone(),
         predicate_id: PREDICATE_ID.to_owned(),
@@ -487,14 +504,18 @@ fn authz_decision(event_id: &str, stage: &str, actor: &str, plan: &PlanHash) -> 
 fn runtime_event(
     event_id: &str,
     action: &ActionId,
-    kind: AuditEventKind,
+    kind: CausalProtocolEventKind,
     plan: &PlanHash,
     occurred_at: Timestamp,
-) -> AuditEvent {
-    AuditEvent::new(AuditEventId(event_id.to_owned()), action.clone(), kind)
-        .with_plan_hash(plan.clone())
-        .with_correlation_id(CorrelationId(CORRELATION_ID.to_owned()))
-        .with_occurred_at(occurred_at)
+) -> CausalProtocolEvent {
+    CausalProtocolEvent::new(
+        CausalProtocolEventId(event_id.to_owned()),
+        action.clone(),
+        kind,
+    )
+    .with_plan_hash(plan.clone())
+    .with_correlation_id(CorrelationId(CORRELATION_ID.to_owned()))
+    .with_occurred_at(occurred_at)
 }
 
 fn projection_fields() -> Vec<FieldPath> {
@@ -546,9 +567,10 @@ fn unexpected<T: fmt::Debug>(
 #[cfg(test)]
 mod tests {
     use super::{
-        field, run_runtime_guarded_audit_projection, verify_duplicate_audit_event_has_no_span,
-        verify_expired_capability_is_refused, verify_missing_execution_authz,
-        verify_projection_without_authz, RuntimeGuardedAuditProjectionError,
+        field, run_runtime_guarded_audit_projection,
+        verify_duplicate_causal_protocol_event_has_no_span, verify_expired_capability_is_refused,
+        verify_missing_execution_authz, verify_projection_without_authz,
+        RuntimeGuardedAuditProjectionError,
     };
 
     #[test]
@@ -558,7 +580,7 @@ mod tests {
 
         assert_eq!(summary.executed_ops, 1);
         assert_eq!(summary.produced_refs, 1);
-        assert_eq!(summary.audit_events, 7);
+        assert_eq!(summary.causal_protocol_events, 7);
         assert_eq!(summary.trace_spans, 7);
         assert_eq!(summary.projected_fields, 3);
         assert_eq!(summary.redacted_fields, 1);
@@ -572,7 +594,7 @@ mod tests {
         assert_eq!(verify_missing_execution_authz()?, 1);
         assert_eq!(verify_expired_capability_is_refused()?, 1);
         assert_eq!(verify_projection_without_authz()?, 1);
-        assert_eq!(verify_duplicate_audit_event_has_no_span()?, 1);
+        assert_eq!(verify_duplicate_causal_protocol_event_has_no_span()?, 1);
         Ok(())
     }
 

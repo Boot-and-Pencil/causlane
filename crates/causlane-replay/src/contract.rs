@@ -7,7 +7,7 @@
 //! `validate_authz_refs`, so there is a single verification authority.
 
 use causlane_contracts::{CompiledDispatchBundle, CompiledPredicate};
-use causlane_core::{AuditEvent, ExecutionBarrier};
+use causlane_core::{CausalProtocolEvent, ExecutionBarrier};
 
 use crate::{validate_authz_refs, ReplayTrace, ReplayVerdict};
 
@@ -37,7 +37,7 @@ pub trait AuthzEvidenceVerifier {
     /// events prior to the barrier.
     fn verify_authz(
         &self,
-        prior_events: &[AuditEvent],
+        prior_events: &[CausalProtocolEvent],
         barrier: &ExecutionBarrier,
         predicate: &CompiledPredicate,
     ) -> AuthzEvidenceVerdict;
@@ -57,7 +57,7 @@ impl ReplayOracle for ReplayContracts {
 impl AuthzEvidenceVerifier for ReplayContracts {
     fn verify_authz(
         &self,
-        prior_events: &[AuditEvent],
+        prior_events: &[CausalProtocolEvent],
         barrier: &ExecutionBarrier,
         predicate: &CompiledPredicate,
     ) -> AuthzEvidenceVerdict {
@@ -81,7 +81,7 @@ mod tests {
         CompiledDispatchBundle, CompiledPredicate, ContractError, RegistryManifest,
     };
     use causlane_core::{
-        ActionId, AuditEventId, ExecutionBarrier, ImpactSetHash, PlanHash, PlanHashError,
+        ActionId, CausalProtocolEventId, ExecutionBarrier, ImpactSetHash, PlanHash, PlanHashError,
     };
 
     use crate::{ReplayError, ReplayTrace};
@@ -142,7 +142,7 @@ mod tests {
 
     fn empty_barrier() -> Result<ExecutionBarrier, PlanHashError> {
         Ok(ExecutionBarrier {
-            barrier_id: AuditEventId("barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("barrier".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: PlanHash::new(
                 "sha256:1111111111111111111111111111111111111111111111111111111111111111",

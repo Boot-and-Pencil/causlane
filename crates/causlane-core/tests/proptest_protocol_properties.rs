@@ -5,10 +5,10 @@
 //! not reimplement lifecycle or constraint semantics.
 
 use causlane_core::{
-    reduce_lifecycle, resolve_constraints, AuditEventKind, ClaimMode, ConsequenceProfile,
+    reduce_lifecycle, resolve_constraints, CausalProtocolEventKind, ClaimMode, ConsequenceProfile,
     ConstraintDecision, ConstraintEpoch, ConstraintId, ConstraintKind, ConstraintProvider,
     ConstraintSnapshot, ConstraintSpec, KernelContracts, LifecycleGrammar, LifecycleStage,
-    ResourceClaim, ResourceId, Scope, ALL_AUDIT_EVENT_KINDS,
+    ResourceClaim, ResourceId, Scope, ALL_CAUSAL_PROTOCOL_EVENT_KINDS,
 };
 use proptest::prelude::*;
 
@@ -37,8 +37,8 @@ fn lifecycle_stage() -> impl Strategy<Value = LifecycleStage> {
     proptest::sample::select(&ALL_STAGES)
 }
 
-fn audit_event_kind() -> impl Strategy<Value = AuditEventKind> {
-    proptest::sample::select(&ALL_AUDIT_EVENT_KINDS)
+fn causal_protocol_event_kind() -> impl Strategy<Value = CausalProtocolEventKind> {
+    proptest::sample::select(&ALL_CAUSAL_PROTOCOL_EVENT_KINDS)
 }
 
 fn consequence_profile() -> impl Strategy<Value = ConsequenceProfile> {
@@ -74,7 +74,7 @@ proptest! {
     #[test]
     fn lifecycle_contract_surface_delegates_to_reducer(
         stage in lifecycle_stage(),
-        event in audit_event_kind(),
+        event in causal_protocol_event_kind(),
         profile in consequence_profile(),
     ) {
         let direct = reduce_lifecycle(stage, event, profile);
@@ -86,7 +86,7 @@ proptest! {
 
         if let Ok(next) = direct {
             prop_assert!(
-                !KernelContracts.is_terminal(next) || event == AuditEventKind::LifecycleClosed,
+                !KernelContracts.is_terminal(next) || event == CausalProtocolEventKind::LifecycleClosed,
                 "only LifecycleClosed may reach the terminal stage"
             );
         }

@@ -51,9 +51,10 @@ where
 mod tests {
     use super::{FunctionExecutor, NoopExecutor};
     use causlane_core::{
-        ActionId, AuditEventId, ClaimMode, ConstraintEpoch, EffectSignature, ExecutionBarrier,
-        ExecutionCapability, ExecutionCapabilityError, ExecutorPort, ImpactHardness, ImpactSetHash,
-        LeaseId, LeaseRef, Op, PlanHash, PlanHashError, ResourceId, Scope,
+        ActionId, CausalProtocolEventId, ClaimMode, ConstraintEpoch, EffectSignature,
+        ExecutionBarrier, ExecutionCapability, ExecutionCapabilityError, ExecutorPort,
+        ImpactHardness, ImpactSetHash, LeaseId, LeaseRef, Op, PlanHash, PlanHashError, ResourceId,
+        Scope,
     };
     use core::convert::Infallible;
 
@@ -97,7 +98,7 @@ mod tests {
 
     fn barrier(plan: PlanHash) -> ExecutionBarrier {
         ExecutionBarrier {
-            barrier_id: AuditEventId("barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("barrier".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan.clone(),
             op_indexes: vec![0],
@@ -114,7 +115,7 @@ mod tests {
                 holder_op_index: Some(0),
                 epoch: ConstraintEpoch(0),
                 expires_at: None,
-                lease_event_id: AuditEventId("lease-event".to_owned()),
+                lease_event_id: CausalProtocolEventId("lease-event".to_owned()),
             }],
             authz_decision_refs: Vec::new(),
             constraint_snapshot_id: None,

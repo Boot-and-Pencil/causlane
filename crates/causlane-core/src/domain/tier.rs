@@ -98,7 +98,8 @@ pub fn reached_tier(stage: LifecycleStage) -> Option<Tier> {
 mod tests {
     use super::{reached_tier, Tier};
     use crate::domain::{
-        reduce_lifecycle, AuditEventKind as E, ConsequenceProfile as P, LifecycleStage as S,
+        reduce_lifecycle, CausalProtocolEventKind as E, ConsequenceProfile as P,
+        LifecycleStage as S,
     };
 
     const ALL_STAGES: [S; 9] = [

@@ -3,7 +3,6 @@
 pub mod action;
 pub mod approval;
 pub mod approval_stepup;
-pub mod audit;
 pub mod authz;
 pub mod authz_policy;
 pub mod capability;
@@ -21,6 +20,7 @@ pub mod lane;
 pub mod lifecycle;
 pub mod overlay;
 pub mod projection_authz;
+pub mod protocol_history;
 pub mod redaction;
 pub mod redaction_policy;
 pub mod routing;
@@ -37,28 +37,29 @@ pub use crate::kernel::{
     mergeable, next_epoch, op_admissible_during_drain, pair_conflict,
     projection_anchor_source_is_observed, reached_tier, read_authz_gate, reason_from_frontier,
     reduce_lifecycle, resolve_constraints, route_consistent_with_profile, select_frontier,
-    trace_span_from_audit_event, trace_span_kind_from_audit_event_kind, truth_rewrite_of,
-    why_not_parallel, why_not_parallel_from_index,
+    trace_span_from_causal_protocol_event, trace_span_kind_from_causal_protocol_event_kind,
+    truth_rewrite_of, why_not_parallel, why_not_parallel_from_index,
 };
 pub use crate::protocol::{
     ActionCall, ActionId, ActionPlan, ActiveScopeHolder, ApprovalDenyReason, ApprovalOutcome,
-    ApprovalRef, ApprovalRequirement, ApprovalVerb, AssuranceLevel, AuditEvent, AuditEventId,
-    AuditEventKind, AuthzAttestation, AuthzDecision, AuthzDecisionRef, AuthzDecisionVerdict,
-    AuthzDenyReason, AuthzGateOutcome, AuthzPolicy, AuthzPolicyId, AuthzPolicyModel,
-    AuthzPolicyOutcome, BundleHash, CapabilityAttestation, CapabilityId, CapabilitySpendRefusal,
-    CapabilitySpendRequest, ClaimMode, ClassifiedField, CommittedTruth, ConflictDomain,
-    ConsequenceProfile, ConstraintBlocker, ConstraintDecision, ConstraintEpoch, ConstraintId,
-    ConstraintKind, ConstraintSnapshot, ConstraintSpec, ConstraintUpdate, ConstraintViolation,
-    ContentHash, CorrelationId, DrainFenceCheck, DrainRequest, DrainTarget, DrainedWriteScope,
-    EffectSignature, EventHash, ExecutionBarrier, ExecutionCapability, ExecutionCapabilityError,
-    FactKind, FieldPath, FieldVisibility, FrontierBlock, FrontierRejection, FrontierSelection,
-    GraphIndex, GraphNode, ImpactHardness, ImpactSetHash, Lane, LaneAdmission, LaneCapacity,
-    LaneId, LaneRejection, Lease, LeaseId, LeaseRef, LeaseTable, LeaseTableError, LifecycleClass,
-    LifecycleStage, LifecycleViolation, NotParallelReason, ObligationSet, Op, OpId, PairConflict,
-    PartitionKey, PartitionRoute, PlanHash, PlanHashError, PredicateId, ProjectionReadRequest,
-    RedactionClass, RedactionClassPolicy, RedactionPolicy, RedactionSurface, RedactionView,
-    ResourceClaim, ResourceId, RouteId, RuntimeUpdate, RuntimeUpdateKind, Scope,
-    SurfaceRedactionProfile, Tier, Timestamp, TraceAttribute, TraceSpan, TraceSpanId,
-    TraceSpanKind, TruthAnchor, WhyNotParallel, WhyNotParallelInputs, WitnessAttestation,
-    WitnessBinding, WitnessKind, WitnessRef, ALL_AUDIT_EVENT_KINDS, MAY_PROJECT_STAGE,
+    ApprovalRef, ApprovalRequirement, ApprovalVerb, AssuranceLevel, AuthzAttestation,
+    AuthzDecision, AuthzDecisionRef, AuthzDecisionVerdict, AuthzDenyReason, AuthzGateOutcome,
+    AuthzPolicy, AuthzPolicyId, AuthzPolicyModel, AuthzPolicyOutcome, BundleHash,
+    CapabilityAttestation, CapabilityId, CapabilitySpendRefusal, CapabilitySpendRequest,
+    CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind, ClaimMode,
+    ClassifiedField, CommittedTruth, ConflictDomain, ConsequenceProfile, ConstraintBlocker,
+    ConstraintDecision, ConstraintEpoch, ConstraintId, ConstraintKind, ConstraintSnapshot,
+    ConstraintSpec, ConstraintUpdate, ConstraintViolation, ContentHash, CorrelationId,
+    DrainFenceCheck, DrainRequest, DrainTarget, DrainedWriteScope, EffectSignature, EventHash,
+    ExecutionBarrier, ExecutionCapability, ExecutionCapabilityError, FactKind, FieldPath,
+    FieldVisibility, FrontierBlock, FrontierRejection, FrontierSelection, GraphIndex, GraphNode,
+    ImpactHardness, ImpactSetHash, Lane, LaneAdmission, LaneCapacity, LaneId, LaneRejection, Lease,
+    LeaseId, LeaseRef, LeaseTable, LeaseTableError, LifecycleClass, LifecycleStage,
+    LifecycleViolation, NotParallelReason, ObligationSet, Op, OpId, PairConflict, PartitionKey,
+    PartitionRoute, PlanHash, PlanHashError, PredicateId, ProjectionReadRequest, RedactionClass,
+    RedactionClassPolicy, RedactionPolicy, RedactionSurface, RedactionView, ResourceClaim,
+    ResourceId, RouteId, RuntimeUpdate, RuntimeUpdateKind, Scope, SurfaceRedactionProfile, Tier,
+    Timestamp, TraceAttribute, TraceSpan, TraceSpanId, TraceSpanKind, TruthAnchor, WhyNotParallel,
+    WhyNotParallelInputs, WitnessAttestation, WitnessBinding, WitnessKind, WitnessRef,
+    ALL_CAUSAL_PROTOCOL_EVENT_KINDS, MAY_PROJECT_STAGE,
 };

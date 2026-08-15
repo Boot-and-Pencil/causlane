@@ -1,8 +1,8 @@
 //! Hexagonal ports.
 
 use crate::domain::{
-    ActionCall, ActionId, ActionPlan, AuditEvent, AuditEventId, ConstraintDecision,
-    ExecutionCapability, Op, PlanHash, ResourceClaim,
+    ActionCall, ActionId, ActionPlan, CausalProtocolEvent, CausalProtocolEventId,
+    ConstraintDecision, ExecutionCapability, Op, PlanHash, ResourceClaim,
 };
 
 /// Compiles an admitted action call into an executable plan.
@@ -14,8 +14,8 @@ pub trait PlannerPort {
     fn compile(&self, call: &ActionCall) -> Result<ActionPlan, Self::Error>;
 }
 
-/// Appends events to the audit/event journal.
-pub trait AuditLogPort {
+/// Appends events to the causal protocol history.
+pub trait CausalProtocolHistoryPort {
     /// Error type produced by appending.
     type Error;
 
@@ -23,10 +23,13 @@ pub trait AuditLogPort {
     ///
     /// Implementations must either persist the full batch in order or leave the
     /// journal unchanged.
-    fn append_batch(&mut self, events: Vec<AuditEvent>) -> Result<Vec<AuditEventId>, Self::Error>;
+    fn append_batch(
+        &mut self,
+        events: Vec<CausalProtocolEvent>,
+    ) -> Result<Vec<CausalProtocolEventId>, Self::Error>;
 
     /// Append an event, returning the id it was recorded under.
-    fn append(&mut self, event: AuditEvent) -> Result<AuditEventId, Self::Error>;
+    fn append(&mut self, event: CausalProtocolEvent) -> Result<CausalProtocolEventId, Self::Error>;
 }
 
 /// Evaluates a plan's resource claims against the constraint plane.
@@ -61,6 +64,6 @@ pub trait ProjectionPort {
     /// Error type produced by projection.
     type Error;
 
-    /// Project from the anchored audit event.
-    fn project(&self, anchor: &AuditEventId) -> Result<(), Self::Error>;
+    /// Project from the anchored causal protocol event.
+    fn project(&self, anchor: &CausalProtocolEventId) -> Result<(), Self::Error>;
 }

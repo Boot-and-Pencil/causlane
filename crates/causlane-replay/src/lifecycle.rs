@@ -12,7 +12,8 @@ use std::collections::{HashMap, HashSet};
 
 use causlane_contracts::CompiledDispatchBundle;
 use causlane_core::{
-    ActionId, AuditEvent, ConsequenceProfile, KernelContracts, LifecycleGrammar, PredicateId,
+    ActionId, CausalProtocolEvent, ConsequenceProfile, KernelContracts, LifecycleGrammar,
+    PredicateId,
 };
 
 use crate::{ActionSpec, ReplayError};
@@ -48,7 +49,7 @@ pub(crate) fn resolve_action_profiles(
 /// that profile (the mixed-predicate case); otherwise `default_profile` (the
 /// trace-level predicate).
 pub(crate) fn validate_lifecycle(
-    events: &[AuditEvent],
+    events: &[CausalProtocolEvent],
     default_profile: ConsequenceProfile,
     action_profiles: &HashMap<ActionId, ConsequenceProfile>,
 ) -> Result<(), ReplayError> {

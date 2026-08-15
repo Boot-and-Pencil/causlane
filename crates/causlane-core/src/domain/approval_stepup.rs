@@ -181,7 +181,7 @@ mod tests {
         approval_gate_stepup, classify_approval_stepup, ApprovalDenyReason, ApprovalOutcome,
         ApprovalRef, ApprovalRequirement, ApprovalVerb, AssuranceLevel,
     };
-    use crate::domain::{ActionId, AuditEventId, ImpactSetHash, Timestamp};
+    use crate::domain::{ActionId, CausalProtocolEventId, ImpactSetHash, Timestamp};
     use crate::{PlanHash, PlanHashError};
 
     const ACT: &str = "release.promote_candidate";
@@ -205,7 +205,7 @@ mod tests {
         assurance: u8,
     ) -> ApprovalRef {
         ApprovalRef {
-            approval_event_id: AuditEventId("evt".to_owned()),
+            approval_event_id: CausalProtocolEventId("evt".to_owned()),
             verdict: verb,
             action_id: ActionId(action.to_owned()),
             plan_hash: plan.clone(),

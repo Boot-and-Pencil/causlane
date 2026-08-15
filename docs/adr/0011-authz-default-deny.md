@@ -80,7 +80,7 @@ stage — with non-vacuity over all three outcomes and temporal boundary cases
 prescribes no `RBAC`/`ABAC`/`ReBAC` and embeds no engine (`Cedar` is M06.2;
 `Casbin`/`AuthZEN`/`OpenFGA` are M06.3). Pure additive `causlane-core` (no change to
 `classify_authz_decision` / `authz_gate` / `AuthzDecisionRef` / `AuthzPolicy` /
-`AuditEventKind` / codegen), so the I-009 receipts stand with no regeneration. The
+`CausalProtocolEventKind` / codegen), so the I-009 receipts stand with no regeneration. The
 `AuthzPolicyManifest → AuthzPolicyModel` lowering will live in `causlane-contracts`
 (the single JSON source); approval-as-action (M06.4), step-up/SoD (M06.5),
 capability enforcement (M06.6), and redaction (M06.7) are later S06 milestones.

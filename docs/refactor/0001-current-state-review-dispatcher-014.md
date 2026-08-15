@@ -21,7 +21,7 @@ applied.
 - `causlane-contracts` owns registry, bundle, canonical hashing and plan material.
 - `causlane-codegen` emits target-specific Alloy, P, Kani, Verus and Lean4 artifacts.
 - `causlane-replay` is the executable oracle for bundle-bound traces.
-- `causlane-runtime` owns adapters, audit storage, execution guards and observability.
+- `causlane-runtime` owns adapters, causal protocol history storage, execution guards and observability.
 - Formal receipts, coverage and stale checks are present and are derived from generated artifacts.
 
 ## Current quality risks

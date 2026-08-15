@@ -376,7 +376,7 @@
 
 - **Stage:** S09
 - **Status:** `done_or_near_done`
-- **Purpose:** `AuditLogPort::append_batch` gives all-or-nothing ordered group commit over the existing audit boundary.
+- **Purpose:** `CausalProtocolHistoryPort::append_batch` gives all-or-nothing ordered group commit over the existing causal protocol history boundary.
 
 ## M09.4 — Backpressure policy
 

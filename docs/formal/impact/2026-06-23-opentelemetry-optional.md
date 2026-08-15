@@ -22,7 +22,7 @@ docs/product-track/milestones/m07.4-opentelemetry-optional.md
 M07.4 adds a feature-gated OpenTelemetry sink in `causlane-runtime`. The feature
 is optional (`otel`) and the default runtime build stays dependency-minimal. The
 adapter consumes the M07.3 `TraceSpan` projection and emits OpenTelemetry spans,
-logs and a low-cardinality counter. It does not classify `AuditEventKind`; the
+logs and a low-cardinality counter. It does not classify `CausalProtocolEventKind`; the
 single audit-event projection remains in `causlane-core`.
 
 The sink owns local SDK providers instead of installing global OpenTelemetry
@@ -33,9 +33,9 @@ the adapter does not fabricate OpenTelemetry trace/span ids from causlane ids.
 ## Affected invariants
 
 ```text
-I-003: unchanged — projection truth anchors are still validated from audit events,
+I-003: unchanged — projection truth anchors are still validated from causal protocol events,
        not from telemetry spans/logs.
-I-008: unchanged — lifecycle authority remains the audit event stream.
+I-008: unchanged — lifecycle authority remains the causal protocol event stream.
 ADR-0014 / TD-017: observability remains derived, not truth; M07.4 adds an
        external exporter over the typed projection.
 new invariant ids: none
@@ -52,7 +52,7 @@ changes. OpenTelemetry records are not consumed by replay/formal lanes.
 
 ```text
 PR-observability-derived: telemetry is derived from `TraceSpan`, which is already
-derived from committed audit events. No dispatch, barrier, lease, authz,
+derived from committed causal protocol events. No dispatch, barrier, lease, authz,
 lifecycle or replay protocol semantics change.
 ```
 
@@ -70,7 +70,7 @@ lifecycle or replay protocol semantics change.
 
 | Scenario | Expected lane | Expected check | Status |
 |---|---|---|---|
-| OTel adapter receives a `TraceSpan` | runtime unit | emits span/log/metric without reading `AuditEventKind` mapping | new |
+| OTel adapter receives a `TraceSpan` | runtime unit | emits span/log/metric without reading `CausalProtocolEventKind` mapping | new |
 | high-cardinality ids exist on a span | runtime unit | ids are span/log attributes, not metric dimensions | new |
 | violation span | runtime unit | OpenTelemetry span status is error | new |
 | default build | cargo check | runtime compiles without `otel` feature/deps active | new |
@@ -90,7 +90,7 @@ lifecycle or replay protocol semantics change.
 ## Not applicable lanes
 
 Replay and generated formal lanes do not consume OpenTelemetry output. They
-continue to consume the audit/event trace and bundle-derived artifacts.
+continue to consume the causal protocol trace and bundle-derived artifacts.
 OpenTelemetry export is a runtime telemetry adapter over the already-derived
 `TraceSpan` model, so runtime unit tests are the applicable lane for this
 behavior.

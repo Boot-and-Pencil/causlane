@@ -34,7 +34,7 @@ keyed attestations are omitted or represented by redacted summaries.
 
 ```text
 I-003: unchanged - projection truth anchors are still validated by replay.
-I-008: unchanged - lifecycle authority remains the audit event stream.
+I-008: unchanged - lifecycle authority remains the causal protocol event stream.
 ADR-0014 / TD-017: unchanged - support bundles are derived diagnostics, not
        observed truth or enforcement input.
 new invariant ids: none

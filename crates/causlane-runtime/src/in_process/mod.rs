@@ -2,7 +2,7 @@
 //!
 //! This runtime is an ephemeral adapter: it owns partition-local queues and
 //! spends work only through a host-supplied effect handler. It does not create
-//! policy decisions, audit truth, durable leases, or replay authority.
+//! policy decisions, causal protocol truth, durable leases, or replay authority.
 
 use std::{
     collections::{HashMap, HashSet},

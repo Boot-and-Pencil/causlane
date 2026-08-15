@@ -2,6 +2,7 @@
 
 pub use crate::kernel::KernelContracts;
 pub use crate::protocol::{
-    ActionCall, ActionId, AuditEvent, AuditEventId, AuditEventKind, BundleHash, ConstraintEpoch,
-    ExecutionBarrier, ImpactSetHash, LeaseId, LeaseRef, PlanHash, ResourceId, Scope,
+    ActionCall, ActionId, BundleHash, CausalProtocolEvent, CausalProtocolEventId,
+    CausalProtocolEventKind, ConstraintEpoch, ExecutionBarrier, ImpactSetHash, LeaseId, LeaseRef,
+    PlanHash, ResourceId, Scope,
 };

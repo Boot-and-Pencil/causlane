@@ -1,10 +1,10 @@
 //! Lowering helpers for replay trace DTOs.
 
 use causlane_core::{
-    ActionId, AuditEventId, AuthzAttestation, AuthzDecisionRef, CapabilityAttestation,
-    CapabilityId, ConstraintEpoch, ConstraintId, ExecutionBarrier, ExecutionCapability, FactKind,
-    ImpactSetHash, LeaseId, LeaseRef, PlanHash, ResourceId, Scope, Timestamp, TruthAnchor,
-    WitnessBinding, WitnessRef,
+    ActionId, AuthzAttestation, AuthzDecisionRef, CapabilityAttestation, CapabilityId,
+    CausalProtocolEventId, ConstraintEpoch, ConstraintId, ExecutionBarrier, ExecutionCapability,
+    FactKind, ImpactSetHash, LeaseId, LeaseRef, PlanHash, ResourceId, Scope, Timestamp,
+    TruthAnchor, WitnessBinding, WitnessRef,
 };
 
 use crate::trace::{
@@ -49,7 +49,7 @@ pub(crate) fn witness_ref(raw: &crate::trace::ReplayWitnessRef) -> Result<Witnes
         None => None,
     };
     Ok(WitnessRef {
-        event_id: AuditEventId(raw.event_id.clone()),
+        event_id: CausalProtocolEventId(raw.event_id.clone()),
         requirement_id: raw.requirement_id.clone(),
         kind: raw.kind.to_core(),
         fact_kind: raw.fact_kind.clone().map(FactKind),
@@ -85,7 +85,7 @@ pub(crate) fn lease_ref(
         holder_op_index: raw.holder_op_index,
         epoch: ConstraintEpoch(raw.epoch),
         expires_at: raw.expires_at.map(Timestamp),
-        lease_event_id: AuditEventId(
+        lease_event_id: CausalProtocolEventId(
             raw.lease_event_id
                 .clone()
                 .unwrap_or_else(|| event_id.to_owned()),
@@ -116,7 +116,7 @@ pub(crate) fn execution_barrier(
         .map(|lease| lease_ref(lease, event_id, event_action, event_plan, trace_plan))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(ExecutionBarrier {
-        barrier_id: AuditEventId(
+        barrier_id: CausalProtocolEventId(
             raw.barrier_id
                 .clone()
                 .unwrap_or_else(|| event_id.to_owned()),
@@ -135,7 +135,7 @@ pub(crate) fn execution_barrier(
             .authz_decision_refs
             .iter()
             .cloned()
-            .map(AuditEventId)
+            .map(CausalProtocolEventId)
             .collect(),
         constraint_snapshot_id: raw.constraint_snapshot_id.clone().map(ConstraintId),
     })
@@ -154,7 +154,7 @@ pub(crate) fn authz_decision(
         None => plan_hash_for(event_id, event_plan, trace_plan)?,
     };
     Ok(AuthzDecisionRef {
-        decision_event_id: AuditEventId(
+        decision_event_id: CausalProtocolEventId(
             raw.decision_event_id
                 .clone()
                 .unwrap_or_else(|| event_id.to_owned()),
@@ -198,7 +198,7 @@ pub(crate) fn execution_capability(
         ),
         plan_hash,
         op_index: raw.op_index,
-        barrier_event_id: AuditEventId(raw.barrier_event_id.clone()),
+        barrier_event_id: CausalProtocolEventId(raw.barrier_event_id.clone()),
         lease_ids: raw.lease_ids.iter().cloned().map(LeaseId).collect(),
         expires_at: raw.expires_at.map(Timestamp),
         attestation: raw.attestation.clone().map(CapabilityAttestation),
@@ -224,7 +224,7 @@ fn anchor_for(
         .clone()
         .unwrap_or_else(|| raw.action_id.clone());
     Ok(TruthAnchor {
-        event_id: AuditEventId(anchor.event_id.clone()),
+        event_id: CausalProtocolEventId(anchor.event_id.clone()),
         action_id: ActionId(anchor_action),
         plan_hash: PlanHash::new(anchor_plan)?,
         fact_kind: anchor.fact_kind.clone().map(FactKind),

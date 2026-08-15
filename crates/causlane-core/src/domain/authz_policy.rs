@@ -126,7 +126,9 @@ mod tests {
         authz_gate, decide_authz_policy, AuthzDenyReason, AuthzGateOutcome, AuthzPolicyId,
         AuthzPolicyModel, AuthzPolicyOutcome,
     };
-    use crate::domain::{ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, Timestamp};
+    use crate::domain::{
+        ActionId, AuthzDecision, AuthzDecisionRef, CausalProtocolEventId, Timestamp,
+    };
     use crate::{PlanHash, PlanHashError};
 
     const LISTED: &str = "execution_barrier_logged";
@@ -156,7 +158,7 @@ mod tests {
         plan: PlanHash,
     ) -> AuthzDecisionRef {
         AuthzDecisionRef {
-            decision_event_id: AuditEventId("d".to_owned()),
+            decision_event_id: CausalProtocolEventId("d".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan,
             predicate_id: predicate.to_owned(),

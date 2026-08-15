@@ -280,8 +280,8 @@
       "api_scope": [
         "causlane_runtime::linear_host",
         "causlane_runtime::guarded_executor",
-        "causlane_runtime::adapters::audit::InMemoryAuditLog",
-        "causlane_runtime::adapters::tracing::TraceProjectingAuditLog",
+        "causlane_runtime::adapters::protocol_history::InMemoryCausalProtocolHistory",
+        "causlane_runtime::adapters::tracing::TraceProjectingCausalProtocolHistory",
         "causlane_runtime::projection_guard"
       ],
       "lanes": [
@@ -348,7 +348,7 @@
           "evidence": [
             {
               "kind": "bench",
-              "benchmark": "barrier_audit_append"
+              "benchmark": "barrier_protocol_history_append"
             },
             {
               "kind": "bench",

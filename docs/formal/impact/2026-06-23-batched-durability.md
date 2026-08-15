@@ -22,17 +22,17 @@ docs/product-track/adapter-certification-matrix.json
 
 ## Summary
 
-M09.3 promotes audit batch append to the existing `AuditLogPort` boundary. The
+M09.3 promotes audit batch append to the existing `CausalProtocolHistoryPort` boundary. The
 runtime keeps one audit port and one batch admission implementation:
-`AuditAppendState::prepare_batch`. In-memory, SQLite and Postgres adapters
+`CausalProtocolHistoryAppendState::prepare_batch`. In-memory, SQLite and Postgres adapters
 validate the full batch before mutating state; SQL adapters commit a prepared
 batch in one transaction. Tracing remains derived and emits batch spans only
-after the authoritative audit append succeeds.
+after the authoritative protocol-history append succeeds.
 
 ## Affected invariants
 
 ```text
-ADR-0003: strengthened at adapter boundary - batch audit append is fail-closed
+ADR-0003: strengthened at adapter boundary - batch protocol-history append is fail-closed
           and ordered.
 ADR-0008: unchanged - observability remains derived after successful audit
           append.
@@ -51,7 +51,7 @@ or coverage-matrix schema changes.
 
 ## Contract changes
 
-- Core Rust API changed: `AuditLogPort` now requires `append_batch`.
+- Core Rust API changed: `CausalProtocolHistoryPort` now requires `append_batch`.
 - Runtime Rust adapters implement `append_batch` on the port.
 - Durable SQL envelope schema: unchanged.
 - Replay trace/scenario/Formal IR schemas: unchanged.
@@ -63,7 +63,7 @@ or coverage-matrix schema changes.
 | barrier + execution batched together | runtime unit | barrier row/event index precedes execution row/event index | new |
 | duplicate id inside batch | runtime unit | batch fails and adapter state is unchanged | new |
 | non-monotonic supplied index inside batch | runtime unit | batch fails and adapter state is unchanged | new |
-| tracing wrapper batch failure | runtime unit | no spans emitted when audit append fails | new |
+| tracing wrapper batch failure | runtime unit | no spans emitted when protocol-history append fails | new |
 | SQLite batch write | runtime unit | ordered rows persist transactionally | new |
 
 ## Required proof/model changes

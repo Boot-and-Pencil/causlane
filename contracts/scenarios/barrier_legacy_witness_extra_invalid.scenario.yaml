@@ -13,7 +13,7 @@ circumstance:
     value: alice
   - key: reason
     value: ship it
-# I-009 (P0-006): the deprecated legacy AuditEvent.witnesses list on the barrier
+# I-009 (P0-006): the deprecated legacy CausalProtocolEvent.witnesses list on the barrier
 # carries an extra event id (evt_dispatch) that the authoritative typed
 # ExecutionBarrier.witnesses payload does not. Replay must reject the divergence
 # rather than treat the legacy list as evidence on its own.

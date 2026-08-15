@@ -121,27 +121,27 @@
           "gate": "append_only_monotonic_truth",
           "status": "covered",
           "tests": [
-            "adapters::audit::tests::in_memory_assigns_missing_indexes_monotonically",
-            "adapters::audit::tests::in_memory_rejects_duplicate_event_ids",
-            "adapters::audit::tests::in_memory_batch_is_all_or_nothing"
+            "adapters::protocol_history::tests::in_memory_assigns_missing_indexes_monotonically",
+            "adapters::protocol_history::tests::in_memory_rejects_duplicate_event_ids",
+            "adapters::protocol_history::tests::in_memory_batch_is_all_or_nothing"
           ]
         },
         {
           "gate": "batched_write_ahead_order",
           "status": "covered",
           "tests": [
-            "adapters::audit::tests::audit_log_port_batch_preserves_barrier_write_ahead_order",
-            "adapters::audit::sqlite::tests::batch_persists_ordered_rows_transactionally"
+            "adapters::protocol_history::tests::causal_protocol_history_port_batch_preserves_barrier_write_ahead_order",
+            "adapters::protocol_history::sqlite::tests::batch_persists_ordered_rows_transactionally"
           ]
         },
         {
           "gate": "batch_failure_atomicity",
           "status": "covered",
           "tests": [
-            "adapters::audit::tests::in_memory_batch_is_all_or_nothing",
-            "adapters::audit::tests::audit_log_port_batch_failure_leaves_state_unchanged",
-            "adapters::audit::tests::audit_log_port_batch_rejects_non_monotonic_without_advancing",
-            "adapters::audit::sqlite::tests::batch_rolls_back_on_duplicate"
+            "adapters::protocol_history::tests::in_memory_batch_is_all_or_nothing",
+            "adapters::protocol_history::tests::causal_protocol_history_port_batch_failure_leaves_state_unchanged",
+            "adapters::protocol_history::tests::causal_protocol_history_port_batch_rejects_non_monotonic_without_advancing",
+            "adapters::protocol_history::sqlite::tests::batch_rolls_back_on_duplicate"
           ]
         }
       ]
@@ -155,8 +155,8 @@
           "gate": "observability_not_authority",
           "status": "covered",
           "tests": [
-            "adapters::tracing::tests::does_not_emit_span_when_audit_append_fails",
-            "adapters::tracing::tests::telemetry_failure_is_fail_open_after_audit_append"
+            "adapters::tracing::tests::does_not_emit_span_when_protocol_history_append_fails",
+            "adapters::tracing::tests::telemetry_failure_is_fail_open_after_protocol_history_append"
           ]
         },
         {

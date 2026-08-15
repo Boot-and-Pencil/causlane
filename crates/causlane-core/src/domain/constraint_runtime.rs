@@ -210,10 +210,10 @@ mod tests {
         truth_rewrite_of, RuntimeUpdate, RuntimeUpdateKind,
     };
     use crate::{
-        select_frontier, ActionId, AuditEventId, ClaimMode, CommittedTruth, ConstraintEpoch,
-        ConstraintId, ConstraintKind, ConstraintSnapshot, ConstraintSpec, FactKind, GraphIndex,
-        GraphNode, LaneCapacity, LaneId, LeaseId, LeaseRef, OpId, PlanHash, PlanHashError,
-        ResourceId, Scope,
+        select_frontier, ActionId, CausalProtocolEventId, ClaimMode, CommittedTruth,
+        ConstraintEpoch, ConstraintId, ConstraintKind, ConstraintSnapshot, ConstraintSpec,
+        FactKind, GraphIndex, GraphNode, LaneCapacity, LaneId, LeaseId, LeaseRef, OpId, PlanHash,
+        PlanHashError, ResourceId, Scope,
     };
 
     type TestResult = Result<(), PlanHashError>;
@@ -234,7 +234,7 @@ mod tests {
             holder_op_index: Some(0),
             epoch,
             expires_at: None,
-            lease_event_id: AuditEventId("evt".to_owned()),
+            lease_event_id: CausalProtocolEventId("evt".to_owned()),
         }
     }
 

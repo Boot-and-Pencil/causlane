@@ -81,7 +81,7 @@ pub enum ReplayError {
         /// Requirement id.
         requirement_id: String,
     },
-    /// The deprecated legacy `AuditEvent.witnesses` list on a barrier disagrees
+    /// The deprecated legacy `CausalProtocolEvent.witnesses` list on a barrier disagrees
     /// with the authoritative typed `ExecutionBarrier.witnesses` payload.
     LegacyWitnessMismatch {
         /// Barrier event id.

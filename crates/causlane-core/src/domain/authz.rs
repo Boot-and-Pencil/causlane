@@ -251,7 +251,9 @@ mod tests {
         authz_gate, classify_authz_decision, AuthzDecisionVerdict, AuthzDenyReason,
         AuthzGateOutcome, AuthzPolicy,
     };
-    use crate::domain::{ActionId, AuditEventId, AuthzDecision, AuthzDecisionRef, Timestamp};
+    use crate::domain::{
+        ActionId, AuthzDecision, AuthzDecisionRef, CausalProtocolEventId, Timestamp,
+    };
     use crate::PlanHash;
 
     /// The policy the `decision` helper issues decisions under.
@@ -274,7 +276,7 @@ mod tests {
         expires_at: Option<u64>,
     ) -> AuthzDecisionRef {
         AuthzDecisionRef {
-            decision_event_id: AuditEventId("d".to_owned()),
+            decision_event_id: CausalProtocolEventId("d".to_owned()),
             action_id: ActionId(action.to_owned()),
             plan_hash: plan,
             predicate_id: predicate.to_owned(),
@@ -670,7 +672,7 @@ mod tests {
                         for issued in [0_u64, 5, 10] {
                             for expiry in [None, Some(3_u64), Some(5), Some(10), Some(100)] {
                                 let decision = AuthzDecisionRef {
-                                    decision_event_id: AuditEventId("d".to_owned()),
+                                    decision_event_id: CausalProtocolEventId("d".to_owned()),
                                     action_id: dact.clone(),
                                     plan_hash: dplan.clone(),
                                     predicate_id: dpred.to_owned(),

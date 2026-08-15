@@ -20,7 +20,7 @@
 
 ## TD-004. Single observed truth authority
 
-**Решение:** audit/event journal — единственный авторитет observed truth. Logs, metrics, UI, execution graph, status pages — derived projections.
+**Решение:** causal protocol history — единственный авторитет observed truth. Logs, metrics, UI, execution graph, status pages — derived projections.
 
 **Почему:** иначе replay, расследования и formal checks расходятся с реальным runtime.
 

@@ -27,12 +27,12 @@
           "claim": "The deterministic linear worker drains the accepted API task before the dependent projection task."
         },
         {
-          "gate": "audit_append_indexing",
+          "gate": "protocol_history_append_indexing",
           "status": "covered",
           "evidence": [
             "tests::audit_indexes_are_monotonic_and_cover_flow"
           ],
-          "claim": "Runtime audit append evidence is indexed monotonically and covers admission, dispatch, execution, authz, projection and close events."
+          "claim": "Runtime protocol-history append evidence is indexed monotonically and covers admission, dispatch, execution, authz, projection and close events."
         },
         {
           "gate": "projection_authz_redaction",
@@ -112,7 +112,7 @@
           "evidence": [
             "tests::audit_events_cover_release_gate_sequence"
           ],
-          "claim": "Runtime audit append evidence covers the release orchestration gate sequence."
+          "claim": "Runtime protocol-history append evidence covers the release orchestration gate sequence."
         },
         {
           "gate": "release_idempotency_negative_control",

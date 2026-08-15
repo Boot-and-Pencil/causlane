@@ -11,10 +11,10 @@ use causlane::core::protocol::{
     WitnessAttestation,
 };
 use causlane::prelude::{
-    admit_call, requires_execution_barrier, ActionCall, ActionId, ActionPlan, AuditEvent,
-    AuditEventId, AuditEventKind, AuditLogPort, ClaimMode, ConsequenceProfile, ConstraintEpoch,
-    ExecutionBarrier, ExecutorPort, FactKind, ImpactSetHash, KernelContracts, LeaseId, LeaseRef,
-    LeaseTable, Op, PlanHash, PredicateId, ResourceId, Scope,
+    admit_call, requires_execution_barrier, ActionCall, ActionId, ActionPlan, CausalProtocolEvent,
+    CausalProtocolEventId, CausalProtocolEventKind, CausalProtocolHistoryPort, ClaimMode,
+    ConsequenceProfile, ConstraintEpoch, ExecutionBarrier, ExecutorPort, FactKind, ImpactSetHash,
+    KernelContracts, LeaseId, LeaseRef, LeaseTable, Op, PlanHash, PredicateId, ResourceId, Scope,
 };
 
 const PLAN_DIGEST: &str = "1111111111111111111111111111111111111111111111111111111111111111";
@@ -23,7 +23,7 @@ const IMPACT_DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 /// Summary returned by the runnable example.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SimpleLocalSummary {
-    /// Number of audit events replay-verified by the example.
+    /// Number of causal protocol events replay-verified by the example.
     pub event_count: usize,
     /// Produced references returned by the local executor.
     pub produced_refs: Vec<String>,
@@ -98,25 +98,28 @@ impl From<Infallible> for SimpleLocalError {
 
 #[derive(Default)]
 struct InMemoryAudit {
-    events: Vec<AuditEvent>,
+    events: Vec<CausalProtocolEvent>,
 }
 
 impl InMemoryAudit {
-    fn events(self) -> Vec<AuditEvent> {
+    fn events(self) -> Vec<CausalProtocolEvent> {
         self.events
     }
 }
 
-impl AuditLogPort for InMemoryAudit {
+impl CausalProtocolHistoryPort for InMemoryAudit {
     type Error = Infallible;
 
-    fn append_batch(&mut self, events: Vec<AuditEvent>) -> Result<Vec<AuditEventId>, Self::Error> {
+    fn append_batch(
+        &mut self,
+        events: Vec<CausalProtocolEvent>,
+    ) -> Result<Vec<CausalProtocolEventId>, Self::Error> {
         let ids = events.iter().map(|event| event.event_id.clone()).collect();
         self.events.extend(events);
         Ok(ids)
     }
 
-    fn append(&mut self, event: AuditEvent) -> Result<AuditEventId, Self::Error> {
+    fn append(&mut self, event: CausalProtocolEvent) -> Result<CausalProtocolEventId, Self::Error> {
         let id = event.event_id.clone();
         self.events.push(event);
         Ok(id)
@@ -142,7 +145,7 @@ impl ExecutorPort for NoopExecutor {
 /// # Errors
 /// Returns an error if local kernel checks reject the sample flow.
 #[must_use = "example event construction can fail and must be checked"]
-pub fn simple_local_events() -> Result<Vec<AuditEvent>, SimpleLocalError> {
+pub fn simple_local_events() -> Result<Vec<CausalProtocolEvent>, SimpleLocalError> {
     let (events, _produced_refs) = build_simple_local()?;
     Ok(events)
 }
@@ -161,7 +164,7 @@ pub fn run_simple_local() -> Result<SimpleLocalSummary, SimpleLocalError> {
     })
 }
 
-fn build_simple_local() -> Result<(Vec<AuditEvent>, Vec<String>), SimpleLocalError> {
+fn build_simple_local() -> Result<(Vec<CausalProtocolEvent>, Vec<String>), SimpleLocalError> {
     let mut audit = InMemoryAudit::default();
     let call = action_call();
     let action_id = call.action_id.clone();
@@ -193,24 +196,36 @@ fn build_simple_local() -> Result<(Vec<AuditEvent>, Vec<String>), SimpleLocalErr
 
     append(
         &mut audit,
-        event("evt_admitted", &action_id, AuditEventKind::ActionAdmitted),
+        event(
+            "evt_admitted",
+            &action_id,
+            CausalProtocolEventKind::ActionAdmitted,
+        ),
     )?;
     append(
         &mut audit,
-        event("evt_planned", &action_id, AuditEventKind::ActionPlanned)
-            .with_plan_hash(plan_hash.clone()),
+        event(
+            "evt_planned",
+            &action_id,
+            CausalProtocolEventKind::ActionPlanned,
+        )
+        .with_plan_hash(plan_hash.clone()),
     )?;
     append(
         &mut audit,
-        event("evt_dispatch", &action_id, AuditEventKind::DispatchLogged)
-            .with_plan_hash(plan_hash.clone()),
+        event(
+            "evt_dispatch",
+            &action_id,
+            CausalProtocolEventKind::DispatchLogged,
+        )
+        .with_plan_hash(plan_hash.clone()),
     )?;
     append(
         &mut audit,
         event(
             "evt_lease_granted",
             &action_id,
-            AuditEventKind::ConstraintLeaseGranted,
+            CausalProtocolEventKind::ConstraintLeaseGranted,
         )
         .with_plan_hash(plan_hash.clone())
         .with_leases(vec![lease]),
@@ -220,23 +235,27 @@ fn build_simple_local() -> Result<(Vec<AuditEvent>, Vec<String>), SimpleLocalErr
         event(
             "evt_barrier",
             &action_id,
-            AuditEventKind::ExecutionBarrierLogged,
+            CausalProtocolEventKind::ExecutionBarrierLogged,
         )
         .with_plan_hash(plan_hash.clone())
         .with_execution_barrier(barrier),
     )?;
     append(
         &mut audit,
-        event("evt_started", &action_id, AuditEventKind::ExecutionStarted)
-            .with_plan_hash(plan_hash.clone())
-            .with_execution_capability(capability),
+        event(
+            "evt_started",
+            &action_id,
+            CausalProtocolEventKind::ExecutionStarted,
+        )
+        .with_plan_hash(plan_hash.clone())
+        .with_execution_capability(capability),
     )?;
     append(
         &mut audit,
         event(
             "evt_completed",
             &action_id,
-            AuditEventKind::ExecutionCompleted,
+            CausalProtocolEventKind::ExecutionCompleted,
         )
         .with_plan_hash(plan_hash.clone()),
     )?;
@@ -245,7 +264,7 @@ fn build_simple_local() -> Result<(Vec<AuditEvent>, Vec<String>), SimpleLocalErr
         event(
             "evt_observed_truth",
             &action_id,
-            AuditEventKind::ObservedTruthCommitted,
+            CausalProtocolEventKind::ObservedTruthCommitted,
         )
         .with_plan_hash(plan_hash.clone())
         .with_attested_fact(WitnessAttestation {
@@ -258,11 +277,11 @@ fn build_simple_local() -> Result<(Vec<AuditEvent>, Vec<String>), SimpleLocalErr
         event(
             "evt_projection",
             &action_id,
-            AuditEventKind::ProjectionEmitted,
+            CausalProtocolEventKind::ProjectionEmitted,
         )
         .with_plan_hash(plan_hash.clone())
         .with_anchors(vec![TruthAnchor {
-            event_id: AuditEventId("evt_observed_truth".to_owned()),
+            event_id: CausalProtocolEventId("evt_observed_truth".to_owned()),
             action_id: action_id.clone(),
             plan_hash: plan_hash.clone(),
             fact_kind: Some(FactKind("release_candidate_promoted".to_owned())),
@@ -272,21 +291,30 @@ fn build_simple_local() -> Result<(Vec<AuditEvent>, Vec<String>), SimpleLocalErr
     )?;
     append(
         &mut audit,
-        event("evt_closed", &action_id, AuditEventKind::LifecycleClosed).with_plan_hash(plan_hash),
+        event(
+            "evt_closed",
+            &action_id,
+            CausalProtocolEventKind::LifecycleClosed,
+        )
+        .with_plan_hash(plan_hash),
     )?;
 
     Ok((audit.events(), produced_refs))
 }
 
-fn append(audit: &mut InMemoryAudit, event: AuditEvent) -> Result<(), SimpleLocalError> {
+fn append(audit: &mut InMemoryAudit, event: CausalProtocolEvent) -> Result<(), SimpleLocalError> {
     let _id = audit.append(event)?;
     Ok(())
 }
 
-fn event(id: &str, action_id: &ActionId, kind: AuditEventKind) -> AuditEvent {
-    AuditEvent::new(AuditEventId(id.to_owned()), action_id.clone(), kind)
-        .with_correlation_id(CorrelationId("simple-local-run".to_owned()))
-        .with_occurred_at(Timestamp(1))
+fn event(id: &str, action_id: &ActionId, kind: CausalProtocolEventKind) -> CausalProtocolEvent {
+    CausalProtocolEvent::new(
+        CausalProtocolEventId(id.to_owned()),
+        action_id.clone(),
+        kind,
+    )
+    .with_correlation_id(CorrelationId("simple-local-run".to_owned()))
+    .with_occurred_at(Timestamp(1))
 }
 
 fn action_call() -> ActionCall {
@@ -350,7 +378,7 @@ fn lease_ref(action_id: &ActionId, plan_hash: &PlanHash, claim: &ResourceClaim) 
         holder_op_index: Some(0),
         epoch: ConstraintEpoch(1),
         expires_at: None,
-        lease_event_id: AuditEventId("evt_lease_granted".to_owned()),
+        lease_event_id: CausalProtocolEventId("evt_lease_granted".to_owned()),
     }
 }
 
@@ -361,7 +389,7 @@ fn execution_barrier(
     lease: LeaseRef,
 ) -> ExecutionBarrier {
     ExecutionBarrier {
-        barrier_id: AuditEventId("evt_barrier".to_owned()),
+        barrier_id: CausalProtocolEventId("evt_barrier".to_owned()),
         action_id: action_id.clone(),
         plan_hash: plan_hash.clone(),
         op_indexes: vec![0],

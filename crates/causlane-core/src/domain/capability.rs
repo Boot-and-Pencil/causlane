@@ -291,8 +291,9 @@ mod tests {
         ExecutionCapabilityError,
     };
     use crate::domain::{
-        ActionId, AuditEventId, CapabilityId, ClaimMode, ConstraintEpoch, ExecutionBarrier,
-        ExecutionCapability, ImpactSetHash, LeaseId, LeaseRef, ResourceId, Scope, Timestamp,
+        ActionId, CapabilityId, CausalProtocolEventId, ClaimMode, ConstraintEpoch,
+        ExecutionBarrier, ExecutionCapability, ImpactSetHash, LeaseId, LeaseRef, ResourceId, Scope,
+        Timestamp,
     };
     use crate::{PlanHash, PlanHashError};
 
@@ -319,7 +320,7 @@ mod tests {
             "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         )?;
         Ok(ExecutionBarrier {
-            barrier_id: AuditEventId("evt_barrier".to_owned()),
+            barrier_id: CausalProtocolEventId("evt_barrier".to_owned()),
             action_id: ActionId("act".to_owned()),
             plan_hash: plan.clone(),
             op_indexes: vec![0],
@@ -339,7 +340,7 @@ mod tests {
                 holder_op_index: Some(0),
                 epoch: ConstraintEpoch(0),
                 expires_at: None,
-                lease_event_id: AuditEventId("evt_leases".to_owned()),
+                lease_event_id: CausalProtocolEventId("evt_leases".to_owned()),
             }],
             authz_decision_refs: Vec::new(),
             constraint_snapshot_id: None,
@@ -415,7 +416,7 @@ mod tests {
     fn validate_rejects_barrier_mismatch() -> Result<(), TestError> {
         let barrier = barrier()?;
         let mut capability = ExecutionCapability::derive_from_barrier(&barrier, 0)?;
-        capability.barrier_event_id = AuditEventId("evt_other_barrier".to_owned());
+        capability.barrier_event_id = CausalProtocolEventId("evt_other_barrier".to_owned());
         assert!(matches!(
             capability.validate_for_barrier(&barrier),
             Err(ExecutionCapabilityError::BarrierMismatch { .. })
@@ -560,7 +561,7 @@ mod tests {
     #[test]
     fn spend_refuses_wrong_barrier() -> Result<(), TestError> {
         let mut other = barrier()?;
-        other.barrier_id = AuditEventId("evt_other".to_owned());
+        other.barrier_id = CausalProtocolEventId("evt_other".to_owned());
         let barrier = barrier()?;
         let capability = ExecutionCapability::derive_from_barrier(&barrier, 0)?;
         assert!(matches!(
@@ -702,7 +703,7 @@ mod tests {
         let expiring = barrier_lease_expiring(Some(Timestamp(50)))?;
         let barrier_noexp = barrier()?;
         let mut other = barrier()?;
-        other.barrier_id = AuditEventId("evt_other".to_owned());
+        other.barrier_id = CausalProtocolEventId("evt_other".to_owned());
 
         let valid = ExecutionCapability::derive_from_barrier(&expiring, 0)?;
         let valid_noexp = ExecutionCapability::derive_from_barrier(&barrier_noexp, 0)?;

@@ -54,7 +54,7 @@ lease_during_drain_invalid
 
 ## Keep Adapters Outside The Semantic Core
 
-Adapters may execute through scoped capability, persist audit events, export
+Adapters may execute through scoped capability, persist causal protocol events, export
 observability and integrate backend runtimes.
 
 Adapters must not decide semantic admissibility, create observed truth outside

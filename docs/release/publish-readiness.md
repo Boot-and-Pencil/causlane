@@ -60,8 +60,8 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 
 - Manifest: `crates/causlane-runtime/Cargo.toml`
 - Default features: none
-- Declared features: `apalis`, `default`, `otel`, `postgres-audit`, `restate`, `sqlite-audit`, `tokio-runtime`
-- Optional dependencies: `apalis via apalis`, `opentelemetry via otel`, `opentelemetry-otlp via otel`, `opentelemetry_sdk via otel`, `postgres via postgres-audit`, `restate-sdk via restate`, `rusqlite via sqlite-audit`, `serde via restate`, `tokio via tokio-runtime`, `tower via apalis`
+- Declared features: `apalis`, `default`, `otel`, `postgres-protocol-history`, `restate`, `sqlite-protocol-history`, `tokio-runtime`
+- Optional dependencies: `apalis via apalis`, `opentelemetry via otel`, `opentelemetry-otlp via otel`, `opentelemetry_sdk via otel`, `postgres via postgres-protocol-history`, `restate-sdk via restate`, `rusqlite via sqlite-protocol-history`, `serde via restate`, `tokio via tokio-runtime`, `tower via apalis`
 - docs.rs all-features: `true`
 
 #### causlane-codegen
@@ -129,7 +129,7 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 - Manifest: `crates/causlane-contracts/Cargo.toml`
 - Package root: `crates/causlane-contracts`
 - Normal workspace dependencies: `causlane-core ^0.0.1 via crates/causlane-core`
-- Package files: 21
+- Package files: 22
 
 #### causlane-replay
 
@@ -246,7 +246,7 @@ This artifact is a deterministic publication-prep report. It does not publish cr
 
 - Status: `pass`
 - Summary: Workspace feature flags keep the facade minimal and optional integrations explicit.
-- Evidence: policy: m11_2_default_minimal_optional_integrations, feature-bearing packages: causlane-runtime features=apalis, default, otel, postgres-audit, restate, sqlite-audit, tokio-runtime, all workspace crates have empty default features and explicit optional integration flags
+- Evidence: policy: m11_2_default_minimal_optional_integrations, feature-bearing packages: causlane-runtime features=apalis, default, otel, postgres-protocol-history, restate, sqlite-protocol-history, tokio-runtime, all workspace crates have empty default features and explicit optional integration flags
 - Remediation: Move optional integrations behind non-default features and keep docs.rs metadata explicit.
 
 ### publication-dependencies

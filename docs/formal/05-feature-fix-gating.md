@@ -104,7 +104,7 @@ just verification-full --profile proof
 ## Merge-blocking examples
 
 ```text
-new AuditEvent kind without replay grammar and Formal IR projection
+new CausalProtocolEvent kind without replay grammar and Formal IR projection
 new route profile without route/profile model update
 new authz policy field without replay binding and scenario controls
 new merge protocol marked verified without Lean/Verus/Kani obligations

@@ -1,4 +1,4 @@
-//! JSON trace DTOs and lowering into core audit events.
+//! JSON trace DTOs and lowering into core causal protocol events.
 
 use noyalib::compat::serde_yaml;
 use serde::{Deserialize, Serialize};
@@ -7,8 +7,8 @@ use causlane_contracts::serde_numeric;
 use causlane_contracts::ClaimModeDto;
 use causlane_contracts::{canonical_json_hash, TemplateBindings};
 use causlane_core::{
-    ActionId, AuditEvent, AuditEventId, AuditEventKind, AuthzDecision, FactKind, PlanHash, Scope,
-    Timestamp, WitnessAttestation, WitnessKind,
+    ActionId, AuthzDecision, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind,
+    FactKind, PlanHash, Scope, Timestamp, WitnessAttestation, WitnessKind,
 };
 
 use crate::trace_lowering::{
@@ -17,7 +17,7 @@ use crate::trace_lowering::{
 };
 use crate::{verify_events, ReplayError};
 
-/// Boundary form of [`AuditEventKind`]; serde owns the dotted-token mapping so
+/// Boundary form of [`CausalProtocolEventKind`]; serde owns the dotted-token mapping so
 /// no hand-written string matching is needed (and unknown tokens fail closed).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EventKindDto {
@@ -77,25 +77,25 @@ pub enum EventKindDto {
 impl EventKindDto {
     /// Map to the pure-kernel event kind.
     #[must_use]
-    pub fn to_core(self) -> AuditEventKind {
+    pub fn to_core(self) -> CausalProtocolEventKind {
         match self {
-            Self::ActionAdmitted => AuditEventKind::ActionAdmitted,
-            Self::ActionPlanned => AuditEventKind::ActionPlanned,
-            Self::DispatchLogged => AuditEventKind::DispatchLogged,
-            Self::ExecutionBarrierLogged => AuditEventKind::ExecutionBarrierLogged,
-            Self::ExecutionStarted => AuditEventKind::ExecutionStarted,
-            Self::ExecutionCompleted => AuditEventKind::ExecutionCompleted,
-            Self::ObservedTruthCommitted => AuditEventKind::ObservedTruthCommitted,
-            Self::ProjectionEmitted => AuditEventKind::ProjectionEmitted,
-            Self::LifecycleClosed => AuditEventKind::LifecycleClosed,
-            Self::GateApproved => AuditEventKind::GateApproved,
-            Self::GateDenied => AuditEventKind::GateDenied,
-            Self::ConstraintLeaseGranted => AuditEventKind::ConstraintLeaseGranted,
-            Self::ConstraintLeaseReleased => AuditEventKind::ConstraintLeaseReleased,
-            Self::ViolationDetected => AuditEventKind::ViolationDetected,
-            Self::AuthzDecisionRecorded => AuditEventKind::AuthzDecisionRecorded,
-            Self::DrainFenceRequested => AuditEventKind::DrainFenceRequested,
-            Self::DrainFenceAcquired => AuditEventKind::DrainFenceAcquired,
+            Self::ActionAdmitted => CausalProtocolEventKind::ActionAdmitted,
+            Self::ActionPlanned => CausalProtocolEventKind::ActionPlanned,
+            Self::DispatchLogged => CausalProtocolEventKind::DispatchLogged,
+            Self::ExecutionBarrierLogged => CausalProtocolEventKind::ExecutionBarrierLogged,
+            Self::ExecutionStarted => CausalProtocolEventKind::ExecutionStarted,
+            Self::ExecutionCompleted => CausalProtocolEventKind::ExecutionCompleted,
+            Self::ObservedTruthCommitted => CausalProtocolEventKind::ObservedTruthCommitted,
+            Self::ProjectionEmitted => CausalProtocolEventKind::ProjectionEmitted,
+            Self::LifecycleClosed => CausalProtocolEventKind::LifecycleClosed,
+            Self::GateApproved => CausalProtocolEventKind::GateApproved,
+            Self::GateDenied => CausalProtocolEventKind::GateDenied,
+            Self::ConstraintLeaseGranted => CausalProtocolEventKind::ConstraintLeaseGranted,
+            Self::ConstraintLeaseReleased => CausalProtocolEventKind::ConstraintLeaseReleased,
+            Self::ViolationDetected => CausalProtocolEventKind::ViolationDetected,
+            Self::AuthzDecisionRecorded => CausalProtocolEventKind::AuthzDecisionRecorded,
+            Self::DrainFenceRequested => CausalProtocolEventKind::DrainFenceRequested,
+            Self::DrainFenceAcquired => CausalProtocolEventKind::DrainFenceAcquired,
         }
     }
 }
@@ -541,7 +541,7 @@ impl ReplayTrace {
         Ok(())
     }
 
-    /// Lower the trace into typed core [`AuditEvent`]s, validating every plan
+    /// Lower the trace into typed core [`CausalProtocolEvent`]s, validating every plan
     /// hash and resolving anchor defaults.
     ///
     /// # Errors
@@ -550,7 +550,7 @@ impl ReplayTrace {
     /// cannot be defaulted.
     #[allow(clippy::too_many_lines)]
     #[must_use = "the lowered events must be used"]
-    pub fn to_events(&self) -> Result<Vec<AuditEvent>, ReplayError> {
+    pub fn to_events(&self) -> Result<Vec<CausalProtocolEvent>, ReplayError> {
         let mut events = Vec::with_capacity(self.events.len());
         for (index, raw) in self.events.iter().enumerate() {
             let event_id = raw
@@ -583,12 +583,18 @@ impl ReplayTrace {
                 })
                 .collect::<Result<Vec<_>, _>>()?;
             let event_id_value = event_id.clone();
-            let mut event = AuditEvent::new(
-                AuditEventId(event_id_value),
+            let mut event = CausalProtocolEvent::new(
+                CausalProtocolEventId(event_id_value),
                 ActionId(raw.action_id.clone()),
                 raw.kind.to_core(),
             )
-            .with_witnesses(raw.witnesses.iter().cloned().map(AuditEventId).collect())
+            .with_witnesses(
+                raw.witnesses
+                    .iter()
+                    .cloned()
+                    .map(CausalProtocolEventId)
+                    .collect(),
+            )
             .with_witness_refs(witness_refs)
             .with_anchors(anchors)
             .with_leases(leases)

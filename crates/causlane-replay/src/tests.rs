@@ -4,8 +4,8 @@ use causlane_contracts::{
     CompiledDispatchBundle, ContractError, RegistryManifest, TemplateBindings,
 };
 use causlane_core::{
-    ActionId, AuditEvent, AuditEventId, AuditEventKind, ClaimMode, ConstraintEpoch, LeaseId,
-    LeaseRef, PlanHash, PredicateId, ResourceId, Scope,
+    ActionId, CausalProtocolEvent, CausalProtocolEventId, CausalProtocolEventKind, ClaimMode,
+    ConstraintEpoch, LeaseId, LeaseRef, PlanHash, PredicateId, ResourceId, Scope,
 };
 
 use crate::{
@@ -125,9 +125,9 @@ fn plan_hash(digit: char) -> Result<PlanHash, ReplayError> {
     Ok(parsed)
 }
 
-fn event(id: &str, kind: AuditEventKind, plan: &PlanHash) -> AuditEvent {
-    AuditEvent::new(
-        AuditEventId(id.to_owned()),
+fn event(id: &str, kind: CausalProtocolEventKind, plan: &PlanHash) -> CausalProtocolEvent {
+    CausalProtocolEvent::new(
+        CausalProtocolEventId(id.to_owned()),
         ActionId("act".to_owned()),
         kind,
     )
@@ -146,7 +146,7 @@ fn exclusive_lease(lease_id: &str, scope: &str, plan: &PlanHash) -> LeaseRef {
         holder_op_index: None,
         epoch: ConstraintEpoch(0),
         expires_at: None,
-        lease_event_id: AuditEventId("lease_evt".to_owned()),
+        lease_event_id: CausalProtocolEventId("lease_evt".to_owned()),
     }
 }
 
@@ -650,8 +650,8 @@ fn rejects_todo_plan_hash() {
 fn detects_execution_without_barrier() -> Result<(), ReplayError> {
     let plan = plan_hash('1')?;
     let events = vec![
-        event("e0", AuditEventKind::ActionPlanned, &plan),
-        event("e1", AuditEventKind::ExecutionStarted, &plan),
+        event("e0", CausalProtocolEventKind::ActionPlanned, &plan),
+        event("e1", CausalProtocolEventKind::ExecutionStarted, &plan),
     ];
     assert!(matches!(
         verify_events(&events),
@@ -664,8 +664,8 @@ fn detects_execution_without_barrier() -> Result<(), ReplayError> {
 fn detects_observed_without_execution() -> Result<(), ReplayError> {
     let plan = plan_hash('1')?;
     let events = vec![
-        event("e0", AuditEventKind::ExecutionBarrierLogged, &plan),
-        event("e1", AuditEventKind::ObservedTruthCommitted, &plan),
+        event("e0", CausalProtocolEventKind::ExecutionBarrierLogged, &plan),
+        event("e1", CausalProtocolEventKind::ObservedTruthCommitted, &plan),
     ];
     assert!(matches!(
         verify_events(&events),
@@ -677,7 +677,11 @@ fn detects_observed_without_execution() -> Result<(), ReplayError> {
 #[test]
 fn detects_projection_without_anchor() -> Result<(), ReplayError> {
     let plan = plan_hash('1')?;
-    let events = vec![event("e0", AuditEventKind::ProjectionEmitted, &plan)];
+    let events = vec![event(
+        "e0",
+        CausalProtocolEventKind::ProjectionEmitted,
+        &plan,
+    )];
     assert!(matches!(
         verify_events(&events),
         Err(ReplayError::ProjectionWithoutAnchor { .. })
@@ -690,8 +694,8 @@ fn detects_plan_hash_mismatch() -> Result<(), ReplayError> {
     let plan_a = plan_hash('1')?;
     let plan_b = plan_hash('2')?;
     let events = vec![
-        event("e0", AuditEventKind::ActionPlanned, &plan_a),
-        event("e1", AuditEventKind::DispatchLogged, &plan_b),
+        event("e0", CausalProtocolEventKind::ActionPlanned, &plan_a),
+        event("e1", CausalProtocolEventKind::DispatchLogged, &plan_b),
     ];
     assert!(matches!(
         verify_events(&events),
@@ -704,10 +708,10 @@ fn detects_plan_hash_mismatch() -> Result<(), ReplayError> {
 fn detects_conflicting_exclusive_leases() -> Result<(), ReplayError> {
     let plan = plan_hash('1')?;
     let events = vec![
-        event("e0", AuditEventKind::ConstraintLeaseGranted, &plan).with_leases(vec![
+        event("e0", CausalProtocolEventKind::ConstraintLeaseGranted, &plan).with_leases(vec![
             exclusive_lease("lease_a", "environment:staging", &plan),
         ]),
-        event("e1", AuditEventKind::ConstraintLeaseGranted, &plan).with_leases(vec![
+        event("e1", CausalProtocolEventKind::ConstraintLeaseGranted, &plan).with_leases(vec![
             exclusive_lease("lease_b", "environment:staging", &plan),
         ]),
     ];
@@ -722,12 +726,19 @@ fn detects_conflicting_exclusive_leases() -> Result<(), ReplayError> {
 fn detects_release_by_wrong_lease_id() -> Result<(), ReplayError> {
     let plan = plan_hash('1')?;
     let events = vec![
-        event("e0", AuditEventKind::ConstraintLeaseGranted, &plan).with_leases(vec![
+        event("e0", CausalProtocolEventKind::ConstraintLeaseGranted, &plan).with_leases(vec![
             exclusive_lease("lease_a", "environment:staging", &plan),
         ]),
-        event("e1", AuditEventKind::ConstraintLeaseReleased, &plan).with_leases(vec![
-            exclusive_lease("lease_b", "environment:staging", &plan),
-        ]),
+        event(
+            "e1",
+            CausalProtocolEventKind::ConstraintLeaseReleased,
+            &plan,
+        )
+        .with_leases(vec![exclusive_lease(
+            "lease_b",
+            "environment:staging",
+            &plan,
+        )]),
     ];
     assert!(matches!(verify_events(&events), Err(ReplayError::Lease(_))));
     Ok(())

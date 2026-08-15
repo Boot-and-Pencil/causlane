@@ -134,7 +134,7 @@ pub struct FormalWitnessRequirement {
     pub requirement_id: String,
     /// Target lifecycle stage.
     pub target_stage: String,
-    /// Required audit event kind.
+    /// Required causal protocol event kind.
     pub event_kind: String,
     /// Required producer predicate.
     pub producer_predicate: String,
